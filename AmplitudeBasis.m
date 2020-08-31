@@ -1,9 +1,19 @@
 (* ::Package:: *)
 
 (* ::Input::Initialization:: *)
-$GroupMathDirectory="GroupMath";
+$AmplitudeBasisDir = FileNameDrop[$InputFileName,-1];
 BeginPackage["AmplitudeBasis`"]
-<<"GroupMath`GroupMath`"
+$GroupMathPackages={FileNameJoin[{Global`$AmplitudeBasisDir,"GroupMath","GenericTools.m"}],FileNameJoin[{Global`$AmplitudeBasisDir,"GroupMath","LieAlgebras.m"}],FileNameJoin[{Global`$AmplitudeBasisDir,"GroupMath","PermutationGroup.m"}]}
+
+(* Useful Lie groups in GroupMath *)
+{U1,SU2,SU3,SU4,SU5,SU6};
+
+(* Useful Functions in GroupMath *)
+{DimR,Adjoint,SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN,ReduceRepProductBase1,ReduceRepProductBase2,HookContentFormula};
+
+Begin["`Private`"]
+Get/@$GroupMathPackages;
+End[];
 
 
 (* ::Subsection::Initialization:: *)
@@ -100,11 +110,11 @@ basisReduce::input="wrong input matrix: `1`";
 
 
 (* ::Item::Initialization:: *)
-(*(*Macro Parameter -- permutationBasis*)*)
+(*Macro Parameter -- permutationBasis*)
 
 
 (* ::Item::Initialization:: *)
-(*(*GroupMath -- DimR, SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN, GroupMath`Private`ReduceRepProductBase1, GroupMath`Private`ReduceRepProductBase2*)*)
+(*GroupMath -- DimR, SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN, ReduceRepProductBase1, ReduceRepProductBase2*)
 
 
 (* ::Input::Initialization:: *)
@@ -167,6 +177,7 @@ Do[plist=(Position[t1,#]&/@t2[[i]])[[1;;-1,1,2]];If[(SortBy[Tally[plist],Last])[
 ]
 
 
+(* ::Input::Initialization:: *)
 (* basis Subscript[b, \[Mu]\[Nu]] for Sn irrep space *)
 Generateb[part_]:=Module[{Pnumu,Qnumu,Rnumu,ymu,e,b,ndim=SnIrrepDim[part],n=Total[part],ng=Total[part]!,ST,YSlist,PQtemp,e1coeff,gP,gW},
 ST=GenerateStandardTableaux[part];
@@ -241,7 +252,7 @@ Yng2Dynk[group_,yng_]:=-Differences@PadRight[yng,Length[group]+1]
 (* ::Input::Initialization:: *)
 (* Modification of the GroupMath MyRepProduct *)
 MyRepProduct[cm_,repsList_,select_:Identity]:=MyRepProduct[cm,repsList,select]=Module[{n,orderedList,result},
-If[cm==U1,Return[{{Plus@@repsList,1}}]];If[Length[repsList]==1,Return[{{repsList[[1]],1}}]];orderedList=Sort[repsList,DimR[cm,#1]<DimR[cm,#2]&];n=Length[orderedList];result=GroupMath`Private`ReduceRepProductBase2[cm,orderedList[[n-1]],orderedList[[n]]];Do[result=GroupMath`Private`ReduceRepProductBase1[cm,orderedList[[n-i]],select@result];,{i,2,n-1}];Return[result];]
+If[cm==U1,Return[{{Plus@@repsList,1}}]];If[Length[repsList]==1,Return[{{repsList[[1]],1}}]];orderedList=Sort[repsList,DimR[cm,#1]<DimR[cm,#2]&];n=Length[orderedList];result=ReduceRepProductBase2[cm,orderedList[[n-1]],orderedList[[n]]];Do[result=ReduceRepProductBase1[cm,orderedList[[n-i]],select@result];,{i,2,n-1}];Return[result];]
 
 FindIrrepCombination[group_,IPlist_,rep_]:=FindIrrepCombination[group,IPlist,rep]=
 (*IPlist is a list of {__,__}, where the first slot is the Dykin coefficient of the corresponding representation, the second slot is the number of this representation*)
@@ -264,7 +275,7 @@ SNirrep=Table[Cases[PlethysmsNlist[[i]],{IrrepListAmongNIP[[#]][[i]],x_,y_}:>{x,
 
 
 (* ::Item::Initialization:: *)
-(*(*Macro Parameter -- reduceTry*)*)
+(*Macro Parameter -- reduceTry*)
 
 
 (* ::Input::Initialization:: *)
@@ -419,19 +430,19 @@ MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
 
 
 (* ::Item::Initialization:: *)
-(*(*Macro Parameter -- maxhelicity*)*)
+(*Macro Parameter -- maxhelicity*)
 
 
 (* ::Item::Initialization:: *)
-(*(*GroupMath -- DimR, Adjoint*)*)
+(*GroupMath -- DimR, Adjoint*)
 
 
 (* ::Item::Initialization:: *)
-(*(*General -- Prod2List, tAssumptions, MyRepProduct*)*)
+(*General -- Prod2List, tAssumptions, MyRepProduct*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Amplitude Basis -- LorentzList*)*)
+(*Amplitude Basis -- LorentzList*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
@@ -544,23 +555,23 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 (* ::Item::Initialization:: *)
-(*(*GroupMath -- SnIrrepDim*)*)
+(*GroupMath -- SnIrrepDim*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Linear Algebra -- Prod2List, basisReduce, FindCor*)*)
+(*Linear Algebra -- Prod2List, basisReduce, FindCor*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Permutation Group -- pp, YO*)*)
+(*Permutation Group -- pp, YO*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Amplitude -- ab, sb, Pm, reduce, SSYT*)*)
+(*Amplitude -- ab, sb, Pm, reduce, SSYT*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)*)
+(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
@@ -800,11 +811,11 @@ coefbasis=FindCor[reduce[#,Length[state]],spinorbasis]&/@(Amp[#]&/@operbasis);ba
 
 
 (* ::Item::Initialization:: *)
-(*(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)*)
+(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)
 
 
 (* ::Item::Initialization:: *)
-(*(*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)*)
+(*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
