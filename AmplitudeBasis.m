@@ -17,7 +17,7 @@ End[];
 
 
 (* ::Subsection::Initialization:: *)
-(*Macro Parameters*)
+(*Configure*)
 
 
 (* ::Input::Initialization:: *)
@@ -54,11 +54,11 @@ err::unknown="`1` -- unrecognized mode/parameter";
 
 
 (* ::Subsection::Initialization:: *)
-(*General Tools*)
+(*(*General Tools*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*Linear Algebra*)
+(*(*Linear Algebra*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -106,15 +106,15 @@ basisReduce::input="wrong input matrix: `1`";
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*Permutation Group*)
+(*(*Permutation Group*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Macro Parameter -- permutationBasis*)
+(*(*Macro Parameter -- permutationBasis*)*)
 
 
 (* ::Item::Initialization:: *)
-(*GroupMath -- DimR, SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN, ReduceRepProductBase1, ReduceRepProductBase2*)
+(*(*GroupMath -- DimR, SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN, ReduceRepProductBase1, ReduceRepProductBase2*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -271,11 +271,11 @@ SNirrep=Table[Cases[PlethysmsNlist[[i]],{IrrepListAmongNIP[[#]][[i]],x_,y_}:>{x,
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*Amplitude*)
+(*(*Amplitude*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Macro Parameter -- reduceTry*)
+(*(*Macro Parameter -- reduceTry*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -426,27 +426,27 @@ MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
 
 
 (* ::Subsection::Initialization:: *)
-(*Model Input*)
+(*(*Model Input*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Macro Parameter -- maxhelicity*)
+(*(*Macro Parameter -- maxhelicity*)*)
 
 
 (* ::Item::Initialization:: *)
-(*GroupMath -- DimR, Adjoint*)
+(*(*GroupMath -- DimR, Adjoint*)*)
 
 
 (* ::Item::Initialization:: *)
-(*General -- Prod2List, tAssumptions, MyRepProduct*)
+(*(*General -- Prod2List, tAssumptions, MyRepProduct*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Amplitude Basis -- LorentzList*)
+(*(*Amplitude Basis -- LorentzList*)*)
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*Functions*)
+(* ::Subsubsection::Initialization:: *)
+(*(*Functions*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -459,12 +459,20 @@ SingletQ[group_,{rep__?NumericQ}]:=Plus[rep]==0 (* for Abelian groups *)
 RepConj[rep_List]:=Reverse[rep] (* for non-Abelian reps *)
 RepConj[charge_?NumericQ]:=-charge (* for Abelian charges *)
 Conj[field_String]:=If[StringTake[field,-1]=="\[Dagger]",StringDrop[field,-1],field<>"\[Dagger]"]
-realQ[type_]:=Module[{flist=BreakString[type]},
-ContainsExactly[flist,MapAt[Conj,flist,{All,1}]]
-]
+Conj["D"]="D"
+realQ[type_]:=Module[{flist=Prod2List[type]},TrueQ[flist==Sort[Conj/@flist]]]
 nonAbelian[groupin_]:=Length[ToExpression[StringDrop[groupin,-1]]]>0 (* judge if a group is non-Abelian *)
 Singlet[group_]:=Replace[group,_List->0,{Depth[group]-2}]
-BreakString[type_]:=Tally@DeleteCases[Prod2List[type],"D"](* list of {fieldname, multiplicity} in type *)
+(* BreakString[type_]:=Tally@DeleteCases[Prod2List[type],"D"] list of {fieldname, multiplicity} in type *)
+CheckType[model_,type_,OptionsPattern[]]:=Module[{flist=DeleteCases[Prod2List[type],"D"],inModel},
+inModel=KeyExistsQ[model,#]&/@flist;
+If[Nand@@inModel,Message[CheckType::unknown,type];Abort[]];
+If[OptionValue[Sorted],flist=SortBy[flist,model[#][helicity]&]];
+If[OptionValue[Counting],flist=Tally[flist]];
+Return[flist];
+]
+Options[CheckType]={Sorted->True, Counting->True};
+CheckType::unknown="unrecognized fields in type `1`";
 
 (* Names for Abstract Fields *)
 h2f=<|-1->FL,-1/2->\[Psi]L,0->\[Phi],1/2->\[Psi]R,1->FR|>;state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
@@ -542,40 +550,40 @@ GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
 (* Global Charge Analysis *)
 BminusL[model_,types_]:=
 Module[{},
-GroupBy[Flatten@types,(Abs@Total[Times@@@MapAt[(model[#]["Baryon"]-model[#]["Lepton"])&,BreakString[#],{All,1}]])&]
+GroupBy[Flatten@types,(Abs@Total[Times@@@MapAt[(model[#]["Baryon"]-model[#]["Lepton"])&,CheckType[model,#],{All,1}]])&]
 ]
 BLofAll[model_,dim_]:=Module[{types},types=Flatten@AllTypesC[model,dim];
-GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"]}&,BreakString[#],{All,1}]])&]
+GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"]}&,CheckType[model,#],{All,1}]])&]
 ]
 
 
 
 (* ::Subsection::Initialization:: *)
-(*Lorentz Basis*)
+(*(*Lorentz Basis*)*)
 
 
 (* ::Item::Initialization:: *)
-(*GroupMath -- SnIrrepDim*)
+(*(*GroupMath -- SnIrrepDim*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Linear Algebra -- Prod2List, basisReduce, FindCor*)
+(*(*Linear Algebra -- Prod2List, basisReduce, FindCor*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Permutation Group -- pp, YO*)
+(*(*Permutation Group -- pp, YO*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Amplitude -- ab, sb, Pm, reduce, SSYT*)
+(*(*Amplitude -- ab, sb, Pm, reduce, SSYT*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)
+(*(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*Functions*)
+(*(*Functions*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -657,7 +665,7 @@ Map[Expand[OpBasis.Inverse[amp2op["Trans"]]\[Transpose].#]&,resultCor,{2+Length[
 ] 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Amplitude To Operators*)
 
 
@@ -778,7 +786,7 @@ Options[OperPoly]={firstF->0,FerCom->2,LorForm->True,Dcontract->True};
 
 
 (* ::Input::Initialization:: *)
-Oper[model_,type_,A_,OptionsPattern[]]:=Module[{oper,fieldlist=SortBy[Join@@ConstantArray@@@BreakString[type],model[#][helicity]&],n,ph1,phn1,FirstF,fieldreplace},fieldlist=Cases[fieldlist,Except["D"]];n=Length[fieldlist];(**************************)phn1=Position[model[#][helicity]&/@fieldlist,-1]//Flatten;ph1=Position[model[#][helicity]&/@fieldlist,1]//Flatten;If[phn1\[Union]ph1!={},FirstF=(phn1\[Union]ph1)[[1]],FirstF=0];If[OptionValue[ReplaceField]&&!OptionValue[toAmp],If[OptionValue[FerCom]===4&&OptionValue[LorForm],fieldreplace=groupindex4com[model,fieldlist],fieldreplace=groupindex[model,fieldlist]],fieldreplace={}];If[OptionValue[toAmp],oper=OperPoly[A,n,firstF->FirstF,Dcontract->False],oper=OperPoly[A,n,firstF->FirstF,FerCom->OptionValue[FerCom],LorForm->OptionValue[LorForm]]//.fieldreplace//.listtotime]]
+Oper[model_,type_,A_,OptionsPattern[]]:=Module[{oper,fieldlist=CheckType[model,type,Counting->False],n,ph1,phn1,FirstF,fieldreplace},fieldlist=Cases[fieldlist,Except["D"]];n=Length[fieldlist];(**************************)phn1=Position[model[#][helicity]&/@fieldlist,-1]//Flatten;ph1=Position[model[#][helicity]&/@fieldlist,1]//Flatten;If[phn1\[Union]ph1!={},FirstF=(phn1\[Union]ph1)[[1]],FirstF=0];If[OptionValue[ReplaceField]&&!OptionValue[toAmp],If[OptionValue[FerCom]===4&&OptionValue[LorForm],fieldreplace=groupindex4com[model,fieldlist],fieldreplace=groupindex[model,fieldlist]],fieldreplace={}];If[OptionValue[toAmp],oper=OperPoly[A,n,firstF->FirstF,Dcontract->False],oper=OperPoly[A,n,firstF->FirstF,FerCom->OptionValue[FerCom],LorForm->OptionValue[LorForm]]//.fieldreplace//.listtotime]]
 Options[Oper]={FerCom->4,ReplaceField->True,LorForm->True,toAmp->False};
 
 
@@ -807,19 +815,19 @@ coefbasis=FindCor[reduce[#,Length[state]],spinorbasis]&/@(Amp[#]&/@operbasis);ba
 
 
 (* ::Subsection::Initialization:: *)
-(*Gauge Group Factor*)
+(*(*Gauge Group Factor*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)
+(*(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)*)
 
 
 (* ::Item::Initialization:: *)
-(*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)
+(*(*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*General Functions*)
+(*(*General Functions*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -1106,8 +1114,8 @@ result
 
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*SU (2) and SU (3)*)
+(* ::Subsubsection::Initialization:: *)
+(*(*SU (2) and SU (3)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -1450,7 +1458,7 @@ GetMultiAuX[input_]:=MapAt[input[[-1]]*#&,Transpose[{#[[1;;-1,1]],Times@@#[[1;;-
 
 (*Get the list of SU3 and SU2 group factor for a given type in different bases*)
 GenerateSU3[model_,type_]:=Module[{flist,repeatlist,ruleRP,ruleLRRP,convertfactor,SUNreplist,nonsinglets,repeatnonsinglets,repeatsinglets,displacements,Irreplist,SNCollections,nonSingletSN,fieldcombs,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,indexlist,qr,tdims,ct1=0,ct2=0,ct3=0,ct4=0,coords},
-flist=SortBy[BreakString[type],model[#[[1]]][helicity]&];
+flist=CheckType[model,type];
 ruleRP=GenerateReplacingRule[model,flist,ct1,ct2,ct3,ct4];
 convertfactor=Times@@(ConvertFactor[model,SU3,#]&/@flist);
 SUNreplist={#[[2]],model[#[[1]]]["SU3c"],#[[1]]}&/@flist;
@@ -1486,7 +1494,7 @@ coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasi
 ]
 
 GenerateSU2[model_,type_]:=Module[{flist,repeatlist,ruleRP,ruleLRRP,convertfactor,SUNreplist,nonsinglets,repeatnonsinglets,repeatsinglets,displacements,Irreplist,SNCollections,nonSingletSN,fieldcombs,YDbasis,MbasisAll,Mbasis,tMbasisAll,tMbasis,vMbasisAll,vMbasis,indexlist,qr,tdims,ct1=0,ct2=0,ct3=0,ct4=0,coords},
-flist=SortBy[BreakString[type],model[#[[1]]][helicity]&];
+flist=CheckType[model,type];
 ruleRP=GenerateReplacingRule[model,flist,ct1,ct2,ct3,ct4];
 convertfactor=Times@@(ConvertFactor[model,SU2,#]&/@flist);
 SUNreplist={#[[2]],model[#[[1]]]["SU2w"],#[[1]]}&/@flist;
@@ -1519,32 +1527,36 @@ coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasi
 ]
 
 
+(* ::Subsection:: *)
+(*Output Formating*)
+
+
 (* ::Subsection::Initialization:: *)
-(*Model Analysis*)
+(*(*Model Analysis*)*)
 
 
 (* ::Item::Initialization:: *)
-(*GroupMath -- HookContentFormula, DrawYoungDiagram*)
+(*(*GroupMath -- HookContentFormula, DrawYoungDiagram*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Permutation Group -- GetCGCM*)
+(*(*Permutation Group -- GetCGCM*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Model Input -- BreakString, state2class*)
+(*(*Model Input -- BreakString, state2class*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Lorentz Basis -- LorentzBasisForType, LorentzList*)
+(*(*Lorentz Basis -- LorentzBasisForType, LorentzList*)*)
 
 
 (* ::Item::Initialization:: *)
-(*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)
+(*(*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)*)
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*Functions*)
+(* ::Subsubsection::Initialization:: *)
+(*(*Functions*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -1583,7 +1595,7 @@ SQ[model_]:=Not@TrueQ[model[#1][nfl]<Length[#2]]&
 (* ::Input::Initialization:: *)
 Options[Type2TermsPro]={OutputFormat->"operator",FerCom->2,deSym->True,flavorTensor->True};
 Type2TermsPro[model_,type_,OptionsPattern[]]:=Module[{flist,len,lorentzB,groupB,nFac,basisTotal,SymComb,terms,indexCG,indexFac,pairContraction,rows,cols},
-flist=SortBy[BreakString[type],model[#[[1]]][helicity]&];
+flist=CheckType[model,type];
 lorentzB=LorentzBasisForType[model,type,OutputFormat->OptionValue[OutputFormat],FerCom->OptionValue[FerCom],Coord->True];
 len=Length[Keys[lorentzB[coord]][[1]]];(*num of repeated fields*)
 groupB=Through[{GenerateSU3,GenerateSU2}[model,type]];(*GetGroupFactor[model,#,type]&/@Select[model[Gauge],nonAbelian];*)
@@ -1647,7 +1659,7 @@ GenerateOperatorList[model_,types_List,OptionsPattern[]]:=DeleteCases[<||>]@Asso
 (*********** present the result *****************)
 
 (* # operators per term *)
-Slist[model_,type_,terms_]:=Module[{flist=BreakString[type],n1,n2},
+Slist[model_,type_,terms_]:=Module[{flist=CheckType[model,type],n1,n2},
 n1=Times@@(model[#][nfl]&/@Cases[flist,{_String,1}][[All,1]]); (* single fields with S=nflavor *)
 n2=Times@@@(KeyValueMap[HookContentFormula[#2,model[#1][nfl]]&,Association@@#]&/@Keys[terms]); (* repfields with non-trivial symmetry *)
 n1*n2
