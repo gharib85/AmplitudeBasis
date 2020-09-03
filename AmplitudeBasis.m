@@ -17,7 +17,7 @@ End[];
 
 
 (* ::Subsection::Initialization:: *)
-(*Configure*)
+(*(*Configure*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -54,11 +54,11 @@ err::unknown="`1` -- unrecognized mode/parameter";
 
 
 (* ::Subsection::Initialization:: *)
-(*(*General Tools*)*)
+(*(*(*General Tools*)*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*Linear Algebra*)*)
+(*(*(*Linear Algebra*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -106,15 +106,15 @@ basisReduce::input="wrong input matrix: `1`";
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*Permutation Group*)*)
+(*(*(*Permutation Group*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Macro Parameter -- permutationBasis*)*)
+(*(*(*Macro Parameter -- permutationBasis*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*GroupMath -- DimR, SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN, ReduceRepProductBase1, ReduceRepProductBase2*)*)
+(*(*(*GroupMath -- DimR, SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN, ReduceRepProductBase1, ReduceRepProductBase2*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -271,11 +271,11 @@ SNirrep=Table[Cases[PlethysmsNlist[[i]],{IrrepListAmongNIP[[#]][[i]],x_,y_}:>{x,
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*Amplitude*)*)
+(*(*(*Amplitude*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Macro Parameter -- reduceTry*)*)
+(*(*(*Macro Parameter -- reduceTry*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -426,27 +426,27 @@ MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
 
 
 (* ::Subsection::Initialization:: *)
-(*(*Model Input*)*)
+(*(*(*Model Input*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Macro Parameter -- maxhelicity*)*)
+(*(*(*Macro Parameter -- maxhelicity*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*GroupMath -- DimR, Adjoint*)*)
+(*(*(*GroupMath -- DimR, Adjoint*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*General -- Prod2List, tAssumptions, MyRepProduct*)*)
+(*(*(*General -- Prod2List, tAssumptions, MyRepProduct*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Amplitude Basis -- LorentzList*)*)
+(*(*(*Amplitude Basis -- LorentzList*)*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*Functions*)*)
+(*(*(*Functions*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -558,31 +558,31 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 (* ::Subsection::Initialization:: *)
-(*(*Lorentz Basis*)*)
+(*(*(*Lorentz Basis*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*GroupMath -- SnIrrepDim*)*)
+(*(*(*GroupMath -- SnIrrepDim*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Linear Algebra -- Prod2List, basisReduce, FindCor*)*)
+(*(*(*Linear Algebra -- Prod2List, basisReduce, FindCor*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Permutation Group -- pp, YO*)*)
+(*(*(*Permutation Group -- pp, YO*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Amplitude -- ab, sb, Pm, reduce, SSYT*)*)
+(*(*(*Amplitude -- ab, sb, Pm, reduce, SSYT*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)*)
+(*(*(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)*)*)
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*(*Functions*)*)
+(* ::Subsubsection::Initialization:: *)
+(*(*(*Functions*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -671,6 +671,7 @@ state=model[#][helicity]&/@particles;
 Num=Length[state];
 grank=If[Num>3,Num-2,Num];
 {nt,n}=yngShape[state,k]; (* young tab info *)
+If[nt==0&&n==0,Return[<|Normal[{Length[#]}&/@RepFields]->1|>]];
 group=ToExpression["SU"<>ToString[grank]];
 rep=Yng2Dynk[group,Length/@(YDzero[Num,nt,n]//TransposeTableau)]; (* target irrep *)
 irrepComb=FindIrrepCombination[group,MapThread[{PadRight[Count[Flatten@Table[ConstantArray[i,nt-2state[[i]]],{i,Num}],#]&/@FirstPosition[particles,#1],grank-1],#2}&,Tally[particles]\[Transpose]],rep][[2;;]]\[Transpose]; (* Main step: apply FindIrrepCombination *)
@@ -829,19 +830,19 @@ coefbasis=FindCor[reduce[#,Length[state]],spinorbasis]&/@(Amp[#]&/@operbasis);ba
 
 
 (* ::Subsection::Initialization:: *)
-(*(*Gauge Group Factor*)*)
+(*(*(*Gauge Group Factor*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)*)
+(*(*(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)*)
+(*(*(*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*General Functions*)*)
+(*(*(*General Functions*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -1140,7 +1141,7 @@ Return[KeyMap[MapThread[Rule,{repfs,#}]&,sym]](* attach repeated field names *)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*SU (2) and SU (3)*)*)
+(*(*(*SU (2) and SU (3)*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -1557,31 +1558,31 @@ coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasi
 
 
 (* ::Subsection::Initialization:: *)
-(*(*Model Analysis*)*)
+(*(*(*Model Analysis*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*GroupMath -- HookContentFormula, DrawYoungDiagram*)*)
+(*(*(*GroupMath -- HookContentFormula, DrawYoungDiagram*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Permutation Group -- GetCGCM*)*)
+(*(*(*Permutation Group -- GetCGCM*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Model Input -- BreakString, state2class*)*)
+(*(*(*Model Input -- BreakString, state2class*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Lorentz Basis -- LorentzBasisForType, LorentzList*)*)
+(*(*(*Lorentz Basis -- LorentzBasisForType, LorentzList*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)*)
+(*(*(*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*Functions*)*)
+(*(*(*Functions*)*)*)
 
 
 (* ::Input::Initialization:: *)
