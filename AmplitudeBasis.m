@@ -203,8 +203,8 @@ n\[Sigma]/nG Sum[
 Inverse[(matmap[\[Sigma]][ge[[g]]])][[k,l]] Times@@(Sum[#2[i]((matmap[#1][ge[[g]]])[[i,#3]]),{i,1,#4}]&@@@Transpose[{snreplist,symbollist,indiceslist,nlist}])
 ,{g,1,nG}]
 ]
-GetCGCM[replist_,matmap_:0]:=Module[{n=Total@First@replist,mat,result={},intpart,listreppos,listrep,listirrepdim,multiplicity,listdim,symbollist,indiceslist,listbasis,irrepbasis,multicount,rank,cglist,cglistn,ranktemp},
 
+GetCGCM[replist_,matmap_:0]:=Module[{n=Total@First@replist,mat,result={},intpart,listreppos,listrep,listirrepdim,multiplicity,listdim,symbollist,indiceslist,listbasis,irrepbasis,multicount,rank,cglist,cglistn,ranktemp},
 If[matmap===0,ReadMatrices[mat,n,NotebookDirectory[]<>"SnMat"],mat=matmap];
 intpart=IntegerPartitions[n]; (* list of Sn irrep *)
 listreppos=Position[intpart,#][[1,1]]&/@replist;
@@ -242,7 +242,7 @@ ac=Prepend[Accumulate[p],0];
 Table[Take[X,{ac[[i]]+1,ac[[i+1]]}],{i,Length[p]}]
 ]
 
-TransposeTableau[yt_]:=DeleteCases[#,0]&/@Transpose[PadRight[#,Length[yt[[1]]]]&/@yt]
+TransposeTableau[yt_]:=DeleteCases[#,"x"]&/@Transpose[PadRight[#,Length[yt[[1]]],"x"]&/@yt]
 TransposeYng[yng_]:=Length/@TransposeTableau[Range/@yng]
 
 Dynk2Yng[rep_]:=Reverse@Accumulate@Reverse[rep]
@@ -445,7 +445,7 @@ MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
 (*(*Amplitude Basis -- LorentzList*)*)
 
 
-(* ::Subsubsection::Initialization:: *)
+(* ::Subsubsection::Initialization::Closed:: *)
 (*(*Functions*)*)
 
 
@@ -463,7 +463,6 @@ Conj["D"]="D"
 realQ[type_]:=Module[{flist=Prod2List[type]},TrueQ[flist==Sort[Conj/@flist]]]
 nonAbelian[groupin_]:=Length[ToExpression[StringDrop[groupin,-1]]]>0 (* judge if a group is non-Abelian *)
 Singlet[group_]:=Replace[group,_List->0,{Depth[group]-2}]
-(* BreakString[type_]:=Tally@DeleteCases[Prod2List[type],"D"] list of {fieldname, multiplicity} in type *)
 CheckType[model_,type_,OptionsPattern[]]:=Module[{flist=DeleteCases[Prod2List[type],"D"],inModel},
 inModel=KeyExistsQ[model,#]&/@flist;
 If[Nand@@inModel,Message[CheckType::unknown,type];Abort[]];
@@ -664,8 +663,23 @@ Map[Expand[OpBasis.Inverse[amp2op["Trans"]]\[Transpose].#]&,resultCor,{2+Length[
 ]
 ] 
 
+LorentzCountForType[model_,type_]:=Module[{particles,k,state,RepFields,Num,grank,group,X,p,rep,irrepComb,AllSym},
+particles=CheckType[model,type,Counting->False];
+k=Exponent[type,"D"];
+RepFields=Select[PositionIndex[particles],Length[#]>1&];
+state=model[#][helicity]&/@particles;
+Num=Length[state];
+grank=If[Num>3,Num-2,Num];
+{nt,n}=yngShape[state,k]; (* young tab info *)
+group=ToExpression["SU"<>ToString[grank]];
+rep=Yng2Dynk[group,Length/@(YDzero[Num,nt,n]//TransposeTableau)]; (* target irrep *)
+irrepComb=FindIrrepCombination[group,MapThread[{PadRight[Count[Flatten@Table[ConstantArray[i,nt-2state[[i]]],{i,Num}],#]&/@FirstPosition[particles,#1],grank-1],#2}&,Tally[particles]\[Transpose]],rep][[2;;]]\[Transpose]; (* Main step: apply FindIrrepCombination *)
+AllSym=Flatten[ConstantArray[Distribute[Join@@@Apply[ConstantArray,#1,{2}],List],#2]&@@@irrepComb,2]/.{1}->Nothing; (* list all combinations of syms *)
+KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thread[Keys[RepFields]->#]&/@AllSym]]]  (* counting and form association, taking transposition of young diagrams when #\[Epsilon] is odd *)
+]
 
-(* ::Subsubsection:: *)
+
+(* ::Subsubsection::Closed:: *)
 (*Amplitude To Operators*)
 
 
@@ -911,6 +925,7 @@ FillYD[fdl,fdlstr,tdiag1,tdiag1str,ldiag2[[2;;-1]],ldiag2str[[2;;-1]],fdiag,n];
 SetAttributes[FillYD,HoldAll];
 
 
+(* ::Input::Initialization:: *)
 LRrule2[yt1_,yt2_,fdiag_,n_]:=Module[{fdl={},fdlstr={},ldiag2=Flatten[Table[i&/@yt2[[i]],{i,1,Length[yt2]}]],ldiag2str=Flatten[yt2]},
 FillYD[fdl,fdlstr,yt1,yt1,ldiag2,ldiag2str,fdiag,n];fdlstr]
 
@@ -1112,9 +1127,19 @@ i++;
 result
 ]
 
+CountGroupFactor[model_,groupin_,type_]:=Module[{flist=CheckType[model,type],group=ToExpression[StringDrop[groupin,-1]],repfs,relist,sym},
+repfs=Cases[flist,{name_String,x_/;x>1}:>name];
+relist=FindIrrepCombination[group,MapAt[model[#][groupin]&,#,1]&/@flist,ConstantArray[0,Length[group]]];(* apply FindIrrepCombination *)
+sym={DeleteCases[#[[All,1]],{1}],Times@@#[[All,2]]}&/@Distribute[#,List]&/@relist[[2]]; (* collect multiplicity for SUN combinations respectively *)
+sym=Join@@MapThread[MapAt[Function[x,#2 x],#1,{All,2}]&,{sym,relist[[3]]}]; 
+sym=Merge[Rule@@@sym,Apply[Plus]];(* combine multiplicity from SUM combinations *)
+
+Return[KeyMap[MapThread[Rule,{repfs,#}]&,sym]](* attach repeated field names *)
+]
 
 
-(* ::Subsubsection::Initialization:: *)
+
+(* ::Subsubsection::Initialization::Closed:: *)
 (*(*SU (2) and SU (3)*)*)
 
 
@@ -1555,7 +1580,7 @@ coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasi
 (*(*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)*)
 
 
-(* ::Subsubsection::Initialization:: *)
+(* ::Subsubsection::Initialization::Closed:: *)
 (*(*Functions*)*)
 
 
@@ -1632,6 +1657,19 @@ If[OptionValue[flavorTensor],terms=KeyMap[Select[Join[#,#->{1}&/@Cases[flist,{x_
 Return[terms];
 ]
 
+SnDecompose[replist_]:=Join@@MapThread[ConstantArray,{IntegerPartitions[Total@First@replist],DecomposeSnProduct[replist]}]
+Type2TermsCount[model_,type_]:=Module[{len,lorentzB,groupB,nFac,SymComb,terms,pairContraction},
+lorentzB=LorentzCountForType[model,type];
+len=Length[Keys[lorentzB][[1]]]; (* num of repeated fields *)
+groupB=CountGroupFactor[model,#,type]&/@Select[model[Gauge],nonAbelian];
+nFac=Length[groupB]+1; (* number of factors to do Inner Product Decomposition for Sn groups *)
+SymComb=Distribute[Normal/@Prepend[groupB,lorentzB],List];
+terms=Join@@(ConstantArray[Merge[Keys[#],SnDecompose],Times@@Values[#]]&/@SymComb);
+terms=Association[Rule@@@Tally[Join@@(Distribute[Thread/@Normal[#],List]&/@terms)]];
+terms=KeyMap[Switch[model[#[[1]]][stat],"boson",#,"fermion",MapAt[TransposeYng,#,2]]&/@#&,terms]; (* impose spin-statistics to get flavor sym *)
+KeySelect[terms,And@@#/.Rule->SQ[model]&] (* remove flavor syms not allowed by nflavor *)
+]
+
 
 (* ::Input::Initialization:: *)
 Options[GenerateOperatorList]={ShowClass->True,T2TOptions->{}};
@@ -1655,15 +1693,48 @@ Return[assoc];
 GenerateOperatorList[model_,types_List,OptionsPattern[]]:=DeleteCases[<||>]@AssociationMap[Type2TermsPro[model,#,Sequence@@OptionValue[T2TOptions]]&,types]
 
 
-(* ::Input::Initialization:: *)
-(*********** present the result *****************)
-
 (* # operators per term *)
 Slist[model_,type_,terms_]:=Module[{flist=CheckType[model,type],n1,n2},
 n1=Times@@(model[#][nfl]&/@Cases[flist,{_String,1}][[All,1]]); (* single fields with S=nflavor *)
 n2=Times@@@(KeyValueMap[HookContentFormula[#2,model[#1][nfl]]&,Association@@#]&/@Keys[terms]); (* repfields with non-trivial symmetry *)
 n1*n2
 ]
+
+(* show all counting result *)
+StatResult[model_,types_List,OptionsPattern[]]:=Module[{start,file=OptionValue[OutFile],i=1,type,len=Length[types],timelist={},terms={},time,term,nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR},
+If[file!="null"&&!FileExistsQ[file],Put["Counting Operators ...",file]];
+start=SessionTime[];
+If[OptionValue[Progress],Print[Dynamic[i],"/",len,"   ",Dynamic[type]]];
+Do[i++;
+{time,term}=Timing@Type2TermsCount[model,type];
+AppendTo[timelist,time];
+AppendTo[terms,term];
+If[FileExistsQ[file],PutAppend[term,file]];
+,{type,types}];
+nTermList=Values/@terms;
+posR=Complement[Position[realQ/@types,True],Position[nTermList,{}]];
+nTypes=Length@Cases[nTermList,Except[{}]];
+Print["number of real types: ",2nTypes-Length[posR]];
+nTermsR=Total@MapAt[#/2&,2Total/@nTermList,posR];
+Print["number of real terms: ",nTermsR];
+SList=MapThread[Slist[model,#1,#2]&,{types,terms}];
+nOpers=MapThread[Dot,{nTermList,SList}];
+nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
+Print["number of real operators: ",nOpersR];
+Print["total time used: ",SessionTime[]-start];
+Return[timelist];
+]
+Options[StatResult]={OutFile->"null",Progress->False};
+StatResult[model_,dim_Integer,OptionsPattern[]]:=Module[{types},
+Print["-----------------------"];
+Print["Enumerating dim ",dim," operators ..."];
+types=Flatten@AllTypesC[model,dim];
+StatResult[model,types,OutFile->OptionValue[OutFile],Progress->OptionValue[Progress]]
+]
+
+
+(* ::Input::Initialization:: *)
+(*********** present the result *****************)
 
 (* present in notebook *)
 Options[Present]={MODEL->0};
