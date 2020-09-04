@@ -17,7 +17,7 @@ End[];
 
 
 (* ::Subsection::Initialization:: *)
-(*(*Configure*)*)
+(*(*(*Configure*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -41,30 +41,24 @@ reduceTry=20;
 
 
 (* ::Input::Initialization:: *)
-(* Special Definitions *)
-tAssumptions={};
-tReduce:=TensorReduce[#,Assumptions->tAssumptions]&;
-tRank:=TensorRank[#,Assumptions->tAssumptions]&;
-tDimensions:=TensorDimensions[#,Assumptions->tAssumptions]&;
-
-
-(* ::Input::Initialization:: *)
 (* messages *)
 err::unknown="`1` -- unrecognized mode/parameter";
 
 
 (* ::Subsection::Initialization:: *)
-(*(*(*General Tools*)*)*)
+(*(*(*(*General Tools*)*)*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*Linear Algebra*)*)*)
+(*(*(*(*Linear Algebra*)*)*)*)
 
 
 (* ::Input::Initialization:: *)
 Sum2List[x_Plus]:=List@@x
 Sum2List[x_:Except[Plus]]:=List@x
 Prod2List[x_]:=Flatten[{x}/.{Power->ConstantArray,Times->List}]
+SetAttributes[Distr,HoldFirst];
+Distr:=Distribute
 
 (* Separate numerical factors and symbolic factors of a monomial expression *)
 normalize[monoAmp_]:=Module[{F,result},
@@ -105,16 +99,24 @@ pos++];
 basisReduce::input="wrong input matrix: `1`";
 
 
+(* ::Input::Initialization:: *)
+(* Special Definitions *)
+tAssumptions={};
+tReduce:=TensorReduce[#,Assumptions->tAssumptions]&;
+tRank:=TensorRank[#,Assumptions->tAssumptions]&;
+tDimensions:=TensorDimensions[#,Assumptions->tAssumptions]&;
+
+
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*Permutation Group*)*)*)
+(*(*(*(*Permutation Group*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Macro Parameter -- permutationBasis*)*)*)
+(*(*(*(*Macro Parameter -- permutationBasis*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*GroupMath -- DimR, SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN, ReduceRepProductBase1, ReduceRepProductBase2*)*)*)
+(*(*(*(*GroupMath -- DimR, SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN, ReduceRepProductBase1, ReduceRepProductBase2*)*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -271,11 +273,11 @@ SNirrep=Table[Cases[PlethysmsNlist[[i]],{IrrepListAmongNIP[[#]][[i]],x_,y_}:>{x,
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*Amplitude*)*)*)
+(*(*(*(*Amplitude*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Macro Parameter -- reduceTry*)*)*)
+(*(*(*(*Macro Parameter -- reduceTry*)*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -426,27 +428,27 @@ MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
 
 
 (* ::Subsection::Initialization:: *)
-(*(*(*Model Input*)*)*)
+(*(*(*(*Model Input*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Macro Parameter -- maxhelicity*)*)*)
+(*(*(*(*Macro Parameter -- maxhelicity*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*GroupMath -- DimR, Adjoint*)*)*)
+(*(*(*(*GroupMath -- DimR, Adjoint*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*General -- Prod2List, tAssumptions, MyRepProduct*)*)*)
+(*(*(*(*General -- Prod2List, tAssumptions, MyRepProduct*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Amplitude Basis -- LorentzList*)*)*)
+(*(*(*(*Amplitude Basis -- LorentzList*)*)*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*Functions*)*)*)
+(*(*(*(*Functions*)*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -558,31 +560,31 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 (* ::Subsection::Initialization:: *)
-(*(*(*Lorentz Basis*)*)*)
+(*(*(*(*Lorentz Basis*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*GroupMath -- SnIrrepDim*)*)*)
+(*(*(*(*GroupMath -- SnIrrepDim*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Linear Algebra -- Prod2List, basisReduce, FindCor*)*)*)
+(*(*(*(*Linear Algebra -- Prod2List, basisReduce, FindCor*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Permutation Group -- pp, YO*)*)*)
+(*(*(*(*Permutation Group -- pp, YO*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Amplitude -- ab, sb, Pm, reduce, SSYT*)*)*)
+(*(*(*(*Amplitude -- ab, sb, Pm, reduce, SSYT*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)*)*)
+(*(*(*(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)*)*)*)
 
 
-(* ::Subsubsection::Initialization:: *)
-(*(*(*Functions*)*)*)
+(* ::Subsubsection::Initialization::Closed:: *)
+(*(*(*(*Functions*)*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -830,19 +832,19 @@ coefbasis=FindCor[reduce[#,Length[state]],spinorbasis]&/@(Amp[#]&/@operbasis);ba
 
 
 (* ::Subsection::Initialization:: *)
-(*(*(*Gauge Group Factor*)*)*)
+(*(*(*(*Gauge Group Factor*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)*)*)
+(*(*(*(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)*)*)
+(*(*(*(*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)*)*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*General Functions*)*)*)
+(*(*(*(*General Functions*)*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -1141,7 +1143,7 @@ Return[KeyMap[MapThread[Rule,{repfs,#}]&,sym]](* attach repeated field names *)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*SU (2) and SU (3)*)*)*)
+(*(*(*(*SU (2) and SU (3)*)*)*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -1558,31 +1560,81 @@ coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasi
 
 
 (* ::Subsection::Initialization:: *)
-(*(*(*Model Analysis*)*)*)
+(*W2 Operator*)
+
+
+(* ::Input::Initialization:: *)
+MM[I_,i_,j_,k_,l_]:=If[MemberQ[I,i]\[Xor]MemberQ[I,k],-1,1](ab[i,l]ab[j,k]+ab[i,k]ab[j,l])/4;
+MbMb[I_,i_,j_,k_,l_]:=If[MemberQ[I,i]\[Xor]MemberQ[I,k],-1,1](sb[i,l]sb[j,k]+sb[i,k]sb[j,l])/4;
+MMb[I_,i_,j_,k_,l_]:=-If[MemberQ[I,i]\[Xor]MemberQ[I,k],-1,1]Sum[(ab[m,i]ab[j,n]+ab[m,j]ab[i,n])(sb[m,k]sb[l,n]+sb[m,l]sb[k,n]),{m,I},{n,I}]/4//Simplify;
+Ptotal2[I_]:=(1/2)Sum[s[i,j],{i,I},{j,I}]
+
+W2[Ind_List]:=W2[#,Ind]&
+W2[Amp_Plus,Ind_List]:=W2[Ind]/@Amp
+W2[Amp:Except[Plus],Ind_List]:=Module[
+{list=Prod2List[Amp],f={},g={},x=1,lf=0,lg=0,i,j,sf,sg,sfg,P2},
+(* find bridges *)
+Map[Switch[Head[#],
+ab,If[MemberQ[Ind,#[[1]]]\[Xor]MemberQ[Ind,#[[2]]], (* bridge condition *)
+AppendTo[f,#];lf++,
+x*=#],
+sb,If[MemberQ[Ind,#[[1]]]\[Xor]MemberQ[Ind,#[[2]]], (* bridge condition *)
+AppendTo[g,#];lg++,
+x*=#],
+_,x*=# (* other factors *)
+]&,list];
+
+(* calculations *)
+sf=-((3lf)/4)Times@@f+2Sum[MM[Ind,f[[i,1]],f[[i,2]],f[[j,1]],f[[j,2]]]Times@@Delete[f,{{i},{j}}],{j,lf},{i,j-1}];
+(*Sum[Times@@MapAt[M2,f,i],{i,lf}]*)
+(*Sum[M2[f[[i,1]],f[[i,2]]]Product[ab[f[[j,1]],f[[j,2]]],{j,lf}]/ab[f[[i,1]],f[[i,2]]],{i,lf}]*)
+sg=-((3lg)/4)Times@@g+2Sum[MbMb[Ind,g[[i,1]],g[[i,2]],g[[j,1]],g[[j,2]]]Times@@Delete[g,{{i},{j}}],{j,lg},{i,j-1}];
+(*Product[sb[g[[k,1]],g[[k,2]]],{k,lg}]/(sb[g[[i,1]],g[[i,2]]]sb[g[[j,1]],g[[j,2]]]),{j,lg},{i,j-1}];*)
+sfg=Sum[MMb[Ind,f[[i,1]],f[[i,2]],g[[j,1]],g[[j,2]]]Times@@Delete[f,i]Times@@Delete[g,j],{i,lf},{j,lg}];
+
+x(Ptotal2[Ind] (sf*(Times@@g)+(Times@@f)*sg)+ sfg)//Simplify
+]
+
+
+(* ::Input::Initialization:: *)
+W2Diagonalize[state_,k_,Ind_]:=Module[{Num,iniBasis,statep,stBasis,W2Basis,W2result,W2Matrix},
+Num=Length[state];
+iniBasis=SSYT[state,k];
+stBasis=SSYT[state,k+2]; 
+W2Basis=FindCor[#,stBasis]&/@(reduce[# Ptotal2[Ind],Num]&/@iniBasis);
+W2result=FindCor[#,stBasis]&/@(reduce[#,Num]&/@(W2[Ind]/@iniBasis));
+W2Matrix=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result];
+(* problems: cases W2 result not proportional to Ptotal2 *)
+MapAt[#.iniBasis&,Eigensystem[W2Matrix],2] (* output {EigenvalueList, EigenfunctionList} *)
+]
+
+
+(* ::Subsection::Initialization:: *)
+(*(*(*(*Model Analysis*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*GroupMath -- HookContentFormula, DrawYoungDiagram*)*)*)
+(*(*(*(*GroupMath -- HookContentFormula, DrawYoungDiagram*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Permutation Group -- GetCGCM*)*)*)
+(*(*(*(*Permutation Group -- GetCGCM*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Model Input -- BreakString, state2class*)*)*)
+(*(*(*(*Model Input -- BreakString, state2class*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Lorentz Basis -- LorentzBasisForType, LorentzList*)*)*)
+(*(*(*(*Lorentz Basis -- LorentzBasisForType, LorentzList*)*)*)*)
 
 
 (* ::Item::Initialization:: *)
-(*(*(*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)*)*)
+(*(*(*(*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)*)*)*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*Functions*)*)*)
+(*(*(*(*Functions*)*)*)*)
 
 
 (* ::Input::Initialization:: *)
