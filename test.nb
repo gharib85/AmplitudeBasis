@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     63779,       1593]
-NotebookOptionsPosition[     60207,       1524]
-NotebookOutlinePosition[     60547,       1539]
-CellTagsIndexPosition[     60504,       1536]
+NotebookDataLength[     64120,       1598]
+NotebookOptionsPosition[     60548,       1529]
+NotebookOutlinePosition[     60888,       1544]
+CellTagsIndexPosition[     60845,       1541]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -1445,24 +1445,30 @@ Cell[BoxData[
    RowBox[{"other", " ", "dependent", " ", "functions"}], " ", "*)"}], 
   "\[IndentingNewLine]", 
   RowBox[{"Union", "[", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", "DimR", " ", "*)"}], 
    RowBox[{
     RowBox[{"{", 
      RowBox[{
      "DimRBaseMethod", ",", "PositiveRoots", ",", "FindM", ",", "MatrixD", 
       ",", "SimpleProduct"}], "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"(*", " ", "Adjoin", " ", "*)"}], 
     RowBox[{"{", 
      RowBox[{"AdjointBaseMethod", ",", "PositiveRoots", ",", "FindM"}], "}"}],
      ",", "\[IndentingNewLine]", 
+    RowBox[{"(*", " ", "SnIrrepDim", " ", "*)"}], 
     RowBox[{"{", "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"(*", " ", "GenerateStandardTableaux", " ", "*)"}], 
     RowBox[{"{", 
      RowBox[{
      "TransposePartition", ",", "TransposeTableaux", ",", "MaxIndex", ",", 
       "GenerateStandardTableauxAux"}], "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"(*", " ", "DecomposeSnProduct", " ", "*)"}], 
     RowBox[{"{", 
      RowBox[{
      "SnClassOrder", ",", "SnClassCharacter", ",", "RimHooks", ",", 
       "PartitionSequence", ",", "RebuiltPartitionFromSequence"}], "}"}], ",", 
     "\[IndentingNewLine]", 
+    RowBox[{"(*", " ", "PlethysmsN", " ", "*)"}], 
     RowBox[{"{", 
      RowBox[{
      "Plethysms", ",", "SnClassOrder", ",", "SnClassCharacter", ",", 
@@ -1477,17 +1483,15 @@ Cell[BoxData[
       "RepresentationIndex\[UnderBracket]BaseMethod", ",", "ConjugacyClass", 
       ",", "CMtoFamilyAndSeries", ",", "GroupsWithRankN2", ",", 
       "CartanMatrix", ",", "ConjugateIrrep", ",", "ConjugateIrrepBase", ",", 
-      "GatherWeights"}], "}"}], " ", 
-    RowBox[{"(*", " ", 
-     RowBox[{
-     "Plethysm", " ", "needs", " ", "the", " ", "most", " ", "preparation"}], 
-     " ", "*)"}], ",", "\[IndentingNewLine]", 
+      "GatherWeights"}], "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"(*", " ", "ReduceRepProduct", " ", "*)"}], 
     RowBox[{"{", 
      RowBox[{
      "DominantWeights", ",", "PositiveRoots", ",", "FindM", ",", "MatrixD", 
       ",", "DominateConjugate", ",", "SpecialMatrixD", ",", "ReflectWeight", 
       ",", "SimpleProduct", ",", "WeylOrbit"}], "}"}], ",", 
     "\[IndentingNewLine]", 
+    RowBox[{"(*", " ", "HookContentFormula", " ", "*)"}], 
     RowBox[{"{", "}"}]}], "\[IndentingNewLine]", "]"}]}]], "Input",
  CellChangeTimes->{{3.8078504172060027`*^9, 3.807850493446188*^9}, {
   3.807850541511034*^9, 3.807850668983483*^9}, {3.807850747500622*^9, 
@@ -1495,8 +1499,9 @@ Cell[BoxData[
   3.8078511355436597`*^9, 3.8078511925033875`*^9}, {3.807851232488495*^9, 
   3.807851237303649*^9}, {3.807851355677375*^9, 3.8078513827629642`*^9}, {
   3.8078519617755766`*^9, 3.807852031419488*^9}, {3.807852106056941*^9, 
-  3.807852133432741*^9}, {3.8078521744750237`*^9, 
-  3.807852274281892*^9}},ExpressionUUID->"05e185c9-6e8f-4c11-b5ed-\
+  3.807852133432741*^9}, {3.8078521744750237`*^9, 3.807852274281892*^9}, {
+  3.808178988545476*^9, 
+  3.808179076234877*^9}},ExpressionUUID->"05e185c9-6e8f-4c11-b5ed-\
 069e034ce0f1"],
 
 Cell[BoxData[
@@ -1556,7 +1561,7 @@ Cell[5270, 120, 449, 12, 50, "Output",ExpressionUUID->"908d564b-a37a-4174-a5a4-1
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[5756, 137, 463, 12, 30, "Input",ExpressionUUID->"9674c9e9-6b66-432e-8a73-3f0cf2c17923"],
-Cell[6222, 151, 2110, 63, 120, "Output",ExpressionUUID->"093001f6-8fbb-426a-a68b-da2428b3a7a7"]
+Cell[6222, 151, 2110, 63, 60, "Output",ExpressionUUID->"093001f6-8fbb-426a-a68b-da2428b3a7a7"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[8369, 219, 405, 7, 30, "Input",ExpressionUUID->"6594c76f-8c7b-4ac2-8f39-5e96b2ecc448"],
@@ -1582,17 +1587,17 @@ Cell[CellGroupData[{
 Cell[53245, 1363, 364, 9, 30, "Input",ExpressionUUID->"0cbb259e-a34a-4d90-9884-9f86a9d17878"],
 Cell[CellGroupData[{
 Cell[53634, 1376, 215, 4, 24, "Print",ExpressionUUID->"70fbdd72-e2ea-41bc-a149-eb6d8230659e"],
-Cell[53852, 1382, 777, 16, 22, "Print",ExpressionUUID->"2b512d4b-dd3c-419b-bf3e-5bac90f30131"],
-Cell[54632, 1400, 364, 9, 22, "Print",ExpressionUUID->"6591886c-1a76-4079-8e26-0f1683cadfdc"]
+Cell[53852, 1382, 777, 16, 24, "Print",ExpressionUUID->"2b512d4b-dd3c-419b-bf3e-5bac90f30131"],
+Cell[54632, 1400, 364, 9, 24, "Print",ExpressionUUID->"6591886c-1a76-4079-8e26-0f1683cadfdc"]
 }, Open  ]]
 }, Open  ]]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[55057, 1416, 170, 3, 53, "Subsection",ExpressionUUID->"1ee3cd8a-698d-459d-88d2-ef590a0be6e7"],
-Cell[55230, 1421, 761, 16, 48, "Input",ExpressionUUID->"3beca555-f7a9-45f2-b74a-48509a970f73"],
+Cell[55057, 1416, 170, 3, 54, "Subsection",ExpressionUUID->"1ee3cd8a-698d-459d-88d2-ef590a0be6e7"],
+Cell[55230, 1421, 761, 16, 73, "Input",ExpressionUUID->"3beca555-f7a9-45f2-b74a-48509a970f73"],
 Cell[CellGroupData[{
-Cell[56016, 1441, 2899, 58, 257, "Input",ExpressionUUID->"05e185c9-6e8f-4c11-b5ed-069e034ce0f1"],
-Cell[58918, 1501, 1261, 19, 90, "Output",ExpressionUUID->"b0e42ba8-8d1d-476b-82e9-f16821868b8b"]
+Cell[56016, 1441, 3240, 63, 304, "Input",ExpressionUUID->"05e185c9-6e8f-4c11-b5ed-069e034ce0f1"],
+Cell[59259, 1506, 1261, 19, 119, "Output",ExpressionUUID->"b0e42ba8-8d1d-476b-82e9-f16821868b8b"]
 }, Open  ]]
 }, Open  ]]
 }
