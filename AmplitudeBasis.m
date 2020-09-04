@@ -55,22 +55,21 @@ err::unknown="`1` -- unrecognized mode/parameter";
 
 (* ::Input::Initialization:: *)
 Sum2List[x_Plus]:=List@@x
-Sum2List[x_:Except[Plus]]:=List@x
+Sum2List[x:Except[Plus]]:=List@x
 Prod2List[x_]:=Flatten[{x}/.{Power->ConstantArray,Times->List}]
-SetAttributes[Distr,HoldFirst];
-Distr:=Distribute
 
 (* Separate numerical factors and symbolic factors of a monomial expression *)
 normalize[monoAmp_]:=Module[{F,result},
 F=Switch[monoAmp,_Times,List@@monoAmp,_,{monoAmp}];
-result=Times@@@GatherBy[F,NumericQ ];
+result=Times@@@GatherBy[F,NumericQ];
 If[Length[result]==1,PrependTo[result,1]];
 If[MatchQ[result[[1]],_Complex],Return[{-I,I} result],Return[result]];
 ]
+
 (* Find the coefficient list of an expression (e.g. an amplitude) in STANDARD FORM. *)
 FindCor::basis="non-standard expression `2` or incomplete basis `1`";
 FindCor[Amp_,StBasis_]:=Module[{F=Expand[Amp],B=normalize/@StBasis,cor},
-(* Amp: the expression,
+(* Amp: the expression (may not be an amplitude,
 StBasis: the standard basis (monomials). *)
 cor=ConstantArray[0,Length[StBasis]];
 If[F==0,Return[cor]];
@@ -81,6 +80,7 @@ Message[FindCor::basis,Amp,StBasis];Abort[]
 ],{i,Length[F]}];
 cor/B[[All,1]]
 ]
+FindCor[StBasis_]:=FindCor[#,StBasis]&
 
 unflatten[e_,{d__?(IntegerQ[#1]&&Positive[#1]&)}]:=Fold[Partition,e,Take[{d},{-1,2,-1}]]/;Length[e]===Times[d]
 
@@ -412,8 +412,9 @@ If[iter>=tryMax,Message[reduce::overflow];Abort[],iter++]
 ];
 Plus@@F
 ]
+reduce[Num_]:=reduce[#,Num]&
 
-LorentzList[dim_,mode_:"complex"]:=Module[{n,k,Nh,Nhlist={},result},
+(* List All Lorentz Structure at given dimension *)LorentzList[dim_,mode_:"complex"]:=Module[{n,k,Nh,Nhlist={},result},
 Do[n=dim-N-nt;
 For[k=0,k<=2 nt,k++,
 Do[Nh={i,2 n-k-2 i,3N+2k-2dim+i+j,2 nt-k-2 j,j};If[Nh[[3]]<0||kmin[Nh,"Nh"]>k,Continue[],AppendTo[Nhlist,{Nh,k}]],{i,0,Floor[n-k/2]},{j,0,Floor[nt-k/2]}];
@@ -424,7 +425,7 @@ Switch[mode,
 "real",result=Nhlist\[Union](MapAt[Reverse,#1,1]&)/@Nhlist,
 _,Message[err::unknown,"LorentzList"]];
 MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
-](* List All Lorentz Structure at given dimension *)
+]
 
 
 (* ::Subsection:: *)
@@ -602,7 +603,7 @@ Evaluate[#/.{ab[i_,j_]:>ab[var[[i]],var[[j]]],sb[i_,j_]:>sb[var[[i]],var[[j]]]}]
 (* permute an abstract function A *)
 permA=Pm[A@@Range[num],permutation,A];
 (* obtain permuted versions of the amplitudes and reduce *)
-result=reduce[#,num]&/@(permA/.{Thread[A->Flist]}\[Transpose]);
+result=reduce[num]/@(permA/.{Thread[A->Flist]}\[Transpose]);
 
 Return[result];
 ] 
@@ -1555,8 +1556,44 @@ coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasi
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Output Formating*)
+
+
+(* ::Input::Initialization:: *)
+(*********** present the result *****************)
+
+(* present in notebook *)
+Options[Present]={MODEL->0};
+Present[resultc_,OptionsPattern[]]:=KeyValueMap[Block[{i=1,model=OptionValue[MODEL]}, (* for each class *)
+Print["\n---------------------\n",#1,": ",Length[#2]," type(s)"];
+KeyValueMap[Block[{j=1,slist}, (* for each type *)
+If[AssociationQ[model],slist=Slist[model,#1,#2]];
+Print["  ---------\n  ",i++,". [",#1,"] ",Total[Length/@#2]," term(s)\n"];
+KeyValueMap[Block[{}, (* for each flavor sym *)
+If[AssociationQ[model],
+Print["    Flavor Sym: ",MapAt[DrawYoungDiagram[#,ScaleFactor->6]&,#,2]&/@#1,";\n"];
+Print["    Operator number per term: ",slist[[j++]],"\n"];
+];
+Scan[Print["         ",#]&,#2];
+]&,#2];
+]&,#2];
+]&,resultc]
+
+(* present result in TeXForm *)FormEnviTeX[s_]:=StringReplace[StringDelete[StringReplace[StringReplace[s//TeXForm//ToString,{Shortest["\\text{"~~aa__~~"}"]:>aa}],{"\\dagger"->"^{\\dagger}",f:("F"|"B"|"W"|"G")~~d:("L"|"R"):>f~~"_{"~~d~~"}","uc"->"u^{\\mathcal{C}}","dc"->"d^{\\mathcal{C}}","ec"->"e^{\\mathcal{C}}","nf"->"n_f"}],"$"],{"\\psi L"->"\\psi_{\\mathcal{L}}","\\psi R"->"\\psi_{\\mathcal{R}}",Shortest[")_"~~aa__~~"\\right."]:>"\\right)_"~~aa,b:("B_{L}"|"B_{R}")~~ud:("^{"|"_{"):>"("~~b~~")"~~ud,w:("W_{"~~_~~"}^{"~~_~~"}"):>"("~~w~~")",g:("G_{"~~_~~"}^{"~~_~~"}"):>"("~~g~~")"}];
+Options[TeXPresent]={MODEL->0};TeXPresent[resultc_,OptionsPattern[],dim_:0]:=Module[{result=DeleteCases[resultc,<||>]},If[OptionValue[MODEL]===0,Print["\\section{","List Dim-",dim," Operators of one flavor}"],Print["\\section{","List Dim-",dim," Operators}"]];KeyValueMap[Block[{ii=1,model=OptionValue[MODEL]},(* for each class *)
+Print["\\subsection{$",FormEnviTeX[#1],"$: ",Length[#2]," type(s)}"];Print["\\begin{itemize}"];
+KeyValueMap[Block[{jj=1,slist}, (* for each type *)
+If[AssociationQ[model],slist=Slist[model,#1,#2](*;Print[slist]*)];
+Print["\\item $\\mathbf{type}$ ",ii++,". $",FormEnviTeX[#1],"$: ",Total[Length/@#2]," term(s)\n"];
+KeyValueMap[Block[{}, (* for each flavor sym *)
+If[AssociationQ[model],Print["    Flavor Sym: $",StringDelete[StringReplace[ToString[#1],{Shortest["-> {"~~a__~~"}"]:>"\\rightarrow\\tiny{\\yng("~~a~~")}","\[Dagger]":>"^{\\dagger}",f:("B"|"W"|"G")~~d:("L"|"R"):>f~~"_{"~~d~~"}"}]," "],"$;\n"];
+Print["    Operator number per term: $",FormEnviTeX[slist[[jj++]]],"$\n"];
+];
+Scan[Print["\\begin{align}\n         ",FormEnviTeX[#],"\n\\end{align}\n"]&,#2];
+]&,#2];
+]&,#2];Print["\\end{itemize}"];
+]&,result]]
 
 
 (* ::Subsection:: *)
@@ -1564,35 +1601,30 @@ coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasi
 
 
 (* ::Input::Initialization:: *)
-MM[I_,i_,j_,k_,l_]:=If[MemberQ[I,i]\[Xor]MemberQ[I,k],-1,1](ab[i,l]ab[j,k]+ab[i,k]ab[j,l])/4;
-MbMb[I_,i_,j_,k_,l_]:=If[MemberQ[I,i]\[Xor]MemberQ[I,k],-1,1](sb[i,l]sb[j,k]+sb[i,k]sb[j,l])/4;
-MMb[I_,i_,j_,k_,l_]:=-If[MemberQ[I,i]\[Xor]MemberQ[I,k],-1,1]Sum[(ab[m,i]ab[j,n]+ab[m,j]ab[i,n])(sb[m,k]sb[l,n]+sb[m,l]sb[k,n]),{m,I},{n,I}]/4//Simplify;
-Ptotal2[I_]:=(1/2)Sum[s[i,j],{i,I},{j,I}]
+BridgeQ[I_,i_,j_]:=MemberQ[I,i]\[Xor]MemberQ[I,j]
+BridgeQ[I_]:=BridgeQ[I,##]&
+BridgeSign[I_,i_,j_]:=If[BridgeQ[I,i,j],1,-1]
+MM[I_,i_,j_,k_,l_]:=-BridgeSign[I,i,k](ab[i,l]ab[j,k]+ab[i,k]ab[j,l])/4;
+MbMb[I_,i_,j_,k_,l_]:=-BridgeSign[I,i,k](sb[i,l]sb[j,k]+sb[i,k]sb[j,l])/4;
+MMb[I_,i_,j_,k_,l_]:=BridgeSign[I,i,k]Sum[(ab[m,i]ab[j,n]+ab[m,j]ab[i,n])(sb[m,k]sb[l,n]+sb[m,l]sb[k,n]),{m,I},{n,I}]/4//Simplify;
+Mandelstam[I_]:=(1/2)Sum[s[i,j],{i,I},{j,I}]
 
 W2[Ind_List]:=W2[#,Ind]&
 W2[Amp_Plus,Ind_List]:=W2[Ind]/@Amp
 W2[Amp:Except[Plus],Ind_List]:=Module[
-{list=Prod2List[Amp],f={},g={},x=1,lf=0,lg=0,i,j,sf,sg,sfg,P2},
+{list=Prod2List[Amp],ablist={},sblist={},prefactor=1,sf,sg,sfg},
 (* find bridges *)
 Map[Switch[Head[#],
-ab,If[MemberQ[Ind,#[[1]]]\[Xor]MemberQ[Ind,#[[2]]], (* bridge condition *)
-AppendTo[f,#];lf++,
-x*=#],
-sb,If[MemberQ[Ind,#[[1]]]\[Xor]MemberQ[Ind,#[[2]]], (* bridge condition *)
-AppendTo[g,#];lg++,
-x*=#],
-_,x*=# (* other factors *)
+ab,If[BridgeQ[Ind]@@#,AppendTo[ablist,#],prefactor*=#],
+sb,If[BridgeQ[Ind]@@#,AppendTo[sblist,#],prefactor*=#],
+_,prefactor*=# (* other factors *)
 ]&,list];
-
 (* calculations *)
-sf=-((3lf)/4)Times@@f+2Sum[MM[Ind,f[[i,1]],f[[i,2]],f[[j,1]],f[[j,2]]]Times@@Delete[f,{{i},{j}}],{j,lf},{i,j-1}];
-(*Sum[Times@@MapAt[M2,f,i],{i,lf}]*)
-(*Sum[M2[f[[i,1]],f[[i,2]]]Product[ab[f[[j,1]],f[[j,2]]],{j,lf}]/ab[f[[i,1]],f[[i,2]]],{i,lf}]*)
-sg=-((3lg)/4)Times@@g+2Sum[MbMb[Ind,g[[i,1]],g[[i,2]],g[[j,1]],g[[j,2]]]Times@@Delete[g,{{i},{j}}],{j,lg},{i,j-1}];
-(*Product[sb[g[[k,1]],g[[k,2]]],{k,lg}]/(sb[g[[i,1]],g[[i,2]]]sb[g[[j,1]],g[[j,2]]]),{j,lg},{i,j-1}];*)
-sfg=Sum[MMb[Ind,f[[i,1]],f[[i,2]],g[[j,1]],g[[j,2]]]Times@@Delete[f,i]Times@@Delete[g,j],{i,lf},{j,lg}];
+sf=-(3/4)Length[ablist]Times@@ablist+2Sum[MM[Ind,ablist[[i,1]],ablist[[i,2]],ablist[[j,1]],ablist[[j,2]]]Times@@Delete[ablist,{{i},{j}}],{j,Length[ablist]},{i,j-1}];
+sg=-(3/4)Length[sblist]Times@@sblist+2Sum[MbMb[Ind,sblist[[i,1]],sblist[[i,2]],sblist[[j,1]],sblist[[j,2]]]Times@@Delete[sblist,{{i},{j}}],{j,Length[sblist]},{i,j-1}];
+sfg=Sum[MMb[Ind,ablist[[i,1]],ablist[[i,2]],sblist[[j,1]],sblist[[j,2]]]Times@@Delete[ablist,i]Times@@Delete[sblist,j],{i,Length[ablist]},{j,Length[sblist]}];
 
-x(Ptotal2[Ind] (sf*(Times@@g)+(Times@@f)*sg)+ sfg)//Simplify
+Return[prefactor(Mandelstam[Ind] (sf*(Times@@sblist)+(Times@@ablist)*sg)+ sfg)//Simplify]
 ]
 
 
@@ -1600,7 +1632,7 @@ x(Ptotal2[Ind] (sf*(Times@@g)+(Times@@f)*sg)+ sfg)//Simplify
 W2Diagonalize[state_,k_,Ind_]:=
 Module[{Num=Length[state],iniBasis=SSYT[state,k],stBasis=SSYT[state,k+2],
 W2Basis,W2result,eigensys},
-W2Basis=FindCor[#,stBasis]&/@(reduce[# Ptotal2[Ind],Num]&/@iniBasis);W2result=FindCor[#,stBasis]&/@(reduce[#,Num]&/@(W2[Ind]/@iniBasis));
+W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));
 eigensys=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result]//Eigensystem;
 <|"j"->eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>
 ]
@@ -1743,6 +1775,7 @@ Return[assoc];
 GenerateOperatorList[model_,types_List,OptionsPattern[]]:=DeleteCases[<||>]@AssociationMap[Type2TermsPro[model,#,Sequence@@OptionValue[T2TOptions]]&,types]
 
 
+(* ::Input::Initialization:: *)
 (* # operators per term *)
 Slist[model_,type_,terms_]:=Module[{flist=CheckType[model,type],n1,n2},
 n1=Times@@(model[#][nfl]&/@Cases[flist,{_String,1}][[All,1]]); (* single fields with S=nflavor *)
@@ -1771,52 +1804,18 @@ SList=MapThread[Slist[model,#1,#2]&,{types,terms}];
 nOpers=MapThread[Dot,{nTermList,SList}];
 nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
 Print["number of real operators: ",nOpersR];
-Print["total time used: ",SessionTime[]-start];
+Print["time: ",SessionTime[]-start];
 Return[timelist];
 ]
 Options[StatResult]={OutFile->"null",Progress->False};
-StatResult[model_,dim_Integer,OptionsPattern[]]:=Module[{types},
+StatResult[model_,dim_Integer,OptionsPattern[]]:=Module[{start,types},
 Print["-----------------------"];
 Print["Enumerating dim ",dim," operators ..."];
+start=SessionTime[];
 types=Flatten@AllTypesC[model,dim];
+Print[" --- find all types (time: ",SessionTime[]-start,")"];
 StatResult[model,types,OutFile->OptionValue[OutFile],Progress->OptionValue[Progress]]
 ]
-
-
-(* ::Input::Initialization:: *)
-(*********** present the result *****************)
-
-(* present in notebook *)
-Options[Present]={MODEL->0};
-Present[resultc_,OptionsPattern[]]:=KeyValueMap[Block[{i=1,model=OptionValue[MODEL]}, (* for each class *)
-Print["\n---------------------\n",#1,": ",Length[#2]," type(s)"];
-KeyValueMap[Block[{j=1,slist}, (* for each type *)
-If[AssociationQ[model],slist=Slist[model,#1,#2]];
-Print["  ---------\n  ",i++,". [",#1,"] ",Total[Length/@#2]," term(s)\n"];
-KeyValueMap[Block[{}, (* for each flavor sym *)
-If[AssociationQ[model],
-Print["    Flavor Sym: ",MapAt[DrawYoungDiagram[#,ScaleFactor->6]&,#,2]&/@#1,";\n"];
-Print["    Operator number per term: ",slist[[j++]],"\n"];
-];
-Scan[Print["         ",#]&,#2];
-]&,#2];
-]&,#2];
-]&,resultc]
-
-(* present result in TeXForm *)FormEnviTeX[s_]:=StringReplace[StringDelete[StringReplace[StringReplace[s//TeXForm//ToString,{Shortest["\\text{"~~aa__~~"}"]:>aa}],{"\\dagger"->"^{\\dagger}",f:("F"|"B"|"W"|"G")~~d:("L"|"R"):>f~~"_{"~~d~~"}","uc"->"u^{\\mathcal{C}}","dc"->"d^{\\mathcal{C}}","ec"->"e^{\\mathcal{C}}","nf"->"n_f"}],"$"],{"\\psi L"->"\\psi_{\\mathcal{L}}","\\psi R"->"\\psi_{\\mathcal{R}}",Shortest[")_"~~aa__~~"\\right."]:>"\\right)_"~~aa,b:("B_{L}"|"B_{R}")~~ud:("^{"|"_{"):>"("~~b~~")"~~ud,w:("W_{"~~_~~"}^{"~~_~~"}"):>"("~~w~~")",g:("G_{"~~_~~"}^{"~~_~~"}"):>"("~~g~~")"}];
-Options[TeXPresent]={MODEL->0};TeXPresent[resultc_,OptionsPattern[],dim_:0]:=Module[{result=DeleteCases[resultc,<||>]},If[OptionValue[MODEL]===0,Print["\\section{","List Dim-",dim," Operators of one flavor}"],Print["\\section{","List Dim-",dim," Operators}"]];KeyValueMap[Block[{ii=1,model=OptionValue[MODEL]},(* for each class *)
-Print["\\subsection{$",FormEnviTeX[#1],"$: ",Length[#2]," type(s)}"];Print["\\begin{itemize}"];
-KeyValueMap[Block[{jj=1,slist}, (* for each type *)
-If[AssociationQ[model],slist=Slist[model,#1,#2](*;Print[slist]*)];
-Print["\\item $\\mathbf{type}$ ",ii++,". $",FormEnviTeX[#1],"$: ",Total[Length/@#2]," term(s)\n"];
-KeyValueMap[Block[{}, (* for each flavor sym *)
-If[AssociationQ[model],Print["    Flavor Sym: $",StringDelete[StringReplace[ToString[#1],{Shortest["-> {"~~a__~~"}"]:>"\\rightarrow\\tiny{\\yng("~~a~~")}","\[Dagger]":>"^{\\dagger}",f:("B"|"W"|"G")~~d:("L"|"R"):>f~~"_{"~~d~~"}"}]," "],"$;\n"];
-Print["    Operator number per term: $",FormEnviTeX[slist[[jj++]]],"$\n"];
-];
-Scan[Print["\\begin{align}\n         ",FormEnviTeX[#],"\n\\end{align}\n"]&,#2];
-]&,#2];
-]&,#2];Print["\\end{itemize}"];
-]&,result]]
 
 
 (* ::Subsection:: *)
