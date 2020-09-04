@@ -16,8 +16,8 @@ Get/@$GroupMathPackages;
 End[];
 
 
-(* ::Subsection::Initialization:: *)
-(*(*(*Configure*)*)*)
+(* ::Subsection::Closed:: *)
+(*Configure*)
 
 
 (* ::Input::Initialization:: *)
@@ -45,12 +45,12 @@ reduceTry=20;
 err::unknown="`1` -- unrecognized mode/parameter";
 
 
-(* ::Subsection::Initialization:: *)
-(*(*(*(*General Tools*)*)*)*)
+(* ::Subsection:: *)
+(*General Tools*)
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*(*Linear Algebra*)*)*)*)
+(* ::Subsubsection::Closed:: *)
+(*Linear Algebra*)
 
 
 (* ::Input::Initialization:: *)
@@ -107,16 +107,16 @@ tRank:=TensorRank[#,Assumptions->tAssumptions]&;
 tDimensions:=TensorDimensions[#,Assumptions->tAssumptions]&;
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*(*Permutation Group*)*)*)*)
+(* ::Subsubsection::Closed:: *)
+(*Permutation Group*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Macro Parameter -- permutationBasis*)*)*)*)
+(* ::Item:: *)
+(*Macro Parameter -- permutationBasis*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*GroupMath -- DimR, SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN, ReduceRepProductBase1, ReduceRepProductBase2*)*)*)*)
+(* ::Item:: *)
+(*GroupMath -- DimR, SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN, ReduceRepProductBase1, ReduceRepProductBase2*)
 
 
 (* ::Input::Initialization:: *)
@@ -272,12 +272,12 @@ SNirrep=Table[Cases[PlethysmsNlist[[i]],{IrrepListAmongNIP[[#]][[i]],x_,y_}:>{x,
 ]
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*(*Amplitude*)*)*)*)
+(* ::Subsubsection::Closed:: *)
+(*Amplitude*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Macro Parameter -- reduceTry*)*)*)*)
+(* ::Item:: *)
+(*Macro Parameter -- reduceTry*)
 
 
 (* ::Input::Initialization:: *)
@@ -427,28 +427,28 @@ MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
 ](* List All Lorentz Structure at given dimension *)
 
 
-(* ::Subsection::Initialization:: *)
-(*(*(*(*Model Input*)*)*)*)
+(* ::Subsection:: *)
+(*Model Input*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Macro Parameter -- maxhelicity*)*)*)*)
+(* ::Item:: *)
+(*Macro Parameter -- maxhelicity*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*GroupMath -- DimR, Adjoint*)*)*)*)
+(* ::Item:: *)
+(*GroupMath -- DimR, Adjoint*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*General -- Prod2List, tAssumptions, MyRepProduct*)*)*)*)
+(* ::Item:: *)
+(*General -- Prod2List, tAssumptions, MyRepProduct*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Amplitude Basis -- LorentzList*)*)*)*)
+(* ::Item:: *)
+(*Amplitude Basis -- LorentzList*)
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*(*Functions*)*)*)*)
+(* ::Subsubsection::Closed:: *)
+(*Functions*)
 
 
 (* ::Input::Initialization:: *)
@@ -559,32 +559,32 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 
-(* ::Subsection::Initialization:: *)
-(*(*(*(*Lorentz Basis*)*)*)*)
+(* ::Subsection:: *)
+(*Lorentz Basis*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*GroupMath -- SnIrrepDim*)*)*)*)
+(* ::Item:: *)
+(*GroupMath -- SnIrrepDim*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Linear Algebra -- Prod2List, basisReduce, FindCor*)*)*)*)
+(* ::Item:: *)
+(*Linear Algebra -- Prod2List, basisReduce, FindCor*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Permutation Group -- pp, YO*)*)*)*)
+(* ::Item:: *)
+(*Permutation Group -- pp, YO*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Amplitude -- ab, sb, Pm, reduce, SSYT*)*)*)*)
+(* ::Item:: *)
+(*Amplitude -- ab, sb, Pm, reduce, SSYT*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)*)*)*)
+(* ::Item:: *)
+(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*(*Functions*)*)*)*)
+(*Functions*)
 
 
 (* ::Input::Initialization:: *)
@@ -831,20 +831,20 @@ spinorbasis=SSYT[state,k];If[Position[state,-1]!={},fF=Position[state,-1][[1,1]]
 coefbasis=FindCor[reduce[#,Length[state]],spinorbasis]&/@(Amp[#]&/@operbasis);basis=Subsets[coefbasis,{Length[spinorbasis]}];Do[If[MatrixRank[basis[[ii]]]===Length[spinorbasis],transfer=basis[[ii]];Break[]],{ii,Length[basis]}];basis=Flatten[Position[coefbasis,#][[1]]&/@transfer];<|"AmpBasis"->spinorbasis,"LorBasis"->operbasis[[basis]]//.(Dcontract1\[Union]Dcontract2)//.If[OptionValue[finalform],listtotime,{}],"Trans"->transfer|>];
 
 
-(* ::Subsection::Initialization:: *)
-(*(*(*(*Gauge Group Factor*)*)*)*)
+(* ::Subsection:: *)
+(*Gauge Group Factor*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)*)*)*)
+(* ::Item:: *)
+(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)*)*)*)
+(* ::Item:: *)
+(*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*(*General Functions*)*)*)*)
+(* ::Subsubsection::Closed:: *)
+(*General Functions*)
 
 
 (* ::Input::Initialization:: *)
@@ -1142,8 +1142,8 @@ Return[KeyMap[MapThread[Rule,{repfs,#}]&,sym]](* attach repeated field names *)
 
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*(*SU (2) and SU (3)*)*)*)*)
+(* ::Subsubsection::Closed:: *)
+(*SU (2) and SU (3)*)
 
 
 (* ::Input::Initialization:: *)
@@ -1559,7 +1559,7 @@ coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasi
 (*Output Formating*)
 
 
-(* ::Subsection::Initialization:: *)
+(* ::Subsection::Closed:: *)
 (*W2 Operator*)
 
 
@@ -1609,32 +1609,32 @@ MapAt[#.iniBasis&,Eigensystem[W2Matrix],2] (* output {EigenvalueList, Eigenfunct
 ]
 
 
-(* ::Subsection::Initialization:: *)
-(*(*(*(*Model Analysis*)*)*)*)
+(* ::Subsection:: *)
+(*Model Analysis*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*GroupMath -- HookContentFormula, DrawYoungDiagram*)*)*)*)
+(* ::Item:: *)
+(*GroupMath -- HookContentFormula, DrawYoungDiagram*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Permutation Group -- GetCGCM*)*)*)*)
+(* ::Item:: *)
+(*Permutation Group -- GetCGCM*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Model Input -- BreakString, state2class*)*)*)*)
+(* ::Item:: *)
+(*Model Input -- BreakString, state2class*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Lorentz Basis -- LorentzBasisForType, LorentzList*)*)*)*)
+(* ::Item:: *)
+(*Lorentz Basis -- LorentzBasisForType, LorentzList*)
 
 
-(* ::Item::Initialization:: *)
-(*(*(*(*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)*)*)*)
+(* ::Item:: *)
+(*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*(*(*(*Functions*)*)*)*)
+(* ::Subsubsection::Closed:: *)
+(*Functions*)
 
 
 (* ::Input::Initialization:: *)
