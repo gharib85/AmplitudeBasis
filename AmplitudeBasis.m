@@ -583,8 +583,8 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 (*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)
 
 
-(* ::Subsubsection::Initialization::Closed:: *)
-(*(*Functions*)*)
+(* ::Subsubsection::Closed:: *)
+(*Functions*)
 
 
 (* ::Input::Initialization:: *)
@@ -843,7 +843,7 @@ coefbasis=FindCor[reduce[#,Length[state]],spinorbasis]&/@(Amp[#]&/@operbasis);ba
 (*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*General Functions*)
 
 
@@ -1142,7 +1142,7 @@ Return[KeyMap[MapThread[Rule,{repfs,#}]&,sym]](* attach repeated field names *)
 
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*SU (2) and SU (3)*)
 
 
@@ -1559,7 +1559,7 @@ coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasi
 (*Output Formating*)
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*W2 Operator*)
 
 
@@ -1597,15 +1597,12 @@ x(Ptotal2[Ind] (sf*(Times@@g)+(Times@@f)*sg)+ sfg)//Simplify
 
 
 (* ::Input::Initialization:: *)
-W2Diagonalize[state_,k_,Ind_]:=Module[{Num,iniBasis,statep,stBasis,W2Basis,W2result,W2Matrix},
-Num=Length[state];
-iniBasis=SSYT[state,k];
-stBasis=SSYT[state,k+2]; 
-W2Basis=FindCor[#,stBasis]&/@(reduce[# Ptotal2[Ind],Num]&/@iniBasis);
-W2result=FindCor[#,stBasis]&/@(reduce[#,Num]&/@(W2[Ind]/@iniBasis));
-W2Matrix=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result];
-(* problems: cases W2 result not proportional to Ptotal2 *)
-MapAt[#.iniBasis&,Eigensystem[W2Matrix],2] (* output {EigenvalueList, EigenfunctionList} *)
+W2Diagonalize[state_,k_,Ind_]:=
+Module[{Num=Length[state],iniBasis=SSYT[state,k],stBasis=SSYT[state,k+2],
+W2Basis,W2result,eigensys},
+W2Basis=FindCor[#,stBasis]&/@(reduce[# Ptotal2[Ind],Num]&/@iniBasis);W2result=FindCor[#,stBasis]&/@(reduce[#,Num]&/@(W2[Ind]/@iniBasis));
+eigensys=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result]//Eigensystem;
+<|"j"->eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>
 ]
 
 
