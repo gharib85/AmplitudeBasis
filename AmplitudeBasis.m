@@ -584,7 +584,7 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 (* ::Subsubsection::Initialization::Closed:: *)
-(*Functions*)
+(*(*Functions*)*)
 
 
 (* ::Input::Initialization:: *)
@@ -843,7 +843,7 @@ coefbasis=FindCor[reduce[#,Length[state]],spinorbasis]&/@(Amp[#]&/@operbasis);ba
 (*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*General Functions*)
 
 
@@ -1007,13 +1007,13 @@ result=ToExpression["t"<>fs[[1]]<>group<>ToString[#]]&/@Range[fs[[2]]];
 If[Cases[tAssumptions,#,Infinity]=={},AppendTo[tAssumptions,#\[Element]Arrays[{dim}]]]&/@result;
 result]
 
-GenerateFieldTensor[model_,group_,flist_,map_]:=Module[{heads,symbols,args,indices},
+GenerateFieldTensor[model_,group_,flist_,map_]:=Module[{heads,symbols,arg,indices},
 (*This function generate the field tensors with the form: t<>F<>Group[ind["F",n,1]]<>n that can multiplied to the group factor, and also an association that map the field tensors to the indicies they carries on*)
 If[Length[flist]==0,Return[1]];
 heads=Flatten[GenerateFieldName[model,group,#]&/@flist];
 symbols=rep2ind[model[#[[1]]][group]]&/@flist; (* irreps for SU2 or SU3 *)
-args=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flist;
-indices=Flatten@MapThread[Apply[#1,#2,{1}]&,{symbols,args}];
+arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flist;
+indices=Flatten@MapThread[Apply[#1,#2,{1}]&,{symbols,arg}];
 map=Association[MapThread[Rule,{heads,indices}]];
 Times@@(Flatten@MapThread[#1[#2]&,{heads,indices}])
 ]
@@ -1036,15 +1036,15 @@ maporder2index[repeat[[2]]]=maporder2index[repeat[[1]]];
 ]
 SetAttributes[Generateorder2index,HoldAll]
 
-Contraction2Tensor[TC_,group_,xmap_,count1_,count2_]:=Module[{argstc,tlist,ranklist,aux1,indexorder,maporder2index},
+Contraction2Tensor[TC_,group_,xmap_,count1_,count2_]:=Module[{argtc,tlist,ranklist,aux1,indexorder,maporder2index},
 (*convert a single TensorProduct to the tensors without field tensors*)
 If[!MatchQ[TC,_TensorContract],Return[TC]];
-argstc=List@@ TC;
-tlist=List@@argstc[[1]];
+argtc=List@@ TC;
+tlist=List@@argtc[[1]];
 ranklist=tRank/@tlist;
 aux1=Accumulate@ranklist;
 indexorder=MapThread[Range,{aux1-ranklist+1,aux1}];
-Generateorder2index[#,group,indexorder,tlist,xmap,count1,count2,maporder2index]&/@argstc[[2]];
+Generateorder2index[#,group,indexorder,tlist,xmap,count1,count2,maporder2index]&/@argtc[[2]];
 indexorder=Map[maporder2index,indexorder,{2}];
 tlist=Select[tlist,tRank@#>1&];
 indexorder=Select[indexorder,Length@#>1&];
@@ -1142,7 +1142,7 @@ Return[KeyMap[MapThread[Rule,{repfs,#}]&,sym]](* attach repeated field names *)
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*SU (2) and SU (3)*)
 
 
@@ -1245,15 +1245,15 @@ ContractDelta[in_]:=Switch[Expand[in],_Times,RMDelta[in],_Plus,Plus@@(RMDelta/@L
 
 (* ::Input::Initialization:: *)
 (* getting printable form *)
-Sortargs[x_]:=Module[{args=List@@x,sortedargs},sortedargs=Sort[args];permutationSignature[FindPermutation[sortedargs,args]]Head[x]@@sortedargs];
+Sortarg[x_]:=Module[{arg=List@@x,sortedarg},sortedarg=Sort[arg];permutationSignature[FindPermutation[sortedarg,arg]]Head[x]@@sortedarg];
 
 RefineReplace[x_] := 
  Module[{result}, 
-  result=x/.eps2a[y__]:> Sortargs[eps2a[y]]/.eps2f[y__] :>  Sortargs[eps2f[y]]/.eps3n[y__] :>  Sortargs[eps3n[y]] /. 
-       eps3a[y__] :>  Sortargs[eps3a[y]] /. 
-      eps3f[y__] :>  Sortargs[eps3f[y]] /. 
-     eps8n[y__] :>  Sortargs[eps8n[y]] /. 
-    fabc[y__] :>  Sortargs[fabc[y]];
+  result=x/.eps2a[y__]:> Sortarg[eps2a[y]]/.eps2f[y__] :>  Sortarg[eps2f[y]]/.eps3n[y__] :>  Sortarg[eps3n[y]] /. 
+       eps3a[y__] :>  Sortarg[eps3a[y]] /. 
+      eps3f[y__] :>  Sortarg[eps3f[y]] /. 
+     eps8n[y__] :>  Sortarg[eps8n[y]] /. 
+    fabc[y__] :>  Sortarg[fabc[y]];
   result /. eps2a[y__] :> \!\(\*
 TagBox[
 StyleBox[
@@ -1395,17 +1395,17 @@ FullForm]\)
 
 (* ::Input::Initialization:: *)
 (* Generate the replacing rule of the tensor indices for the final output form *)
-GenerateReplacingRule[model_,flist_,ct1_,ct2_,ct3_,ct4_]:=Module[{flistsu3,flistsu2,fexpandsu3,fexpandsu2,symbols,args,listindsu3,listindsu2,listgensu3,listgensu2},
+GenerateReplacingRule[model_,flist_,ct1_,ct2_,ct3_,ct4_]:=Module[{flistsu3,flistsu2,fexpandsu3,fexpandsu2,symbols,arg,listindsu3,listindsu2,listgensu3,listgensu2},
 flistsu3=Select[flist,Total[model[#[[1]]]["SU3c"]]!=0&];
 flistsu2=Select[flist,Total[model[#[[1]]]["SU2w"]]!=0&];
 fexpandsu3=Flatten[ConstantArray@@@flistsu3];
 fexpandsu2=Flatten[ConstantArray@@@flistsu2];
 symbols=Switch[model[#[[1]]]["SU3c"],{1},a,{2},A,{1,0},b,{0,1},b,{1,1},B]&/@flistsu3;
-args=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flistsu3;
-listindsu3=Flatten[MapThread[Apply[#1,#2,{1}]&,{symbols,args}]];
+arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flistsu3;
+listindsu3=Flatten[MapThread[Apply[#1,#2,{1}]&,{symbols,arg}]];
 symbols=Switch[model[#[[1]]]["SU2w"],{1},a,{2},A,{1,0},b,{0,1},b,{1,1},B]&/@flistsu2;
-args=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flistsu2;
-listindsu2=Flatten[MapThread[Apply[#1,#2,{1}]&,{symbols,args}]];
+arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flistsu2;
+listindsu2=Flatten[MapThread[Apply[#1,#2,{1}]&,{symbols,arg}]];
 listgensu3=Switch[model[#]["SU3c"],{1,0},SU3FUND[[++ct1]],{0,1},SU3FUND[[++ct1]],{1,1},SU3ADJ[[++ct2]]]&/@fexpandsu3;
 listgensu2=Switch[model[#]["SU2w"],{1},SU2FUND[[++ct3]],{2},SU2ADJ[[++ct4]]]&/@fexpandsu2;
 Join[MapThread[Rule,{listindsu3,listgensu3}],MapThread[Rule,{listindsu2,listgensu2}]]
