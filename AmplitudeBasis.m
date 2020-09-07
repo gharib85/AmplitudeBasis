@@ -844,7 +844,7 @@ coefbasis=FindCor[reduce[#,Length[state]],spinorbasis]&/@(Amp[#]&/@operbasis);ba
 (*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*General Functions*)
 
 
@@ -986,8 +986,8 @@ Times@@AppendTo[numberlist,TensorContract[tensorp,listrepeat]]
 (*convert the symbolic gauge group tensors into numerical ones*)
 Options[Product2ContractV2]={Symb2Num->{}};
 Product2ContractV2[x_,inarglist_,OptionsPattern[]]:=Module[{expr,tensorlist,headlist,arglist,uniquelist,listrepeat,tensorp},
-If[Head[x]==Times,expr=List@@x];
-If[Depth[x]==2,expr={x}];
+(*If[Head[x]==Times,expr=List@@x]*)expr=Prod2List[x];
+(*If[Depth[x]==2,expr={x}];*)
 tensorlist=Sort[expr];
 headlist=Head/@tensorlist;
 arglist=Flatten[List@@#&/@tensorlist];
@@ -1008,14 +1008,18 @@ result=ToExpression["t"<>fs[[1]]<>group<>ToString[#]]&/@Range[fs[[2]]];
 If[Cases[tAssumptions,#,Infinity]=={},AppendTo[tAssumptions,#\[Element]Arrays[{dim}]]]&/@result;
 result]
 
+GenerateFieldIndex[model_,group_,flist_]:=Module[{symbols,arg,indices},
+symbols=rep2ind[model[#[[1]]][group]]&/@flist;
+arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flist;
+Flatten@MapThread[Apply[#1,#2,{1}]&,{symbols,arg}]
+]
+
 GenerateFieldTensor[model_,group_,flist_,map_]:=Module[{heads,symbols,arg,indices},
 (*This function generate the field tensors with the form: t<>F<>Group[ind["F",n,1]]<>n that can multiplied to the group factor, and also an association that map the field tensors to the indicies they carries on*)
 If[Length[flist]==0,Return[1]];
 heads=Flatten[GenerateFieldName[model,group,#]&/@flist];
-symbols=rep2ind[model[#[[1]]][group]]&/@flist; (* irreps for SU2 or SU3 *)
-arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flist;
-indices=Flatten@MapThread[Apply[#1,#2,{1}]&,{symbols,arg}];
-map=Association[MapThread[Rule,{heads,indices}]];
+indices=GenerateFieldIndex[model,group,flist];
+map=AssociationThread[heads->indices];
 Times@@(Flatten@MapThread[#1[#2]&,{heads,indices}])
 ]
 SetAttributes[GenerateFieldTensor,HoldAll]
@@ -1076,7 +1080,7 @@ UnfoldContraction[rt,group,xmap,count1,count2]
 ]
 SetAttributes[RefineTensor,HoldFirst]
 
-(* Refine gauge group tensors with the symmetry of the invariante tensors *)
+(* Refine gauge group tensors with the symmetry of the invariant tensors *)
 TRefineTensor[x_,model_,group_,fts_,ct1_,ct2_]:=Module[{trank,tdim,result,len},
 trank=tRank[x];
 tdim=tDimensions[x];
@@ -1143,7 +1147,7 @@ Return[KeyMap[MapThread[Rule,{repfs,#}]&,sym]](* attach repeated field names *)
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*SU (2) and SU (3)*)
 
 
@@ -1235,16 +1239,166 @@ tSU3val={eps3f->LeviCivitaTensor[3],eps3a->LeviCivitaTensor[3],\[Lambda]->GellMa
 
 
 (* ::Input::Initialization:: *)
-rep2ind=<|{1}->a,{2}->A,{1,0}->b,{0,1}->b,{1,1}->B|>;
+(* Define internal indexing system *)
+rep2ind=<|{0}->Function[x,Nothing],{1}->a,{2}->A,{0,0}->Function[x,Nothing],{1,0}->b,{0,1}->b,{1,1}->B|>;
 
 
 (* ::Input::Initialization:: *)
+(*obtain the additional prefactor that used to convert all the non-fundamental indices into fundamental ones*)
+ConvertFactor[model_,group_,input_]:=
+(*input is the form {field,num}, *)
+Module[{fname=input[[1]],rep,num},
+num=input[[2]];
+If[group==SU3,
+rep=model[fname]["SU3c"];
+Switch[rep,
+{0,1}, Return[Times@@(eps3f[b[fname,#,1],bb[fname,#,1],bb[fname,#,2]]&/@Range[1,num])],
+{1,1},Return[ Times@@(\[Lambda][B[fname,#,1],b[fname,#,2],e[fname,#,1]]eps3f[e[fname,#,1],b[fname,#,1],b[fname,#,3]]&/@Range[1,num])],
+_,Return[1]
+]
+];
+If[group==SU2,
+rep=model[fname]["SU2w"];
+Switch[rep,
+{1}, If[StringSplit[fname,""][[-1]]=="\[Dagger]",Times@@(eps2f[a[fname,#,1],aa[fname,#,1]]&/@Range[1,num]),1],
+{2}, Times@@(\[Tau][A[fname,#,1],a[fname,#,1],d[fname,#,1]]eps2f[d[fname,#,1],a[fname,#,2]]&/@Range[1,num]),
+_,1
+]
+]
+]
+
+
+(* ::Input::Initialization:: *)
+(********************* Littlewood-Richardson *****************)
+
+(*Generate the input for the function GenerateLRT to obtain the y-basis symbolic tensors*)
+GenerateLRInput[nonsinglets_]:=If[nonsinglets[[1]]>1,{nonsinglets[[2]],1,nonsinglets[[2]],nonsinglets[[3]]<>ToString[#]}&/@Range[nonsinglets[[1]]],{{nonsinglets[[2]],1,nonsinglets[[2]],nonsinglets[[3]]}}]
+
+(*Generate the replacement rule for the symbolic tensor indices of out put of the function GenerateLRT*)
+GenerateLRRP[nonsinglets_]:=Module[{nfield=nonsinglets[[1]],SUNirrep=nonsinglets[[2]],fname=nonsinglets[[3]],fnlist,l=Length[nonsinglets[[2]]],nfund,b1s,b2s},
+nfund=Total[Dynk2Yng[nonsinglets[[2]]]];
+If[nfield>1,
+fnlist=fname<>ToString[#]&/@Range[nonsinglets[[1]]];
+Switch[l,
+2,
+If[SUNirrep=={0,1},Flatten[Table[MapThread[Rule,{bb[fnlist[[i]],1,#]&/@Range[nfund],bb[fname,i,#]&/@Range[nfund]}],{i,nfield}]],Flatten[Table[MapThread[Rule,{b[fnlist[[i]],1,#]&/@Range[nfund],b[fname,i,#]&/@Range[nfund]}],{i,nfield}]]],
+1,
+If[SUNirrep=={1}&&StringSplit[fname,""][[-1]]=="\[Dagger]",Flatten[Table[MapThread[Rule,{aa[fnlist[[i]],1,#]&/@Range[nfund],aa[fname,i,#]&/@Range[nfund]}],{i,nfield}]],Flatten[Table[MapThread[Rule,{a[fnlist[[i]],1,#]&/@Range[nfund],a[fname,i,#]&/@Range[nfund]}],{i,nfield}]]]
+]
+,{}
+]
+]
+
+GenerateLRT[group_,replist_]:=
+(*replist is a list of elements in the following form: {__,__,__,__}, 
+the first slot is the DykinCoefficient of the constructed representation,
+the second slot is the number of repeated fields that construct the representation in the first slot,
+the third slot is the representation of the repeated fields,
+the last slot is the name of the repeated field*)
+Module[{nlist,irreplist,basereplist,n=Length[group]+1,index,l=Length[replist],tyt1,pathlists={},result={}},
+If[group==SU2,index="a"];
+If[group==SU3,index="b"];
+irreplist=#[[1]]&/@replist;
+nlist=(#[[2]]*Total[Dynk2Yng[#[[3]]]])&/@replist;
+basereplist=#[[3]]&/@replist;
+(*Generate tensor Young Tableaux*)
+tyt1=Distribute[GenerateTYT@@@Join[replist,{index,group}&/@Range[1,l],2],List];
+pathlists=ConvertPathtoYD[nlist,#,n]&/@FindSingletPath[group,irreplist];
+Do[Do[LRTableaux[result,tyt1[[j]],pathlists[[i]],n],{j,1,Length[tyt1]}],{i,1,Length[pathlists]}];
+result
+]
+
+
+(* ::Input::Initialization:: *)
+(**************************** Final Output *********************************)
+
+GetMultiAuX[input_]:=MapAt[input[[-1]]*#&,Transpose[{#[[1;;-1,1]],Times@@#[[1;;-1,2]]}&/@Distribute[input[[2]],List]],{2}]
+
+(*Get the list of SU3 group factor for a given type in different bases*)
+GenerateSU3[model_,type_]:=Module[{flist,repeatlist,ruleLRRP,convertfactor,SUNreplist,nonsinglets,repeatnonsinglets,repeatsinglets,displacements,Irreplist,SNCollections,nonSingletSN,fieldcombs,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,indexlist,qr,tdims,ct1=0,ct2=0,ct3=0,ct4=0,coords},
+flist=CheckType[model,type];
+{ruleRP,{{{ct1,ct2,ct3,ct4}}}}=Reap[GenerateReplacingRule[model,flist]];
+convertfactor=Times@@(ConvertFactor[model,SU3,#]&/@flist);
+SUNreplist={#[[2]],model[#[[1]]]["SU3c"],#[[1]]}&/@flist;
+repeatlist=Select[SUNreplist,#[[1]]>1&];
+nonsinglets=DeleteCases[SUNreplist,{_,{0,0},_}];
+repeatnonsinglets=DeleteCases[repeatlist,{_,{0,0},_}];
+repeatsinglets=Select[repeatlist,#[[2]]=={0,0}&];
+If[Length@nonsinglets==0,Return[<|"basis"->{1},"coord"-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->Nest[{#}&,1,Length[repeatlist]+2]|>|>]];
+displacements=Association@MapThread[Rule,{nonsinglets[[1;;-1,3]],Prepend[Accumulate[nonsinglets[[1;;-1,1]]],0][[1;;-2]]}];
+indexlist=ruleRP[[1;;Total[nonsinglets[[1;;-1,1]]],2]];(*GenerateFieldIndex[model,"SU3c",flist];*)(*Pick out the relevant SU3 indices in order*)
+Irreplist=Transpose@FindIrrepCombination[SU3,SUNreplist[[1;;-1,{2,1}]],{0,0}];
+SNCollections=Normal@Merge[Association@MapThread[Rule,MapAt[MapThread[Rule,{SUNreplist[[1;;-1,3]],#}]&,GetMultiAuX[#],{1,All}]]&/@Irreplist,Total];(*get different SN syms and the corresponding multiplicity*)
+SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];
+nonSingletSN=MapAt[Select[#,model[#[[1]]]["SU3c"]!={0,0}&]&,SNCollections,{All,1}];(*Select out SN syms of nonsinglet repeated fields *)
+fieldcombs=Join@@(GenerateLRInput/@nonsinglets);
+ruleLRRP=Join@@(GenerateLRRP/@nonsinglets);
+(*fieldcombs=DeleteCases[#,{_,_,{0,0},_}]&/@Table[Join[{#}&/@Irreplist[[i,1]],SUNreplist,2],{i,Length[Irreplist]}];*)(*Select out nonsinglet fields for constructing singlet*)
+YDbasis=Expand[Flatten[((Times@@(eps3a@@@Transpose[#]))&/@MapAt[ToExpression,GenerateLRT[SU3,fieldcombs],{All,All}]/.ruleLRRP)]*convertfactor];
+MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,"SU3c",flist,ct1,ct2]/.ruleRP];
+tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tSU3val]&/@MbasisAll;
+vMbasisAll=Flatten/@tMbasisAll;
+MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
+(*Mbasis=SimpGF[TRefineTensor[YDbasis,model,"SU3c",flist,ct1,ct2]/.ruleRP];*)
+If[Length@repeatlist==0,Return[<|"basis"->{Mbasis},"coord"-><|{}->IdentityMatrix[Length[Mbasis]]|>|>]];
+If[Length@repeatnonsinglets==0,Return[<|"basis"->{Mbasis},"coord"-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->(Nest[List,#,Length[repeatlist]]&/@IdentityMatrix[Length[Mbasis]])|>|>]];
+(*tMbasis=Product2ContractV2[#,indexlist]&/@Mbasis;
+vMbasis=Flatten/@tMbasis;*)
+If[MatrixRank[vMbasis]!=Length[vMbasis],Print["Warning: non-independent basis!!!!!"];];
+qr=QRDecomposition[Transpose[vMbasis]];
+tdims=MapAt[SnIrrepDim,SNCollections[[1;;-1,1,1;;-1,2]],{All,All}];(*Get tensor dimensions of each SN syms*)
+coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasis[tMbasis,#1,displacements,qr,#2]&,{nonSingletSN,tdims}]}];
+<|"basis"->Mbasis,"coord"->coords|>
+]
+
+(*Get the list of SU2 group factor for a given type in different bases*)
+GenerateSU2[model_,type_]:=Module[{flist,repeatlist,ruleRP,ruleLRRP,convertfactor,SUNreplist,nonsinglets,repeatnonsinglets,repeatsinglets,displacements,Irreplist,SNCollections,nonSingletSN,fieldcombs,YDbasis,MbasisAll,Mbasis,tMbasisAll,tMbasis,vMbasisAll,vMbasis,indexlist,qr,tdims,ct1=0,ct2=0,ct3=0,ct4=0,coords},
+flist=CheckType[model,type];
+{ruleRP,{{{ct1,ct2,ct3,ct4}}}}=Reap[GenerateReplacingRule[model,flist]];
+convertfactor=Times@@(ConvertFactor[model,SU2,#]&/@flist);
+SUNreplist={#[[2]],model[#[[1]]]["SU2w"],#[[1]]}&/@flist;
+repeatlist=Select[SUNreplist,#[[1]]>1&];
+nonsinglets=DeleteCases[SUNreplist,{_,{0},_}];
+repeatnonsinglets=DeleteCases[repeatlist,{_,{0},_}];
+repeatsinglets=Select[repeatlist,#[[2]]=={0}&];
+If[Length@nonsinglets==0,Return[<|"basis"->{1},"coord"-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->Nest[{#}&,1,Length[repeatlist]+2]|>|>]];
+displacements=Association@MapThread[Rule,{nonsinglets[[1;;-1,3]],Prepend[Accumulate[nonsinglets[[1;;-1,1]]],0][[1;;-2]]}];
+indexlist=ruleRP[[-Total[nonsinglets[[1;;-1,1]]];;-1,2]];(*GenerateFieldIndex[model,"SU2w",flist];*)(*Pick out the relevant SU2 indices in order*)
+Irreplist=Transpose@FindIrrepCombination[SU2,SUNreplist[[1;;-1,{2,1}]],{0}];
+SNCollections=Normal@Merge[Association@MapThread[Rule,MapAt[MapThread[Rule,{SUNreplist[[1;;-1,3]],#}]&,GetMultiAuX[#],{1,All}]]&/@Irreplist,Total];(*get different SN syms and the corresponding multiplicity*)
+SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];
+nonSingletSN=MapAt[Select[#,model[#[[1]]]["SU2w"]!={0}&]&,SNCollections,{All,1}];(*Select out SN syms of nonsinglet repeated fields *)
+fieldcombs=Join@@(GenerateLRInput/@nonsinglets);
+ruleLRRP=Join@@(GenerateLRRP/@nonsinglets);
+(*fieldcombs=DeleteCases[#,{_,_,{0,0},_}]&/@Table[Join[{#}&/@Irreplist[[i,1]],SUNreplist,2],{i,Length[Irreplist]}];*)(*Select out nonsinglet fields for constructing singlet*)
+YDbasis=Expand[Flatten[((Times@@(eps2a@@@Transpose[#]))&/@MapAt[ToExpression,GenerateLRT[SU2,fieldcombs],{All,All}])]*convertfactor]/.ruleLRRP;
+MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,"SU2w",flist,ct3,ct4]/.ruleRP];
+tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tSU2val]&/@MbasisAll;
+vMbasisAll=Flatten/@tMbasisAll;
+MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
+If[Length@repeatlist==0,Return[<|"basis"->{Mbasis},"coord"-><|{}->IdentityMatrix[Length[Mbasis]]|>|>]];
+If[Length@repeatnonsinglets==0,Return[<|"basis"->{Mbasis},"coord"-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->(Nest[List,#,Length[repeatlist]]&/@IdentityMatrix[Length[Mbasis]])|>|>]];
+If[MatrixRank[vMbasis]!=Length[vMbasis],Print["Warning: non-independent basis!!!!!"];];
+qr=QRDecomposition[Transpose[vMbasis]];
+tdims=MapAt[SnIrrepDim,SNCollections[[1;;-1,1,1;;-1,2]],{All,All}];(*Get tensor dimensions of each SN syms*)
+coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasis[tMbasis,#1,displacements,qr,#2]&,{nonSingletSN,tdims}]}];
+<|"basis"->Mbasis,"coord"->coords|>
+]
+
+
+(* ::Subsection:: *)
+(*Formating & Output*)
+
+
+(* ::Subsubsection:: *)
+(*Formating*)
+
+
+(* ::Input::Initialization:: *)
+(* Group tensor formating *)
 (* simplification when contracted with fields *)
 RMDelta[in_]:=Module[{rule},rule=Rule@@@(Reverse/@Sort/@Cases[List@@in,del[2][x__]|del[3][x__]|del3n[x__]|del8n[x__]:>{x}]);in/.{del[2][__]->1,del[3][__]->1,del3n[__]->1,del8n[__]->1}/.rule]
 ContractDelta[in_]:=Switch[Expand[in],_Times,RMDelta[in],_Plus,Plus@@(RMDelta/@List@@Expand[in])]
-
-
-(* ::Input::Initialization:: *)
 (* getting printable form *)
 Sortarg[x_]:=Module[{arg=List@@x,sortedarg},sortedarg=Sort[arg];permutationSignature[FindPermutation[sortedarg,arg]]Head[x]@@sortedarg];
 
@@ -1392,176 +1546,78 @@ ShowStringCharacters->True,
 NumberMarks->True],
 FullForm]\)
   ]
-
-
-(* ::Input::Initialization:: *)
 (* Generate the replacing rule of the tensor indices for the final output form *)
-GenerateReplacingRule[model_,flist_,ct1_,ct2_,ct3_,ct4_]:=Module[{flistsu3,flistsu2,fexpandsu3,fexpandsu2,symbols,arg,listindsu3,listindsu2,listgensu3,listgensu2},
+GenerateReplacingRule[model_,flist_]:=Module[{flistsu3,flistsu2,fexpandsu3,fexpandsu2,symbols,arg,listindsu3,listindsu2,listgensu3,listgensu2,c1=0,c2=0,c3=0,c4=0},
 flistsu3=Select[flist,Total[model[#[[1]]]["SU3c"]]!=0&];
 flistsu2=Select[flist,Total[model[#[[1]]]["SU2w"]]!=0&];
 fexpandsu3=Flatten[ConstantArray@@@flistsu3];
 fexpandsu2=Flatten[ConstantArray@@@flistsu2];
-symbols=Switch[model[#[[1]]]["SU3c"],{1},a,{2},A,{1,0},b,{0,1},b,{1,1},B]&/@flistsu3;
+symbols=rep2ind[model[#[[1]]]["SU3c"]]&/@flistsu3;
 arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flistsu3;
 listindsu3=Flatten[MapThread[Apply[#1,#2,{1}]&,{symbols,arg}]];
-symbols=Switch[model[#[[1]]]["SU2w"],{1},a,{2},A,{1,0},b,{0,1},b,{1,1},B]&/@flistsu2;
+symbols=rep2ind[model[#[[1]]]["SU2w"]]&/@flistsu2;
 arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flistsu2;
 listindsu2=Flatten[MapThread[Apply[#1,#2,{1}]&,{symbols,arg}]];
-listgensu3=Switch[model[#]["SU3c"],{1,0},SU3FUND[[++ct1]],{0,1},SU3FUND[[++ct1]],{1,1},SU3ADJ[[++ct2]]]&/@fexpandsu3;
-listgensu2=Switch[model[#]["SU2w"],{1},SU2FUND[[++ct3]],{2},SU2ADJ[[++ct4]]]&/@fexpandsu2;
+listgensu3=Switch[model[#]["SU3c"],{1,0},SU3FUND[[++c1]],{0,1},SU3FUND[[++c1]],{1,1},SU3ADJ[[++c2]]]&/@fexpandsu3;
+listgensu2=Switch[model[#]["SU2w"],{1},SU2FUND[[++c3]],{2},SU2ADJ[[++c4]]]&/@fexpandsu2;
+Sow[{c1,c2,c3,c4}];
 Join[MapThread[Rule,{listindsu3,listgensu3}],MapThread[Rule,{listindsu2,listgensu2}]]
 ]
 SetAttributes[GenerateReplacingRule,HoldAll]
 
 
-(* ::Input::Initialization:: *)
-(*obtain the additional prefactor that used to convert all the non-fundamental indices into fundamental ones*)
-ConvertFactor[model_,group_,input_]:=
-(*input is the form {field,num}, *)
-Module[{fname=input[[1]],rep,num},
-num=input[[2]];
-If[group==SU3,
-rep=model[fname]["SU3c"];
-Switch[rep,
-{0,1}, Return[Times@@(eps3f[b[fname,#,1],bb[fname,#,1],bb[fname,#,2]]&/@Range[1,num])],
-{1,1},Return[ Times@@(\[Lambda][B[fname,#,1],b[fname,#,2],e[fname,#,1]]eps3f[e[fname,#,1],b[fname,#,1],b[fname,#,3]]&/@Range[1,num])],
-_,Return[1]
-]
-];
-If[group==SU2,
-rep=model[fname]["SU2w"];
-Switch[rep,
-{1}, If[StringSplit[fname,""][[-1]]=="\[Dagger]",Times@@(eps2f[a[fname,#,1],aa[fname,#,1]]&/@Range[1,num]),1],
-{2}, Times@@(\[Tau][A[fname,#,1],a[fname,#,1],d[fname,#,1]]eps2f[d[fname,#,1],a[fname,#,2]]&/@Range[1,num]),
-_,1
-]
-]
-]
+(* Amplitude Formating *)
+
+
+(* Lorentz Structure formating *)
+
+
+(* Operator formating *)
+
+
+(* ::Subsubsection::Closed:: *)
+(*Output*)
 
 
 (* ::Input::Initialization:: *)
-(**************************** Littlewood-Richardson *********************************)
+(*********** show counting result *****************)
 
-(*Generate the input for the function GenerateLRT to obtain the y-basis symbolic tensors*)
-GenerateLRInput[nonsinglets_]:=If[nonsinglets[[1]]>1,{nonsinglets[[2]],1,nonsinglets[[2]],nonsinglets[[3]]<>ToString[#]}&/@Range[nonsinglets[[1]]],{{nonsinglets[[2]],1,nonsinglets[[2]],nonsinglets[[3]]}}]
-
-(*Generate the replacement rule for the symbolic tensor indices of out put of the function GenerateLRT*)
-GenerateLRRP[nonsinglets_]:=Module[{nfield=nonsinglets[[1]],SUNirrep=nonsinglets[[2]],fname=nonsinglets[[3]],fnlist,l=Length[nonsinglets[[2]]],nfund,b1s,b2s},
-nfund=Total[Dynk2Yng[nonsinglets[[2]]]];
-If[nfield>1,
-fnlist=fname<>ToString[#]&/@Range[nonsinglets[[1]]];
-Switch[l,
-2,
-If[SUNirrep=={0,1},Flatten[Table[MapThread[Rule,{bb[fnlist[[i]],1,#]&/@Range[nfund],bb[fname,i,#]&/@Range[nfund]}],{i,nfield}]],Flatten[Table[MapThread[Rule,{b[fnlist[[i]],1,#]&/@Range[nfund],b[fname,i,#]&/@Range[nfund]}],{i,nfield}]]],
-1,
-If[SUNirrep=={1}&&StringSplit[fname,""][[-1]]=="\[Dagger]",Flatten[Table[MapThread[Rule,{aa[fnlist[[i]],1,#]&/@Range[nfund],aa[fname,i,#]&/@Range[nfund]}],{i,nfield}]],Flatten[Table[MapThread[Rule,{a[fnlist[[i]],1,#]&/@Range[nfund],a[fname,i,#]&/@Range[nfund]}],{i,nfield}]]]
+StatResult[model_,types_List,OptionsPattern[]]:=Module[{start,file=OptionValue[OutFile],i=1,type,len=Length[types],timelist={},terms={},time,term,nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR},
+If[file!="null"&&!FileExistsQ[file],Put["Counting Operators ...",file]];
+start=SessionTime[];
+If[OptionValue[Progress],Print[Dynamic[i],"/",len,"   ",Dynamic[type]]];
+Do[i++;
+{time,term}=Timing@Type2TermsCount[model,type];
+AppendTo[timelist,time];
+AppendTo[terms,term];
+If[FileExistsQ[file],PutAppend[term,file]];
+,{type,types}];
+nTermList=Values/@terms;
+posR=Complement[Position[realQ/@types,True],Position[nTermList,{}]];
+nTypes=Length@Cases[nTermList,Except[{}]];
+Print["number of real types: ",2nTypes-Length[posR]];
+nTermsR=Total@MapAt[#/2&,2Total/@nTermList,posR];
+Print["number of real terms: ",nTermsR];
+SList=MapThread[Slist[model,#1,#2]&,{types,terms}];
+nOpers=MapThread[Dot,{nTermList,SList}];
+nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
+Print["number of real operators: ",nOpersR];
+Print["time: ",SessionTime[]-start];
+Return[timelist];
 ]
-,{}
-]
-]
-
-GenerateLRT[group_,replist_]:=
-(*replist is a list of elements in the following form: {__,__,__,__}, 
-the first slot is the DykinCoefficient of the constructed representation,
-the second slot is the number of repeated fields that construct the representation in the first slot,
-the third slot is the representation of the repeated fields,
-the last slot is the name of the repeated field*)
-Module[{nlist,irreplist,basereplist,n=Length[group]+1,index,l=Length[replist],tyt1,pathlists={},result={}},
-If[group==SU2,index="a"];
-If[group==SU3,index="b"];
-irreplist=#[[1]]&/@replist;
-nlist=(#[[2]]*Total[Dynk2Yng[#[[3]]]])&/@replist;
-basereplist=#[[3]]&/@replist;
-(*Generate tensor Young Tableaux*)
-tyt1=Distribute[GenerateTYT@@@Join[replist,{index,group}&/@Range[1,l],2],List];
-pathlists=ConvertPathtoYD[nlist,#,n]&/@FindSingletPath[group,irreplist];
-Do[Do[LRTableaux[result,tyt1[[j]],pathlists[[i]],n],{j,1,Length[tyt1]}],{i,1,Length[pathlists]}];
-result
+Options[StatResult]={OutFile->"null",Progress->False};
+StatResult[model_,dim_Integer,OptionsPattern[]]:=Module[{start,types},
+Print["-----------------------"];
+Print["Enumerating dim ",dim," operators ..."];
+start=SessionTime[];
+types=Flatten@AllTypesC[model,dim];
+Print[" --- find all types (time: ",SessionTime[]-start,")"];
+StatResult[model,types,OutFile->OptionValue[OutFile],Progress->OptionValue[Progress]]
 ]
 
 
 (* ::Input::Initialization:: *)
-(**************************** Final Output *********************************)
-
-GetMultiAuX[input_]:=MapAt[input[[-1]]*#&,Transpose[{#[[1;;-1,1]],Times@@#[[1;;-1,2]]}&/@Distribute[input[[2]],List]],{2}]
-
-(*Get the list of SU3 and SU2 group factor for a given type in different bases*)
-GenerateSU3[model_,type_]:=Module[{flist,repeatlist,ruleRP,ruleLRRP,convertfactor,SUNreplist,nonsinglets,repeatnonsinglets,repeatsinglets,displacements,Irreplist,SNCollections,nonSingletSN,fieldcombs,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,indexlist,qr,tdims,ct1=0,ct2=0,ct3=0,ct4=0,coords},
-flist=CheckType[model,type];
-ruleRP=GenerateReplacingRule[model,flist,ct1,ct2,ct3,ct4];
-convertfactor=Times@@(ConvertFactor[model,SU3,#]&/@flist);
-SUNreplist={#[[2]],model[#[[1]]]["SU3c"],#[[1]]}&/@flist;
-repeatlist=Select[SUNreplist,#[[1]]>1&];
-nonsinglets=DeleteCases[SUNreplist,{_,{0,0},_}];
-repeatnonsinglets=DeleteCases[repeatlist,{_,{0,0},_}];
-repeatsinglets=Select[repeatlist,#[[2]]=={0,0}&];
-If[Length@nonsinglets==0,Return[<|basis->{1},resultcoord-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->Nest[{#}&,1,Length[repeatlist]+2]|>|>]];
-displacements=Association@MapThread[Rule,{nonsinglets[[1;;-1,3]],Prepend[Accumulate[nonsinglets[[1;;-1,1]]],0][[1;;-2]]}];
-indexlist=ruleRP[[1;;Total[nonsinglets[[1;;-1,1]]],2]];(*Pick out the relevant SU3 indices in order*)
-Irreplist=Transpose@FindIrrepCombination[SU3,SUNreplist[[1;;-1,{2,1}]],{0,0}];
-SNCollections=Normal@Merge[Association@MapThread[Rule,MapAt[MapThread[Rule,{SUNreplist[[1;;-1,3]],#}]&,GetMultiAuX[#],{1,All}]]&/@Irreplist,Total];(*get different SN syms and the corresponding multiplicity*)
-SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];
-nonSingletSN=MapAt[Select[#,model[#[[1]]]["SU3c"]!={0,0}&]&,SNCollections,{All,1}];(*Select out SN syms of nonsinglet repeated fields *)
-fieldcombs=Join@@(GenerateLRInput/@nonsinglets);
-ruleLRRP=Join@@(GenerateLRRP/@nonsinglets);
-(*fieldcombs=DeleteCases[#,{_,_,{0,0},_}]&/@Table[Join[{#}&/@Irreplist[[i,1]],SUNreplist,2],{i,Length[Irreplist]}];*)(*Select out nonsinglet fields for constructing singlet*)
-YDbasis=Expand[Flatten[((Times@@(eps3a@@@Transpose[#]))&/@MapAt[ToExpression,GenerateLRT[SU3,fieldcombs],{All,All}]/.ruleLRRP)]*convertfactor];
-MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,"SU3c",flist,ct1,ct2]/.ruleRP];
-tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tSU3val]&/@MbasisAll;
-vMbasisAll=Flatten/@tMbasisAll;
-MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
-(*Mbasis=SimpGF[TRefineTensor[YDbasis,model,"SU3c",flist,ct1,ct2]/.ruleRP];*)
-If[Length@repeatlist==0,Return[<|basis->{Mbasis},resultcoord-><|{}->IdentityMatrix[Length[Mbasis]]|>|>]];
-If[Length@repeatnonsinglets==0,Return[<|basis->{Mbasis},resultcoord-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->(Nest[List,#,Length[repeatlist]]&/@IdentityMatrix[Length[Mbasis]])|>|>]];
-(*tMbasis=Product2ContractV2[#,indexlist]&/@Mbasis;
-vMbasis=Flatten/@tMbasis;*)
-If[MatrixRank[vMbasis]!=Length[vMbasis],Print["Warning: non-independent basis!!!!!"];];
-qr=QRDecomposition[Transpose[vMbasis]];
-tdims=MapAt[SnIrrepDim,SNCollections[[1;;-1,1,1;;-1,2]],{All,All}];(*Get tensor dimensions of each SN syms*)
-coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasis[tMbasis,#1,displacements,qr,#2]&,{nonSingletSN,tdims}]}];
-<|basis->Mbasis,resultcoord->coords|>
-]
-
-GenerateSU2[model_,type_]:=Module[{flist,repeatlist,ruleRP,ruleLRRP,convertfactor,SUNreplist,nonsinglets,repeatnonsinglets,repeatsinglets,displacements,Irreplist,SNCollections,nonSingletSN,fieldcombs,YDbasis,MbasisAll,Mbasis,tMbasisAll,tMbasis,vMbasisAll,vMbasis,indexlist,qr,tdims,ct1=0,ct2=0,ct3=0,ct4=0,coords},
-flist=CheckType[model,type];
-ruleRP=GenerateReplacingRule[model,flist,ct1,ct2,ct3,ct4];
-convertfactor=Times@@(ConvertFactor[model,SU2,#]&/@flist);
-SUNreplist={#[[2]],model[#[[1]]]["SU2w"],#[[1]]}&/@flist;
-repeatlist=Select[SUNreplist,#[[1]]>1&];
-nonsinglets=DeleteCases[SUNreplist,{_,{0},_}];
-repeatnonsinglets=DeleteCases[repeatlist,{_,{0},_}];
-repeatsinglets=Select[repeatlist,#[[2]]=={0}&];
-If[Length@nonsinglets==0,Return[<|basis->{1},resultcoord-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->Nest[{#}&,1,Length[repeatlist]+2]|>|>]];
-displacements=Association@MapThread[Rule,{nonsinglets[[1;;-1,3]],Prepend[Accumulate[nonsinglets[[1;;-1,1]]],0][[1;;-2]]}];
-indexlist=ruleRP[[-Total[nonsinglets[[1;;-1,1]]];;-1,2]];(*Pick out the relevant SU3 indices in order*)
-Irreplist=Transpose@FindIrrepCombination[SU2,SUNreplist[[1;;-1,{2,1}]],{0}];
-SNCollections=Normal@Merge[Association@MapThread[Rule,MapAt[MapThread[Rule,{SUNreplist[[1;;-1,3]],#}]&,GetMultiAuX[#],{1,All}]]&/@Irreplist,Total];(*get different SN syms and the corresponding multiplicity*)
-SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];
-nonSingletSN=MapAt[Select[#,model[#[[1]]]["SU2w"]!={0}&]&,SNCollections,{All,1}];(*Select out SN syms of nonsinglet repeated fields *)
-fieldcombs=Join@@(GenerateLRInput/@nonsinglets);
-ruleLRRP=Join@@(GenerateLRRP/@nonsinglets);
-(*fieldcombs=DeleteCases[#,{_,_,{0,0},_}]&/@Table[Join[{#}&/@Irreplist[[i,1]],SUNreplist,2],{i,Length[Irreplist]}];*)(*Select out nonsinglet fields for constructing singlet*)
-YDbasis=Expand[Flatten[((Times@@(eps2a@@@Transpose[#]))&/@MapAt[ToExpression,GenerateLRT[SU2,fieldcombs],{All,All}])]*convertfactor]/.ruleLRRP;
-MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,"SU2w",flist,ct3,ct4]/.ruleRP];
-tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tSU2val]&/@MbasisAll;
-vMbasisAll=Flatten/@tMbasisAll;
-MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
-If[Length@repeatlist==0,Return[<|basis->{Mbasis},resultcoord-><|{}->IdentityMatrix[Length[Mbasis]]|>|>]];
-If[Length@repeatnonsinglets==0,Return[<|basis->{Mbasis},resultcoord-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->(Nest[List,#,Length[repeatlist]]&/@IdentityMatrix[Length[Mbasis]])|>|>]];
-If[MatrixRank[vMbasis]!=Length[vMbasis],Print["Warning: non-independent basis!!!!!"];];
-qr=QRDecomposition[Transpose[vMbasis]];
-tdims=MapAt[SnIrrepDim,SNCollections[[1;;-1,1,1;;-1,2]],{All,All}];(*Get tensor dimensions of each SN syms*)
-coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasis[tMbasis,#1,displacements,qr,#2]&,{nonSingletSN,tdims}]}];
-<|basis->Mbasis,resultcoord->coords|>
-]
-
-
-(* ::Subsection::Closed:: *)
-(*Output Formating*)
-
-
-(* ::Input::Initialization:: *)
-(*********** present the result *****************)
+(*********** present all operators *****************)
 
 (* present in notebook *)
 Options[Present]={MODEL->0};
@@ -1596,7 +1652,7 @@ Scan[Print["\\begin{align}\n         ",FormEnviTeX[#],"\n\\end{align}\n"]&,#2];
 ]&,result]]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*W2 Operator*)
 
 
@@ -1662,7 +1718,7 @@ eigensys=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result]//Eigensystem;
 (*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Functions*)
 
 
@@ -1708,11 +1764,12 @@ len=Length[Keys[lorentzB[coord]][[1]]];(*num of repeated fields*)
 groupB=Through[{GenerateSU3,GenerateSU2}[model,type]];(*GetGroupFactor[model,#,type]&/@Select[model[Gauge],nonAbelian];*)
 nFac=Length[groupB]+1;(*number of factors to do Inner Product Decomposition for Sn groups*)
 
-basisTotal=Flatten[lorentzB[basis]\[TensorProduct]Through[(TensorProduct@@groupB)[basis]]];
-If[len==0,Return[<|{}-> Map[Simplify[RefineReplace[ContractDelta[#]]]&,basisTotal]|>]];
-If[OptionValue[OutputFormat]=="operator",basisTotal=Map[RefineReplace[ContractDelta[#]]&,basisTotal],basisTotal=Map[RefineReplace[#]&,basisTotal]];
+basisTotal=Flatten[lorentzB[basis]\[TensorProduct]Through[(TensorProduct@@groupB)["basis"]]](*/.GenerateReplacingRule[model,type]*);
+If[OptionValue[OutputFormat]=="operator",basisTotal=ContractDelta/@basisTotal];
+basisTotal=RefineReplace/@basisTotal;
+If[len==0,Return[<|{}->basisTotal|>]];
 
-SymComb=Distribute[Normal/@Prepend[Through[groupB[resultcoord]],lorentzB[coord]],List];(*list all syms combinations from factors*)
+SymComb=Distribute[Normal/@Prepend[Through[groupB["coord"]],lorentzB[coord]],List];(*list all syms combinations from factors*)
 terms=Distribute[InnerDecomposeKey[model,#]&@Keys[#]->Distribute[Values[#],List],List]&/@SymComb//Flatten;(*perform IPD and expand multiplicities of basis and IPD*)
 terms=Merge[terms/.{((sym_->CG_)->fac_):>sym->{CG,fac}},Identity];(*merge into association group by Sym*)
 
@@ -1781,40 +1838,6 @@ Slist[model_,type_,terms_]:=Module[{flist=CheckType[model,type],n1,n2},
 n1=Times@@(model[#][nfl]&/@Cases[flist,{_String,1}][[All,1]]); (* single fields with S=nflavor *)
 n2=Times@@@(KeyValueMap[HookContentFormula[#2,model[#1][nfl]]&,Association@@#]&/@Keys[terms]); (* repfields with non-trivial symmetry *)
 n1*n2
-]
-
-(* show all counting result *)
-StatResult[model_,types_List,OptionsPattern[]]:=Module[{start,file=OptionValue[OutFile],i=1,type,len=Length[types],timelist={},terms={},time,term,nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR},
-If[file!="null"&&!FileExistsQ[file],Put["Counting Operators ...",file]];
-start=SessionTime[];
-If[OptionValue[Progress],Print[Dynamic[i],"/",len,"   ",Dynamic[type]]];
-Do[i++;
-{time,term}=Timing@Type2TermsCount[model,type];
-AppendTo[timelist,time];
-AppendTo[terms,term];
-If[FileExistsQ[file],PutAppend[term,file]];
-,{type,types}];
-nTermList=Values/@terms;
-posR=Complement[Position[realQ/@types,True],Position[nTermList,{}]];
-nTypes=Length@Cases[nTermList,Except[{}]];
-Print["number of real types: ",2nTypes-Length[posR]];
-nTermsR=Total@MapAt[#/2&,2Total/@nTermList,posR];
-Print["number of real terms: ",nTermsR];
-SList=MapThread[Slist[model,#1,#2]&,{types,terms}];
-nOpers=MapThread[Dot,{nTermList,SList}];
-nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
-Print["number of real operators: ",nOpersR];
-Print["time: ",SessionTime[]-start];
-Return[timelist];
-]
-Options[StatResult]={OutFile->"null",Progress->False};
-StatResult[model_,dim_Integer,OptionsPattern[]]:=Module[{start,types},
-Print["-----------------------"];
-Print["Enumerating dim ",dim," operators ..."];
-start=SessionTime[];
-types=Flatten@AllTypesC[model,dim];
-Print[" --- find all types (time: ",SessionTime[]-start,")"];
-StatResult[model,types,OutFile->OptionValue[OutFile],Progress->OptionValue[Progress]]
 ]
 
 
