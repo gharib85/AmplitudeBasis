@@ -102,6 +102,7 @@ basisReduce::input="wrong input matrix: `1`";
 (* ::Input::Initialization:: *)
 (* Special Definitions *)
 tAssumptions={};
+tRep=<||>;
 tReduce:=TensorReduce[#,Assumptions->tAssumptions]&;
 tRank:=TensorRank[#,Assumptions->tAssumptions]&;
 tDimensions:=TensorDimensions[#,Assumptions->tAssumptions]&;
@@ -1024,7 +1025,7 @@ Times@@(Flatten@MapThread[#1[#2]&,{heads,indices}])
 ]
 SetAttributes[GenerateFieldTensor,HoldAll]
 
-Generateorder2index[repeat_,group_,indexorder_,tlist_,xmap_,count1_,count2_,maporder2index_]:=Module[{p1,p2,headp1,headp2},
+Generateorder2index[repeat_,group_,indexorder_,tlist_,xmap_,ct1_,ct2_,maporder2index_]:=Module[{p1,p2,headp1,headp2,count1=0,count2=0},
 (*Generate a map "maporder2index" between the label of the indices in the TensorProduct that belongs to the tensor other than the field tensors to the indices of the field tensors*)
 p1=Flatten[Position[indexorder,repeat[[1]]]];
 p2=Flatten[Position[indexorder,repeat[[2]]]];
@@ -1034,7 +1035,9 @@ If[tRank[headp1]==1,
 maporder2index[repeat[[2]]]=xmap[headp1];,
 If[tRank[headp2]==1,
 maporder2index[repeat[[1]]]=xmap[headp2];,
-maporder2index[repeat[[1]]]=Switch[group,"SU3c",If[tDimensions[headp1][[p1[[2]]]]==8,SU3ADJ[[++count2]],SU3FUND[[++count1]]],"SU2w",If[tDimensions[headp1][[p1[[2]]]]==3,SU2ADJ[[++count2]],SU2FUND[[++count1]]]];
+maporder2index[repeat[[1]]]=Switch[group,
+"SU3c",If[tDimensions[headp1][[p1[[2]]]]==8,(*SU3ADJ[[++count2]],SU3FUND[[++count1]]*)B[++count2],b[++count1]],
+"SU2w",If[tDimensions[headp1][[p1[[2]]]]==3,(*SU2ADJ[[++count2]],SU2FUND[[++count1]]*)A[++count2],a[++count1]]];
 maporder2index[repeat[[2]]]=maporder2index[repeat[[1]]];
 ]
 ];
@@ -1154,18 +1157,43 @@ Return[KeyMap[MapThread[Rule,{repfs,#}]&,sym]](* attach repeated field names *)
 (* ::Input::Initialization:: *)
 (* invariant tensors for SU(2) and SU(3) *)
 AppendTo[tAssumptions,dabc\[Element]Arrays[{8,8,8},Reals,Symmetric[{1,2,3}]]];
+AppendTo[tRep,dabc->{{1,1},{1,1},{1,1}}];
+
 AppendTo[tAssumptions,fabc\[Element]Arrays[{8,8,8},Reals,Antisymmetric[{1,2,3}]]];
+AppendTo[tRep,fabc->{{1,1},{1,1},{1,1}}];
+
 AppendTo[tAssumptions,del8n\[Element]Arrays[{8,8},Reals,Symmetric[{1,2}]]];
+AppendTo[tRep,del8n->{{1,1},{1,1}}];
+
 AppendTo[tAssumptions,del3n\[Element]Arrays[{3,3},Reals,Symmetric[{1,2}]]];
+AppendTo[tRep,del3n->{{2},{2}}];
+
 AppendTo[tAssumptions,del[2]\[Element]Arrays[{2,2},Reals]];
+AppendTo[tRep,del[2]->{{1},{1}}];
+
 AppendTo[tAssumptions,del[3]\[Element]Arrays[{3,3},Reals]];
+AppendTo[tRep,del[3]->{{1,0},{0,1}}];
+
 AppendTo[tAssumptions,eps3n\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
+AppendTo[tRep,eps3n->{{2},{2},{2}}];
+
 AppendTo[tAssumptions,eps3a\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
+AppendTo[tRep,eps3a->{{0,1},{0,1},{0,1}}];
+
 AppendTo[tAssumptions,eps3f\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
+AppendTo[tRep,eps3f->{{1,0},{1,0},{1,0}}];
+
 AppendTo[tAssumptions,eps2a\[Element]Arrays[{2,2},Reals,Antisymmetric[{1,2}]]];
+AppendTo[tRep,eps2a->{{1},{1}}];
+
 AppendTo[tAssumptions,eps2f\[Element]Arrays[{2,2},Reals,Antisymmetric[{1,2}]]];
+AppendTo[tRep,eps2f->{{1},{1}}];
+
 AppendTo[tAssumptions,\[Lambda]\[Element]Arrays[{8,3,3},Reals]];
+AppendTo[tRep,\[Lambda]->{{1,1},{1,0},{0,1}}];
+
 AppendTo[tAssumptions,\[Tau]\[Element]Arrays[{3,2,2},Reals]];
+AppendTo[tRep,\[Tau]->{{2},{1},{1}}];
 
 
 (* ::Input::Initialization:: *)
@@ -1284,9 +1312,7 @@ Switch[l,
 If[SUNirrep=={0,1},Flatten[Table[MapThread[Rule,{bb[fnlist[[i]],1,#]&/@Range[nfund],bb[fname,i,#]&/@Range[nfund]}],{i,nfield}]],Flatten[Table[MapThread[Rule,{b[fnlist[[i]],1,#]&/@Range[nfund],b[fname,i,#]&/@Range[nfund]}],{i,nfield}]]],
 1,
 If[SUNirrep=={1}&&StringSplit[fname,""][[-1]]=="\[Dagger]",Flatten[Table[MapThread[Rule,{aa[fnlist[[i]],1,#]&/@Range[nfund],aa[fname,i,#]&/@Range[nfund]}],{i,nfield}]],Flatten[Table[MapThread[Rule,{a[fnlist[[i]],1,#]&/@Range[nfund],a[fname,i,#]&/@Range[nfund]}],{i,nfield}]]]
-]
-,{}
-]
+],{}]
 ]
 
 GenerateLRT[group_,replist_]:=
@@ -1326,7 +1352,7 @@ repeatnonsinglets=DeleteCases[repeatlist,{_,{0,0},_}];
 repeatsinglets=Select[repeatlist,#[[2]]=={0,0}&];
 If[Length@nonsinglets==0,Return[<|"basis"->{1},"coord"-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->Nest[{#}&,1,Length[repeatlist]+2]|>|>]];
 displacements=Association@MapThread[Rule,{nonsinglets[[1;;-1,3]],Prepend[Accumulate[nonsinglets[[1;;-1,1]]],0][[1;;-2]]}];
-indexlist=ruleRP[[1;;Total[nonsinglets[[1;;-1,1]]],2]];(*GenerateFieldIndex[model,"SU3c",flist];*)(*Pick out the relevant SU3 indices in order*)
+indexlist=(*ruleRP[[1;;Total[nonsinglets[[1;;-1,1]]],2]];*)GenerateFieldIndex[model,"SU3c",flist];(*Pick out the relevant SU3 indices in order*)
 Irreplist=Transpose@FindIrrepCombination[SU3,SUNreplist[[1;;-1,{2,1}]],{0,0}];
 SNCollections=Normal@Merge[Association@MapThread[Rule,MapAt[MapThread[Rule,{SUNreplist[[1;;-1,3]],#}]&,GetMultiAuX[#],{1,All}]]&/@Irreplist,Total];(*get different SN syms and the corresponding multiplicity*)
 SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];
@@ -1335,7 +1361,7 @@ fieldcombs=Join@@(GenerateLRInput/@nonsinglets);
 ruleLRRP=Join@@(GenerateLRRP/@nonsinglets);
 (*fieldcombs=DeleteCases[#,{_,_,{0,0},_}]&/@Table[Join[{#}&/@Irreplist[[i,1]],SUNreplist,2],{i,Length[Irreplist]}];*)(*Select out nonsinglet fields for constructing singlet*)
 YDbasis=Expand[Flatten[((Times@@(eps3a@@@Transpose[#]))&/@MapAt[ToExpression,GenerateLRT[SU3,fieldcombs],{All,All}]/.ruleLRRP)]*convertfactor];
-MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,"SU3c",flist,ct1,ct2]/.ruleRP];
+MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,"SU3c",flist,ct1,ct2](*/.ruleRP*)];
 tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tSU3val]&/@MbasisAll;
 vMbasisAll=Flatten/@tMbasisAll;
 MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
@@ -1547,7 +1573,7 @@ NumberMarks->True],
 FullForm]\)
   ]
 (* Generate the replacing rule of the tensor indices for the final output form *)
-GenerateReplacingRule[model_,flist_]:=Module[{flistsu3,flistsu2,fexpandsu3,fexpandsu2,symbols,arg,listindsu3,listindsu2,listgensu3,listgensu2,c1=0,c2=0,c3=0,c4=0},
+GenerateReplacingRule[model_,flist_]:=Module[{flistsu3,flistsu2,fexpandsu3,fexpandsu2,symbols,arg,listindsu3,listindsu2,listgensu3,listgensu2,c1=0,c2=0,c3=0,c4=0,dummy},
 flistsu3=Select[flist,Total[model[#[[1]]]["SU3c"]]!=0&];
 flistsu2=Select[flist,Total[model[#[[1]]]["SU2w"]]!=0&];
 fexpandsu3=Flatten[ConstantArray@@@flistsu3];
@@ -1560,8 +1586,8 @@ arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flistsu2;
 listindsu2=Flatten[MapThread[Apply[#1,#2,{1}]&,{symbols,arg}]];
 listgensu3=Switch[model[#]["SU3c"],{1,0},SU3FUND[[++c1]],{0,1},SU3FUND[[++c1]],{1,1},SU3ADJ[[++c2]]]&/@fexpandsu3;
 listgensu2=Switch[model[#]["SU2w"],{1},SU2FUND[[++c3]],{2},SU2ADJ[[++c4]]]&/@fexpandsu2;
-Sow[{c1,c2,c3,c4}];
-Join[MapThread[Rule,{listindsu3,listgensu3}],MapThread[Rule,{listindsu2,listgensu2}]]
+Sow[dummy={c1,c2,c3,c4}];
+Join[MapThread[Rule,{listindsu3,listgensu3}],MapThread[Rule,{listindsu2,listgensu2}],MapThread[Construct,{{b[i_]:> SU3FUND[[#]]&,B[i_]:> SU3ADJ[[#]]&,a[i_]:> SU2FUND[[#]]&,A[i_]:> SU2ADJ[[#]]&},dummy+i}]]
 ]
 SetAttributes[GenerateReplacingRule,HoldAll]
 
