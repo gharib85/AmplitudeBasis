@@ -108,7 +108,7 @@ tRank:=TensorRank[#,Assumptions->tAssumptions]&;
 tDimensions:=TensorDimensions[#,Assumptions->tAssumptions]&;
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Permutation Group*)
 
 
@@ -986,12 +986,10 @@ Times@@AppendTo[numberlist,TensorContract[tensorp,listrepeat]]
 ]
 (*convert the symbolic gauge group tensors into numerical ones*)
 Options[Product2ContractV2]={Symb2Num->{}};
-Product2ContractV2[x_,inarglist_,OptionsPattern[]]:=Module[{expr,tensorlist,headlist,arglist,uniquelist,listrepeat,tensorp},
-(*If[Head[x]==Times,expr=List@@x]*)expr=Prod2List[x];
-(*If[Depth[x]==2,expr={x}];*)
-tensorlist=Sort[expr];
+Product2ContractV2[x_,inarglist_,OptionsPattern[]]:=Module[{tensorlist,headlist,arglist,uniquelist,listrepeat,tensorp},
+tensorlist=Sort@Prod2List[x];
 headlist=Head/@tensorlist;
-arglist=Flatten[List@@#&/@tensorlist];
+arglist=Flatten[List@@@tensorlist];
 uniquelist=Union[arglist];
 listrepeat=Select[Flatten/@(Position[arglist,#]&/@uniquelist),Length[#]==2&];
 If[Length[listrepeat]!=0,arglist=Delete[arglist,{#}&/@Flatten[listrepeat]]];
@@ -1025,41 +1023,32 @@ Times@@(Flatten@MapThread[#1[#2]&,{heads,indices}])
 ]
 SetAttributes[GenerateFieldTensor,HoldAll]
 
-Generateorder2index[repeat_,group_,indexorder_,tlist_,xmap_,maporder2index_]:=Module[{p1,p2,headp1,headp2,count1=0,count2=0},
-(*Generate a map "maporder2index" between the label of the indices in the TensorProduct that belongs to the tensor other than the field tensors to the indices of the field tensors*)
-p1=Flatten[Position[indexorder,repeat[[1]]]];
-p2=Flatten[Position[indexorder,repeat[[2]]]];
-headp1=tlist[[p1[[1]]]];
-headp2=tlist[[p2[[1]]]];
-If[tRank[headp1]==1,
-maporder2index[repeat[[2]]]=xmap[headp1],
-If[tRank[headp2]==1,
-maporder2index[repeat[[1]]]=xmap[headp2],
-maporder2index[repeat[[1]]]=Switch[group,
-"SU3c",If[tDimensions[headp1][[p1[[2]]]]==8,(*SU3ADJ[[++count2]],SU3FUND[[++count1]]*)B[++count2],b[++count1]],
-"SU2w",If[tDimensions[headp1][[p1[[2]]]]==3,(*SU2ADJ[[++count2]],SU2FUND[[++count1]]*)A[++count2],a[++count1]]];
-maporder2index[repeat[[2]]]=maporder2index[repeat[[1]]];
-]
-];
-]
-SetAttributes[Generateorder2index,HoldAll]
-
-Contraction2Tensor[TC_,group_,xmap_]:=Module[{argtc,tlist,ranklist,aux1,indexorder,maporder2index},
+Contraction2Tensor[TC_,xmap_,ct_]:=Module[{tlist,r,tensor,ind=0,tensorlist={},pos,tname,pairRep,ranklist,aux1,indexorder,maporder2index=<||>},
 (*convert a single TensorProduct to the tensors without field tensors*)
 If[!MatchQ[TC,_TensorContract],Return[TC]];
-argtc=List@@ TC;
-tlist=List@@argtc[[1]];
-ranklist=tRank/@tlist;
-aux1=Accumulate@ranklist;
-indexorder=MapThread[Range,{aux1-ranklist+1,aux1}];
-Generateorder2index[#,group,indexorder,tlist,xmap,maporder2index]&/@argtc[[2]];
-indexorder=Map[maporder2index,indexorder,{2}];
-tlist=Select[tlist,tRank@#>1&];
-indexorder=Select[indexorder,Length@#>1&];
-Times@@MapThread[Apply,{tlist,indexorder}]
+tlist=List@@TC[[1]];
+Do[r=Replace[tRank[t],Except[_Integer]->1];
+tensor=Construct[t,++ind];
+Do[AppendTo[tensor,++ind],r-1];
+AppendTo[tensorlist,tensor],{t,tlist}]; (* t \[Rule] t[i,i+1,...,i+rank-1] *)
+tensorlist={#,Complement[tensorlist,#]}&@Select[tensorlist,Length[#]>1&];(* separate field tensors from invariant tensors *)
+Do[pos=Position[tensorlist,#,3]&/@pair;
+tname=First@Extract[tensorlist,ReplacePart[#,{1,-1}->0]]&/@pos;
+Switch[pos[[All,1,1]],
+{2,2},Message[Contraction2Tensor::ffcontr,TC];Abort[],
+{1,2},tensorlist=ReplacePart[tensorlist,pos[[1]]->xmap[tname[[2]]]],
+{2,1},tensorlist=ReplacePart[tensorlist,pos[[2]]->xmap[tname[[1]]]],
+{1,1},pairRep=MapThread[tRep[#1][[#2[[1,3]]]]&,{tname,pos}];
+If[Equal@@pairRep,tensorlist=ReplacePart[tensorlist,(Join@@pos)->Construct[rep2ind[pairRep[[1]]],++ct[pairRep[[1]]]]],
+Message[Contraction2Tensor::mismatch,pair,TC];Abort[]]
+],
+{pair,TC[[2]]}];
+Return[Times@@tensorlist[[1]]];
 ]
-SetAttributes[Contraction2Tensor,HoldAll]
-
+SetAttributes[Contraction2Tensor,HoldAll];
+Contraction2Tensor::ffcontr="Contraction between fields in `1`";
+Contraction2Tensor::mismatch="Contraction mismatch for pair `1` in `2`";
+(*
 UnfoldContractionSingle[x_,group_,xmap_]:=Module[{result},
 (*Convert a singlet terms to the tensors without field tensors*)
 result=Contraction2Tensor[#,group,xmap]&/@Prod2List[x];
@@ -1067,19 +1056,25 @@ Times@@result
 ]
 SetAttributes[UnfoldContractionSingle,HoldAll]
 
-UnfoldContraction[x_,group_,xmap_]:=Module[{result},
+UnfoldContraction[x_,group_,xmap_]:=Module[{result=Sum2List[x]},
 (*Convert the whole contracted tensor to the tensor with indices*)
-result=Flatten[{Expand[x]}/.Plus->List/.Power->ConstantArray];
+Print["before unfold:",x];
+(*result=Flatten[{Expand[x]}/.Plus->List/.Power->ConstantArray];*)
 Plus@@(UnfoldContractionSingle[#,group,xmap]&/@result)]
-SetAttributes[UnfoldContraction,HoldAll]
+*)
 
-RefineTensor[x_,model_,group_,fts_]:=Module[{tempx,flist,tfs,xmap,xposmap,rt},
+CounterIni:=Replace[_Symbol->0]/@rep2ind
+UnfoldContraction[x_TensorContract,xmap_]:=Module[{ct=CounterIni},Contraction2Tensor[x,xmap,ct]]
+UnfoldContraction[x_Times,xmap_]:=Module[{ct=CounterIni},Times@@(Contraction2Tensor[#,xmap,ct]&/@Prod2List[x])]
+UnfoldContraction[x_Plus,xmap_]:=Plus@@(UnfoldContraction[#,xmap]&/@Sum2List[x])
+SetAttributes[UnfoldContraction,HoldRest]
+
+RefineTensor[x_,model_,group_,fts_]:=Module[{tempx,flist,tfs,xmap,xposmap,rt,result},
 tempx=Expand[Expand[x]/.Power[z_,y_]:>Times@@ConstantArray[z,y]];
-(*If[Length@Cases[tempx,_z,Infinity]+Length@Cases[tempx,_X,Infinity]+Length@Cases[tempx,a[_,_],Infinity]+Length@Cases[tempx,b[_,_],Infinity]+Length@Cases[tempx,A[_,_],Infinity]+Length@Cases[tempx,B[_,_],Infinity]+Length@Cases[tempx,d[_,_],Infinity]+Length@Cases[tempx,e[_,_],Infinity]+Length@Cases[tempx,Y[_,_],Infinity]\[Equal]0,Return[tempx]];*)
 flist=Select[fts,Total[model[#[[1]]][group]]!=0&];
 tfs=GenerateFieldTensor[model,group,flist,xmap];
 rt=tReduce[Plus@@(Product2Contract/@(Flatten[{Expand[tempx]}/.Plus->List]*tfs))];
-UnfoldContraction[rt,group,xmap]
+UnfoldContraction[rt,xmap]
 ]
 SetAttributes[RefineTensor,HoldFirst]
 
@@ -1573,7 +1568,7 @@ NumberMarks->True],
 FullForm]\)
   ]
 (* Generate the replacing rule of the tensor indices for the final output form *)
-GenerateReplacingRule[model_,type_Times]:=GenerateReplacingRule[model,CheckType[model,type]]
+GenerateReplacingRule[model_,type:(_Times|_Power)]:=GenerateReplacingRule[model,CheckType[model,type]]
 GenerateReplacingRule[model_,flist_List]:=Module[{flistsu3,flistsu2,fexpandsu3,fexpandsu2,symbols,arg,listindsu3,listindsu2,listgensu3,listgensu2,c1=0,c2=0,c3=0,c4=0,dummy},
 flistsu3=Select[flist,Total[model[#[[1]]]["SU3c"]]!=0&];
 flistsu2=Select[flist,Total[model[#[[1]]]["SU2w"]]!=0&];
