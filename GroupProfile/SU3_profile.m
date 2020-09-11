@@ -11,9 +11,23 @@
 (*NumberMarks->True],*)
 (*FullForm]\)&;*)
 (*GellMann[n_]:=GellMann[n]=Flatten[Table[(*Symmetric case*)SparseArray[{{j,k}->1,{k,j}->1},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Flatten[Table[(*Antisymmetric case*)SparseArray[{{j,k}->-I,{k,j}->+I},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Table[(*Diagonal case*)Sqrt[2/l/(l+1)] SparseArray[Table[{j,j}->1,{j,1,l}]~Join~{{l+1,l+1}->-l},{n,n}],{l,1,n-1}];*)
+(*AddGroup::profile="Profile for group `1` not found.";ConvertToFundamental::name="`1` does not have the representation `2`.";*)
+(**)
+(*CheckGroup[model_,groupname_]:=If[MemberQ[model[Gauge],groupname],*)
+(*ToExpression@StringDrop[groupname,-1],*)
+(*Message[CheckGroup::ndef,ToExpression@StringDrop[groupname,-1]]]*)
+(*CheckGroup::ndef="Group `1` not defined.";*)
+(**)
+(*ConvertFactor[model_,groupname_,input_]:=*)
+(*(*input is the form {field,num}, *)*)
+(*Module[{fname=input[[1]],num=input[[2]],rep},*)
+(*rep=model[fname][groupname];*)
+(*Product[Map[Fold[Prepend,#,{i,fname}]&,Prod2List@ConvertToFundamental[model,groupname,rep],{2}],{i,num}]*)
+(*]*)
 
 
 (* ::Input::Initialization:: *)
+(* Initialization *)
 If[!AssociationQ[tRep],tRep=<||>];
 If[!AssociationQ[tOut],tOut=<||>];
 If[!AssociationQ[tList],tList=<||>];
@@ -95,19 +109,24 @@ del8n[a_,c_]del8n[a_,b_]:=del8n[c,b]
 Protect[Times];
 
 
-ConvertToFundamental[groupname_,{0,1}]:=If[GetGroup[groupname]==SU3,Times@@(eps3f[b[fname,#,1],bb[fname,#,1],bb[fname,#,2]]&/@Range[1,num]),Message[ConvertToFundamental::name]]
+(* ::Input::Initialization:: *)
+ConvertToFundamental[model_,groupname_,{1,0}]:=If[CheckGroup[model,groupname]==SU3,1,Message[ConvertToFundamental::name,groupname,{1,0}]]
+ConvertToFundamental[model_,groupname_,{0,1}]:=If[CheckGroup[model,groupname]==SU3,eps3f[b[1],bb[1],bb[2]]&,Message[ConvertToFundamental::name,groupname,{0,1}]]
+ConvertToFundamental[model_,groupname_,{1,1}]:=If[CheckGroup[model,groupname]==SU3,dummyIndexCount++;
+\[Lambda][B[1],bb[2],dummyIndex[dummyIndexCount]]eps3f[dummyIndex[dummyIndexCount],bb[1],bb[3]]&,Message[ConvertToFundamental::name,groupname,{1,1}]]
 
 
-ConvertFactor[model_,groupname_,input_]:=
-(*input is the form {field,num}, *)
-Module[{fname=input[[1]],num=input[[2]],rep},
-rep=model[fname][groupname];
-Switch[rep,
-{0,1}, Return[Times@@(eps3f[b[fname,#,1],bb[fname,#,1],bb[fname,#,2]]&/@Range[1,num])],
-{1,1},Return[ Times@@(\[Lambda][B[fname,#,1],b[fname,#,2],e[fname,#,1]]eps3f[e[fname,#,1],b[fname,#,1],b[fname,#,3]]&/@Range[1,num])],
-_,Return[1]
-]
-]
+(* ::Input:: *)
+(*ConvertFactor[model_,groupname_,input_]:=*)
+(*(*input is the form {field,num}, *)*)
+(*Module[{fname=input[[1]],num=input[[2]],rep},*)
+(*rep=model[fname][groupname];*)
+(*Switch[rep,*)
+(*{0,1}, Return[Times@@(eps3f[b[fname,#,1],bb[fname,#,1],bb[fname,#,2]]&/@Range[1,num])],*)
+(*{1,1},Return[ Times@@(\[Lambda][B[fname,#,1],b[fname,#,2],e[fname,#,1]]eps3f[e[fname,#,1],b[fname,#,1],b[fname,#,3]]&/@Range[1,num])],*)
+(*_,Return[1]*)
+(*]*)
+(*]*)
 
 
 (* ::Input:: *)
