@@ -49,15 +49,16 @@ tOut[del3]=PrintTensor[<|"tensor"->"\[Delta]","upind"->ToString[#2],"downind"->T
 
 AppendTo[tAssumptions,eps3a\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
 tRep[eps3a]={{0,1},{0,1},{0,1}};
-tOut[eps3a]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->StringJoin@@ToString/@{#1,#2},"downind"->""|>]&;
+tOut[eps3a]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->StringJoin@@ToString/@{#1,#2,#3},"downind"->""|>]&;
 
 AppendTo[tAssumptions,eps3f\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
 tRep[eps3f]{{1,0},{1,0},{1,0}};
-tOut[eps3f]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->"","downind"->StringJoin@@ToString/@{#1,#2}|>]&;
+tOut[eps3f]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->"","downind"->StringJoin@@ToString/@{#1,#2,#3}|>]&;
 
 AppendTo[tAssumptions,\[Lambda]\[Element]Arrays[{8,3,3},Reals]];
 tRep[\[Lambda]]->{{1,1},{1,0},{0,1}};
 tOut[\[Lambda]]=PrintTensor[<|"tensor"-> PrintTensor[<|"tensor"->"\[Lambda]","upind"->ToString[#1],"downind"->""|>],"upind"->ToString[#3],"downind"->ToString[#2]|>]&;
+\[Lambda]G=GellMann[3];
 
 AppendTo[tAssumptions,del8n\[Element]Arrays[{8,8},Reals,Symmetric[{1,2}]]];
 tRep[del8n]={{1,1},{1,1}};
@@ -110,10 +111,11 @@ Protect[Times];
 
 
 (* ::Input::Initialization:: *)
+ConvertToFundamental[model_,groupname_,{0,0}]:=If[CheckGroup[model,groupname]==SU3,1,Message[ConvertToFundamental::name,groupname,{0,0}]]
 ConvertToFundamental[model_,groupname_,{1,0}]:=If[CheckGroup[model,groupname]==SU3,1,Message[ConvertToFundamental::name,groupname,{1,0}]]
-ConvertToFundamental[model_,groupname_,{0,1}]:=If[CheckGroup[model,groupname]==SU3,eps3f[b[1],bb[1],bb[2]]&,Message[ConvertToFundamental::name,groupname,{0,1}]]
+ConvertToFundamental[model_,groupname_,{0,1}]:=If[CheckGroup[model,groupname]==SU3,eps3f[b[1],bb[1],bb[2]],Message[ConvertToFundamental::name,groupname,{0,1}]]
 ConvertToFundamental[model_,groupname_,{1,1}]:=If[CheckGroup[model,groupname]==SU3,dummyIndexCount++;
-\[Lambda][B[1],bb[2],dummyIndex[dummyIndexCount]]eps3f[dummyIndex[dummyIndexCount],bb[1],bb[3]]&,Message[ConvertToFundamental::name,groupname,{1,1}]]
+\[Lambda][B[1],bb[2],dummyIndex[dummyIndexCount]]eps3f[dummyIndex[dummyIndexCount],bb[1],bb[3]],Message[ConvertToFundamental::name,groupname,{1,1}]]
 
 
 (* ::Input:: *)
