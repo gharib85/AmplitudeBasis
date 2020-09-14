@@ -2,6 +2,7 @@
 
 (* ::Input::Initialization:: *)
 (* Initialization *)
+If[MatchQ[groupList,_List],AppendTo[groupList,SU2],groupList={SU2}];
 If[!AssociationQ[tRep],tRep=<||>];
 If[!AssociationQ[tOut],tOut=<||>];
 If[!AssociationQ[tVal],tVal=<||>];
@@ -9,8 +10,6 @@ tVal[SU2]={del2->IdentityMatrix[2],eps2f->LeviCivitaTensor[2],eps2a->LeviCivitaT
 If[!AssociationQ[tYDcol],tYDcol=<||>];
 tYDcol[SU2]=eps2a;
 If[!IntegerQ[dummyIndexCount],dummyIndexCount=0];
-If[!AssociationQ[rep2ind],rep2ind=<||>];
-AssociateTo[rep2ind,{{0}->Function[x,Nothing],{1}->a,{2}->A}];
 If[!AssociationQ[tSimp],tSimp=<||>];
 
 
