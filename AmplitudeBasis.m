@@ -21,28 +21,8 @@ End[];
 
 
 (* ::Input::Initialization:: *)
-Protect[helicity,Gauge,nfl,stat];
-
-
-(* ::Input::Initialization:: *)
-(* Presented Indices *)
-SU3ADJ=ToUpperCase/@Alphabet[][[1;;8]];
-SU3FUND=Alphabet[];
-SU2ADJ=ToUpperCase/@DeleteCases[Alphabet[][[9;;-1]],"l"];
-SU2FUND=Alphabet[][[9;;-1]];
-Flavor={"p"}\[Union]Alphabet[][[18;;-1]];
-
-
-(* ::Input::Initialization:: *)
-(* Mode Parameters *)
-maxhelicity=1.0;
 permutationBasis="left"; (* or "right" *)
 reduceTry=20;
-
-
-(* ::Input::Initialization:: *)
-(* messages *)
-err::unknown="`1` -- unrecognized mode/parameter";
 
 
 (* ::Subsection:: *)
@@ -303,17 +283,18 @@ ClearAll[kmin,yngShape,YDzero,SSYTfilling,SSYT, LorentzList];
 kmin[input_,mode_:"hlist"]:=Module[{state,hp,hn},
 Switch[mode,
 "hlist",state=input,
-"Nh",state=Join@@MapThread[ConstantArray,{{-1,-1/2,0,1/2,1},input}],
-_,Message[err::unknown,"kmin"]
+"Nh",state=Join@@MapThread[ConstantArray,{{-1,-1/2,0,1/2,1},input}]
 ];
 hp=Total@Select[state,Positive];
 hn=Total@Select[state,Negative];
 Return[Max[{Mod[2hp,2],4Max[state]-2hp,2hn-4Min[state]}]];
 ]
-yngShape::wrongk="[yngShape] Wrong Number of Derivative!";
+yngShape::wrongk="wrong number of derivatives/momenta";
+yngShape::wrongh="wrong helicity in state `1`";
+yngShape::wrongf="wrong fermion number in state `1`";
 yngShape[state_,k_]:=Module[{},
-If[!SubsetQ[{1,1/2,0,-1/2,-1},DeleteDuplicates[state]],Message[err::unknown,"helicity"]];
-If[!IntegerQ[Total[state]],Message[err::unknown,"state"]];
+If[!SubsetQ[{1,1/2,0,-1/2,-1},DeleteDuplicates[state]],Message[yngShape::wrongh,state]];
+If[!IntegerQ[Total[state]],Message[yngShape::wrongf,state]];
 If[OddQ[k-kmin[state]]\[Or]k-kmin[state]<0,Message[yngShape::wrongk];Abort[]];
 {Total@Select[state,Positive]+k/2,-Total@Select[state,Negative]+k/2}
 ]
@@ -421,7 +402,8 @@ Plus@@F
 ]
 reduce[Num_]:=reduce[#,Num]&
 
-(* List All Lorentz Structure at given dimension *)LorentzList[dim_,mode_:"complex"]:=Module[{n,k,Nh,Nhlist={},result},
+(* List All Lorentz Structure at given dimension *)
+LorentzList[dim_,mode_:"complex"]:=Module[{n,k,Nh,Nhlist={},result},
 Do[n=dim-N-nt;
 For[k=0,k<=2 nt,k++,
 Do[Nh={i,2 n-k-2 i,3N+2k-2dim+i+j,2 nt-k-2 j,j};If[Nh[[3]]<0||kmin[Nh,"Nh"]>k,Continue[],AppendTo[Nhlist,{Nh,k}]],{i,0,Floor[n-k/2]},{j,0,Floor[nt-k/2]}];
@@ -429,8 +411,7 @@ If[n+nt+3==dim,Break[]]
 ],{N,3,dim},{nt,0,Floor[(dim-N)/2]}];
 Switch[mode,
 "complex",result=DeleteDuplicates[Nhlist,#1==MapAt[Reverse,#2,1]&],
-"real",result=Nhlist\[Union](MapAt[Reverse,#1,1]&)/@Nhlist,
-_,Message[err::unknown,"LorentzList"]];
+"real",result=Nhlist\[Union](MapAt[Reverse,#1,1]&)/@Nhlist];
 MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
 ]
 
@@ -468,10 +449,9 @@ SingletQ[group_,{rep__?NumericQ}]:=Plus[rep]==0 (* for Abelian groups *)
 (* get conjugate rep of a given rep *)
 RepConj[rep_List]:=Reverse[rep] (* for non-Abelian reps *)
 RepConj[charge_?NumericQ]:=-charge (* for Abelian charges *)
-Conj[field_String]:=If[StringTake[field,-1]=="\[Dagger]",StringDrop[field,-1],field<>"\[Dagger]"]
-Conj["D"]="D"
+Conj[realOp_String]:=realOp (* operator names associate to conjugate operators -- themselves by default *)
 realQ[type_]:=Module[{flist=Prod2List[type]},TrueQ[flist==Sort[Conj/@flist]]]
-nonAbelian[groupin_]:=Length[ToExpression[StringDrop[groupin,-1]]]>0 (* judge if a group is non-Abelian *)
+nonAbelian[groupname_]:=Length[CheckGroup[groupname]]>0 (* judge if a group is non-Abelian *)
 Singlet[group_]:=Replace[group,_List->0,{Depth[group]-2}]
 Fund[group_]:=ReplacePart[Singlet[group],1->1]
 AFund[group_]:=ReplacePart[Singlet[group],-1->1]
@@ -491,8 +471,10 @@ CheckGroup[groupname_String]:=Module[{group=ToExpression@StringDrop[groupname,-1
 CheckGroup::ndef="Group `1` not defined.";
 
 (* Names for Abstract Fields *)
-h2f=<|-1->FL,-1/2->\[Psi]L,0->\[Phi],1/2->\[Psi]R,1->FR|>;state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
+h2f=<|-1->FL,-1/2->\[Psi]L,0->\[Phi],1/2->\[Psi]R,1->FR|>;
+state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
 
+Fields[model_]:=Keys@Select[model,MatchQ[#,_Association]&]
 SetSimplificationRule[model_]:=Module[{group},Unprotect[Times];Clear[Times];
 Do[group=CheckGroup[model,groupname];Check[tSimp[group]//ReleaseHold,"simplification rule for "<>ToString[groupname]<>" not found"],{groupname,model[Gauge]}];
 Protect[Times]
@@ -502,50 +484,52 @@ Protect[Times]
 (* ::Input::Initialization:: *)
 SetAttributes[{AddGroup,AddField},HoldFirst];
 (* Adding new Gauge Group to a Model *)
-AddGroup[model_,groupin_String,field_String,Globalreps_List,ind_]:=Module[{group=ToExpression[StringDrop[groupin,-1]],profile,groups,Freps},
-If[!MatchQ[group,_List],Message[AddGroup::groupnotlist,group];Abort[]];
-profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile",StringDrop[groupin,-1]<>"_profile.m"}];
-If[FileExistsQ[profile],Get[profile],Message[AddGroup::profile,StringDrop[groupin,-1]];Abort[]];
-model=Merge[{model,<|Gauge->{groupin}|>},Apply[Join]];
-groups=ToExpression[StringDrop[#,-1]]&/@model[Gauge];
-AssociateTo[model[#],groupin->Singlet[group]]&/@Fields[model];
-Freps=MapAt[Adjoint,MapAt[Singlet,groups,{;;-2}],-1];
+AddGroup[model_,groupname_String,field_String,Globalreps_List,ind_]:=Module[{profile,group,Freps},
+(* read group info from profile *)
+profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile",StringDrop[groupname,-1]<>"_profile.m"}];
+If[FileExistsQ[profile],Get[profile];group=CheckGroup[groupname],
+Message[AddGroup::profile,StringDrop[groupname,-1]];Abort[]];
+If[!MatchQ[group,_List],Message[AddGroup::groupnotlist,group];Abort[]]; (* check if group is valid *)
+
+model=Merge[{model,<|Gauge->{groupname}|>},Apply[Join]]; (* add gauge group to the model *)
+AssociateTo[model[#],groupname->Singlet[group]]&/@Fields[model]; (* pre-existing fields set to singlet by default *)
+Freps=MapAt[Adjoint,MapAt[Singlet,CheckGroup/@model[Gauge],{;;-2}],-1]; (* gauge boson representations under all groups *)
 AddField[model,field<>"L",-1,Freps,Globalreps,1,False];
-AddField[model,field<>"R",1,Freps,Globalreps,1,False];
+AddField[model,field<>"R",1,Freps,Globalreps,1,False]; (* add gauge bosons *)
 Conj[field<>"L"]=field<>"R";
-Conj[field<>"R"]=field<>"L";
-SetSimplificationRule[model];
-AssociateTo[rep2ind,groupin->First/@ind];
-AssociateTo[rep2indOut,groupin->Last/@ind];
+Conj[field<>"R"]=field<>"L"; (* define special conjugation relation (not denoted by \[Dagger]) for gauge boson names *)
+SetSimplificationRule[model]; (* define simplification rules for all gauge groups *)
+AssociateTo[rep2ind,groupname->First/@ind]; (* define abstract working index names for all reps of the new group *)
+AssociateTo[rep2indOut,groupname->Last/@ind] (* define list of specific indices for all reps of the new group *)
 ]
 AddGroup::groupnotlist=" Unrecognized gauge group `1`. ";
 AddGroup::profile="Profile for group `1` not found.";
 
 (* Adding New Field to a Model *)
-AddFields::overh="helicity of `1` is larger than maxhelicity.";
-AddField[model_,field_String,hel_,Greps_List,Globalreps_List,nflavor_,complexQ_?BooleanQ]:=Module[{attribute=<||>,NAgroups,shape},
-If[Abs[hel]>maxhelicity,Message[AddFields::overh,field],AppendTo[attribute,helicity->hel]];
+AddField::overh="helicity of `1` is neither integer nor half-integer.";
+Options[AddField]={Flavor->{1},Hermitian->False};
+AddField[model_,field_String,hel_,Greps_List,Globalreps_List,OptionsPattern[]]:=Module[{attribute=<||>,flavor=OptionValue[Flavor],NAgroups,shape},
+If[IntegerQ[2hel],AppendTo[attribute,helicity->hel],Message[AddField::overh,field]];
 AssociateTo[attribute,Thread[model[Gauge]->Greps]];
 AssociateTo[attribute,Thread[model[Global]->Globalreps]];
-AppendTo[attribute,nfl->nflavor];
+If[flavor=={1},AppendTo[attribute,nfl->1],AssociateTo[attribute,{nfl->flavor[[1]],indfl->flavor[[2]]}]];
 AppendTo[attribute,stat->If[IntegerQ[hel],"boson","fermion"]];
 AppendTo[model,field->attribute];
 
-NAgroups=Select[model[Gauge],nonAbelian];(*Cases[ToExpression@StringDrop[#,-1]&/@model[Gauge],Except[U1]];*)
-shape=MapThread[DimR[#1,#2]&,{ToExpression@StringDrop[#,-1]&/@NAgroups,Cases[Greps,_List]}];
+NAgroups=Select[model[Gauge],nonAbelian];
+shape=MapThread[DimR[#1,#2]&,{CheckGroup/@NAgroups,Cases[Greps,_List]}];
 AppendTo[tAssumptions,ToExpression["t"<>field<>ToString[NAgroups[[#]]]]\[Element]Arrays[{shape[[#]]}]]&/@Range[1,Length[shape]];
 
-If[complexQ&&Last@Characters[field]!="\[Dagger]",AddField[model,field<>"\[Dagger]",-hel,RepConj/@Greps,RepConj/@Globalreps,nflavor,True];
+If[!OptionValue[Hermitian]&&Last@Characters[field]!="\[Dagger]",AddField[model,field<>"\[Dagger]",-hel,RepConj/@Greps,RepConj/@Globalreps,Flavor->OptionValue[Flavor]];
 Conj[field]=field<>"\[Dagger]";
 Conj[field<>"\[Dagger]"]=field;
 ];
 ]
-Fields[model_]:=Keys@Select[model,MatchQ[#,_Association]&]
 
 
 (* ::Input::Initialization:: *)
 (* for a given helicity state, find (more than) all field combinations in a model that match the helicities and form singlets for all groups *)
-state2type[model_,state_,k_]:=Module[{comblist,groups=ToExpression@StringDrop[#,-1]&/@model[Gauge],singletposition},
+state2type[model_,state_,k_]:=Module[{comblist,groups=CheckGroup/@model[Gauge],singletposition},
 (* state: list of helicities for particles in a scattering 
 k: number of extra momenta/derivatives
 *)
@@ -1064,9 +1048,9 @@ Transpose[tensorp,FindPermutation[arglist,inarglist]]
 
 (* ::Input::Initialization:: *)
 (*label the field name concerning repeated fields*)
-GenerateFieldName[model_,group_,fs_]:=Module[{dim,result},
-dim=DimR[ToExpression@StringDrop[group,-1],model[fs[[1]]][group]];
-result=ToExpression["t"<>fs[[1]]<>group<>ToString[#]]&/@Range[fs[[2]]];
+GenerateFieldName[model_,groupname_,fs_]:=Module[{dim,result},
+dim=DimR[CheckGroup[groupname],model[fs[[1]]][groupname]];
+result=ToExpression["t"<>fs[[1]]<>groupname<>ToString[#]]&/@Range[fs[[2]]];
 If[Cases[tAssumptions,#,Infinity]=={},AppendTo[tAssumptions,#\[Element]Arrays[{dim}]]]&/@result;
 result]
 
@@ -1194,9 +1178,9 @@ result
 
 
 (* ::Input::Initialization:: *)
-CountGroupFactor[model_,groupin_,type_]:=Module[{flist=CheckType[model,type],group=ToExpression[StringDrop[groupin,-1]],repfs,relist,sym},
+CountGroupFactor[model_,groupname_,type_]:=Module[{flist=CheckType[model,type],group=CheckGroup[groupname],repfs,relist,sym},
 repfs=Cases[flist,{name_String,x_/;x>1}:>name];
-relist=FindIrrepCombination[group,MapAt[model[#][groupin]&,#,1]&/@flist,ConstantArray[0,Length[group]]];(* apply FindIrrepCombination *)
+relist=FindIrrepCombination[group,MapAt[model[#][groupname]&,#,1]&/@flist,ConstantArray[0,Length[group]]];(* apply FindIrrepCombination *)
 sym={DeleteCases[#[[All,1]],{1}],Times@@#[[All,2]]}&/@Distribute[#,List]&/@relist[[2]]; (* collect multiplicity for SUN combinations respectively *)
 sym=Join@@MapThread[MapAt[Function[x,#2 x],#1,{All,2}]&,{sym,relist[[3]]}]; 
 sym=Merge[Rule@@@sym,Apply[Plus]];(* combine multiplicity from SUM combinations *)
@@ -1224,7 +1208,7 @@ Product[Times@@Map[If[MatchQ[#,1|_dummyIndex],#,Fold[Prepend,#,{i,fname}]]&,Prod
 SNirrepAuX[input_]:={#[[All,1]],input[[3]]*Times@@#[[All,2]]}&/@Distribute[input[[2]],List]
 (* SNirrepAux[{SUNrepeatrep,SNreps,multi}] = {{SNrep_comb,total_multiplicity},...} *)
 
-GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=ToExpression@StringDrop[groupname,-1],
+GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=CheckGroup[groupname],
 SUNreplist,repeatlist,nonsinglets,repeatnonsinglets,repeatsinglets,
 displacements,indexlist,Irreplist,SNCollections,nonSingletSN,
 fieldcombs,convertfactor,ruleLRRP,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,
@@ -1329,7 +1313,7 @@ indexmap[model_, field_, label_, su2fcount_, su2acount_, su3fcount_, su3acount_,
        fund *= SU2FUND[[++su2fcount]]], {2}, adj *= SU2ADJ[[++su2acount]]]; 
      Switch[model[field]["SU3c"], {0, 1}, antifund *= SU3FUND[[++su3fcount]], {1, 0}, 
       fund *= SU3FUND[[++su3fcount]], {1, 1}, adj *= SU3ADJ[[++su3acount]]]; 
-     If[model[field][nfl] != 1, fla = Flavor[[++flcount]], fla = 1]; 
+     If[model[field][nfl] != 1, fla = FLAVOR[[++flcount]], fla = 1]; 
      {Subscript[FL, label] | Subscript[FR, label] | Subscript[\[Psi], label] | 
         Subscript[OverBar[\[Psi]], label] | Subscript[\[Phi], label] -> 
        (Superscript[Subscript[Subscript[field, fla], fund], antifund*adj] //. 
@@ -1345,7 +1329,7 @@ indexmap4com[model_, field_, label_, su2fcount_, su2acount_, su3fcount_, su3acou
       If[su2antiflag, antifund *= SU2FUND[[++su2fcount]], fund *= SU2FUND[[++su2fcount]]], 
       {2}, adj *= SU2ADJ[[++su2acount]]]; Switch[model[field]["SU3c"], {0, 1}, 
       antifund *= SU3FUND[[++su3fcount]], {1, 0}, fund *= SU3FUND[[++su3fcount]], {1, 1}, 
-      adj *= SU3ADJ[[++su3acount]]]; If[model[field][nfl] != 1, fla = Flavor[[++flcount]], 
+      adj *= SU3ADJ[[++su3acount]]]; If[model[field][nfl] != 1, fla = FLAVOR[[++flcount]], 
       fla = 1]; field4com = StringDelete[field, "c\[Dagger]"] //. {"Q\[Dagger]" -> OverBar["q"], 
         "Q" -> "q", "uc" -> OverBar["u"], "dc" -> OverBar["d"], "ec" -> OverBar["e"], 
         "L\[Dagger]" -> OverBar["l"], "L" -> "l"}; fieldtran = 
@@ -1686,19 +1670,29 @@ n1*n2
 
 
 (* ::Input::Initialization:: *)
+(* Presented Indices *)
+SU3ADJ=ToUpperCase/@Alphabet[][[1;;8]];
+SU3FUND=Alphabet[];
+SU2ADJ=ToUpperCase/@DeleteCases[Alphabet[][[9;;-1]],"l"];
+SU2FUND=Alphabet[][[9;;-1]];
+FLAVOR={"p"}\[Union]Alphabet[][[18;;-1]];
+
+
+(* ::Input::Initialization:: *)
+(* Define SMEFT *)
 SetAttributes[DefSMEFT,HoldFirst];
 DefSMEFT[model_,nf_:3]:=Module[{},
 model=<|Global->{"Baryon","Lepton"}|>;rep2ind=<||>;rep2indOut=<||>;
 AddGroup[model,"SU3c","G",{0,0},<|{0,0}->{Function[x,Nothing],{}},{1,0}->{b,SU3FUND},{0,1}->{b,SU3FUND},{1,1}->{B,SU3ADJ}|>];
 AddGroup[model,"SU2w","W",{0,0},<|{0}->{Function[x,Nothing],{}},{1}->{a,SU2FUND},{2}->{A,SU2ADJ}|>];
 AddGroup[model,"U1y","B",{0,0},<||>];
-AddField[model,"Q",-1/2,{{1,0},{1},1/6},{1/3,0},nf,True];
-AddField[model,"uc",-1/2,{{0,1},{0},-2/3},{-1/3,0},nf,True];
-AddField[model,"dc",-1/2,{{0,1},{0},1/3},{-1/3,0},nf,True];
-AddField[model,"L",-1/2,{{0,0},{1},-1/2},{0,1},nf,True];
-AddField[model,"ec",-1/2,{{0,0},{0},1},{0,-1},nf,True];
-AddField[model,"H",0,{{0,0},{1},1/2},{0,0},1,True]
-](* Define SMEFT *)
+AddField[model,"Q",-1/2,{{1,0},{1},1/6},{1/3,0},Flavor->{nf,FLAVOR}];
+AddField[model,"uc",-1/2,{{0,1},{0},-2/3},{-1/3,0},Flavor->{nf,FLAVOR}];
+AddField[model,"dc",-1/2,{{0,1},{0},1/3},{-1/3,0},Flavor->{nf,FLAVOR}];
+AddField[model,"L",-1/2,{{0,0},{1},-1/2},{0,1},Flavor->{nf,FLAVOR}];
+AddField[model,"ec",-1/2,{{0,0},{0},1},{0,-1},Flavor->{nf,FLAVOR}];
+AddField[model,"H",0,{{0,0},{1},1/2},{0,0}]
+]
 
 
 (* ::Input::Initialization:: *)
