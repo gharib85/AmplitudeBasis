@@ -16,7 +16,7 @@ Get/@$GroupMathPackages;
 End[];
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Configure*)
 
 
@@ -29,7 +29,7 @@ Protect[helicity,Gauge,nfl,stat];
 SU3ADJ=ToUpperCase/@Alphabet[][[1;;8]];
 SU3FUND=Alphabet[];
 SU2ADJ=ToUpperCase/@DeleteCases[Alphabet[][[9;;-1]],"l"];
-SU2FUND=DeleteCases[Alphabet[][[9;;-1]],"l"];
+SU2FUND=Alphabet[][[9;;-1]];
 Flavor={"p"}\[Union]Alphabet[][[18;;-1]];
 
 
@@ -102,10 +102,16 @@ basisReduce::input="wrong input matrix: `1`";
 (* ::Input::Initialization:: *)
 (* Special Definitions *)
 tAssumptions={};
-tRep=<||>;
 tReduce:=TensorReduce[#,Assumptions->tAssumptions]&;
 tRank:=TensorRank[#,Assumptions->tAssumptions]&;
 tDimensions:=TensorDimensions[#,Assumptions->tAssumptions]&;
+tSymmetry=TensorSymmetry[#,Assumptions->tAssumptions]&;
+
+
+(* ::Input::Initialization:: *)
+(* representation matrix for su(n) generators *)
+GellMann[n_]:=GellMann[n]=
+Flatten[Table[(*Symmetric case*)SparseArray[{{j,k}->1,{k,j}->1},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Flatten[Table[(*Antisymmetric case*)SparseArray[{{j,k}->-I,{k,j}->+I},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Table[(*Diagonal case*)Sqrt[2/l/(l+1)] SparseArray[Table[{j,j}->1,{j,1,l}]~Join~{{l+1,l+1}->-l},{n,n}],{l,1,n-1}];
 
 
 (* ::Subsubsection::Closed:: *)
@@ -479,24 +485,42 @@ Return[flist];
 Options[CheckType]={Sorted->True, Counting->True};
 CheckType::unknown="unrecognized fields in type `1`";
 
+groupList={};
+CheckGroup[model_Association,groupname_String]:=Module[{group=ToExpression@StringDrop[groupname,-1]},If[MemberQ[groupList,group]&&MemberQ[model[Gauge],groupname],group,Message[CheckGroup::ndef,groupname]]]
+CheckGroup[groupname_String]:=Module[{group=ToExpression@StringDrop[groupname,-1]},If[MemberQ[groupList,group],group,Message[CheckGroup::ndef,groupname]]]
+CheckGroup::ndef="Group `1` not defined.";
+
 (* Names for Abstract Fields *)
 h2f=<|-1->FL,-1/2->\[Psi]L,0->\[Phi],1/2->\[Psi]R,1->FR|>;state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
+
+SetSimplificationRule[model_]:=Module[{group},Unprotect[Times];Clear[Times];
+Do[group=CheckGroup[model,groupname];Check[tSimp[group]//ReleaseHold,"simplification rule for "<>ToString[groupname]<>" not found"],{groupname,model[Gauge]}];
+Protect[Times]
+]
 
 
 (* ::Input::Initialization:: *)
 SetAttributes[{AddGroup,AddField},HoldFirst];
 (* Adding new Gauge Group to a Model *)
-AddGroup::groupnotlist=" Unrecognized gauge group `1`. ";
-AddGroup[model_,groupin_String,field_String,Globalreps_List]:=Module[{group=ToExpression[StringDrop[groupin,-1]],groups},
+AddGroup[model_,groupin_String,field_String,Globalreps_List,ind_]:=Module[{group=ToExpression[StringDrop[groupin,-1]],profile,groups,Freps},
 If[!MatchQ[group,_List],Message[AddGroup::groupnotlist,group];Abort[]];
+profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile",StringDrop[groupin,-1]<>"_profile.m"}];
+If[FileExistsQ[profile],Get[profile],Message[AddGroup::profile,StringDrop[groupin,-1]];Abort[]];
 model=Merge[{model,<|Gauge->{groupin}|>},Apply[Join]];
-groups=ToExpression[StringDrop[#,-1]]&/@Drop[model[Gauge],-1];
+groups=ToExpression[StringDrop[#,-1]]&/@model[Gauge];
 AssociateTo[model[#],groupin->Singlet[group]]&/@Fields[model];
-AddField[model,field<>"L",-1,Append[Singlet/@groups,Adjoint[group]],Globalreps,1,False];
-AddField[model,field<>"R",1,Append[Singlet/@groups,Adjoint[group]],Globalreps,1,False];
+Freps=MapAt[Adjoint,MapAt[Singlet,groups,{;;-2}],-1];
+AddField[model,field<>"L",-1,Freps,Globalreps,1,False];
+AddField[model,field<>"R",1,Freps,Globalreps,1,False];
 Conj[field<>"L"]=field<>"R";
 Conj[field<>"R"]=field<>"L";
+SetSimplificationRule[model];
+AssociateTo[rep2ind,groupin->First/@ind];
+AssociateTo[rep2indOut,groupin->Last/@ind];
 ]
+AddGroup::groupnotlist=" Unrecognized gauge group `1`. ";
+AddGroup::profile="Profile for group `1` not found.";
+
 (* Adding New Field to a Model *)
 AddFields::overh="helicity of `1` is larger than maxhelicity.";
 AddField[model_,field_String,hel_,Greps_List,Globalreps_List,nflavor_,complexQ_?BooleanQ]:=Module[{attribute=<||>,NAgroups,shape},
@@ -585,7 +609,7 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 (* ::Item:: *)
-(*Amp to Op -- groupindex, groupindex4com, MonoLorentzBasis, listtotime*)
+(*Amp to Op -- transform, MonoLorentzBasis*)
 
 
 (* ::Subsubsection::Closed:: *)
@@ -636,8 +660,6 @@ Dim -= Length[poslist]* Times@@SnDimlist;
 ],
 {i,Length[yngList]}];
 
-(*permResult=basisSimplify[#\[LeftDoubleBracket]All,Sequence@@ConstantArray[1,depth]\[RightDoubleBracket],getMatrix\[Rule]True].#&/@permResult;*)
-
 If[OptionValue[Coord],
 Return[permResult], (* return the coordinates under original Mlist basis *) 
 Return[#.Mlist&/@permResult] (* return the amplitudes *)  
@@ -647,8 +669,7 @@ Return[#.Mlist&/@permResult] (* return the amplitudes *)
 Options[LorentzBasisForType]={OutputFormat->"operator",Coord->False,FerCom->2};
 LorentzBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles,fieldsReplace,k,state,RepFields,Num,Mlist,resultCor,amp2op,OpBasis},
 k=Exponent[type,"D"];
-particles=SortBy[DeleteCases[Prod2List[type],"D"],model[#][helicity]&];
-fieldsReplace=Switch[OptionValue[FerCom],2,groupindex[model,particles],4,groupindex4com[model,particles]];
+particles=CheckType[model,type,Counting->False];
 RepFields=Select[PositionIndex[particles],Length[#]>1&];
 state=model[#][helicity]&/@particles;
 Num=Length[state];
@@ -661,8 +682,8 @@ Switch[OptionValue[OutputFormat],
 "amplitude",If[OptionValue[Coord],
 <|basis->Mlist,coord->resultCor|>,
 Map[#.Mlist&,resultCor,{2+Length[RepFields]}]],  
-"operator",amp2op=MonoLorentzBasis[state,k,FerCom->OptionValue[FerCom],finalform->False];
-OpBasis=amp2op["LorBasis"]//.fieldsReplace//.listtotime;
+"operator",amp2op=MonoLorentzBasis[Mlist,Num,finalform->False];
+OpBasis=transform[amp2op["LorBasis"],ReplaceField->{model,type,OptionValue[FerCom]}];
 If[OptionValue[Coord],
 <|basis->OpBasis,coord->Map[Inverse[amp2op["Trans"]]\[Transpose].#&,resultCor,{2+Length[RepFields]}]|>, (* output <|basis, coord|> *)
 Map[Expand[OpBasis.Inverse[amp2op["Trans"]]\[Transpose].#]&,resultCor,{2+Length[RepFields]}] (* output basis.coord *)
@@ -687,147 +708,149 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Amplitude To Operators*)
 
 
-(* ::Input:: *)
-(*SetAttributes[{\[Psi]},Flat];\[Psi][a_*b_]:=\[Psi][a,b];*)
-(*(* Change Amplitude to \[Psi]'s Combination *)*)
-(*(* input all the angular bracket then obtain \[Psi]'s Combination *)*)
-(*operab[a_]:=Module[{alist,oper=1,la},If[a===1,oper=1,alist=Prod2List[a];la=Length[alist];Do[oper*=Subscript[\[Psi], #1][2,Alphabet["Greek"][[i]]]Subscript[\[Psi], #2][1,Alphabet["Greek"][[i]]]&[alist[[i,1]],alist[[i,2]]],{i,la}]];oper];*)
-(*(* input all the square bracket then obtain Overscript[\[Psi], _]'s Combination *)*)
-(*opersb[s_]:=Module[{slist,oper=1,ls},If[s===1,oper=1,slist=Prod2List[s];ls=Length[slist];Do[oper*=Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), #1][1,Alphabet["English"][[i]]]Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), #2][2,Alphabet["English"][[i]]]&[slist[[i,1]],slist[[i,2]]],{i,ls}]];oper];*)
-(*(* Change \[Psi]'sCombination to each particle *)*)
-(*(* input arbitrary \[Psi] and Overscript[\[Psi], _], obtain Subscript[\[Phi], i],Subscript[\[Psi], i] or Subscript[F, i] and some D and \[Sigma]. i means the particle's label *)*)
-(*change[\[Psi]i_,\[Psi]bi_,i_,Greek_]:=Module[{l\[Psi],l\[Psi]b,ans1=\[Psi]i,ans2=\[Psi]bi,ans=1,iGreek=Greek},Switch[\[Psi]i[[0]],Times,l\[Psi]=Length[\[Psi]i],Integer,l\[Psi]=0,_,l\[Psi]=1];Switch[\[Psi]bi[[0]],Times,l\[Psi]b=Length[\[Psi]bi],Integer,l\[Psi]b=0,_,l\[Psi]b=1];Switch[l\[Psi]-l\[Psi]b,0,Switch[l\[Psi],0,ans=Subscript[\[Phi], i],1,ans1[[0]]=\[Psi];ans2[[0]]=\[Psi];ans=\[Psi][ans1,ans2];ans[[0]]=(\[Sigma]^Alphabet["Greek"][[iGreek]]);ans=ans (Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]] Subscript[\[Phi], i]);iGreek++,_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans Subscript[\[Phi], i]],1,Switch[l\[Psi]b,0,ans1[[0]]=Subscript[\[Psi], i];ans=ans1,1,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],ans2[[1]],ans2[[2]]] Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]Subscript[\[Psi], i][ans1[[2,1]],ans1[[2,2]]];iGreek++,_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]b}];ans=ans Subscript[\[Psi], i][ans1[[l\[Psi],1]],ans1[[l\[Psi],2]]]],-1,Switch[l\[Psi],0,ans2[[0]]=Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i];ans=ans2,1,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]]]Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i][ans2[[2,1]],ans2[[2,2]]];iGreek++,_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i][ans2[[l\[Psi]b,1]],ans2[[l\[Psi]b,2]]]],2,Switch[l\[Psi]b,0,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],2,Alphabet["English"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],1,Alphabet["English"][[iGreek]]]Subscript[Subscript[Subscript[FL, i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];iGreek+=2,1,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],ans2[[1]],ans2[[2]]]Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],2,Alphabet["English"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek+2]])[ans1[[3,1]],ans1[[3,2]],1,Alphabet["English"][[iGreek]]]Subscript[Subscript[Subscript[FL, i], Alphabet["Greek"][[iGreek+1]]], Alphabet["Greek"][[iGreek+2]]];iGreek+=3,_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]b}];ans=ans (\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[l\[Psi]-1,1]],ans1[[l\[Psi]-1,2]],2,Alphabet["English"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[ans1[[l\[Psi],1]],ans1[[l\[Psi],2]],1,Alphabet["English"][[iGreek]]]Subscript[Subscript[Subscript[FL, i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];iGreek+=2],-2,Switch[l\[Psi],0,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[2,Alphabet["Greek"][[iGreek]],ans2[[1,1]],ans2[[1,2]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[1,Alphabet["Greek"][[iGreek]],ans2[[2,1]],ans2[[2,2]]]Subscript[Subscript[Subscript[FR, i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];iGreek+=2,1,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]]]Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[2,Alphabet["Greek"][[iGreek]],ans2[[2,1]],ans2[[2,2]]](\[Sigma]^Alphabet["Greek"][[iGreek+2]])[1,Alphabet["Greek"][[iGreek]],ans2[[3,1]],ans2[[3,2]]]Subscript[Subscript[Subscript[FR, i], Alphabet["Greek"][[iGreek+1]]], Alphabet["Greek"][[iGreek+2]]];iGreek+=3,_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans (\[Sigma]^Alphabet["Greek"][[iGreek]])[2,Alphabet["Greek"][[iGreek]],ans2[[l\[Psi]b-1,1]],ans2[[l\[Psi]b-1,2]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[1,Alphabet["Greek"][[iGreek]],ans2[[l\[Psi]b,1]],ans2[[l\[Psi]b,2]]]Subscript[Subscript[Subscript[FR, i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];iGreek+=2],_,Print["spin over 1"]];{ans,iGreek}];*)
-(*changesp[\[Psi]i_,\[Psi]bi_,i_]:=Module[{l\[Psi],l\[Psi]b,ans1=\[Psi]i,ans2=\[Psi]bi,ans=1,head,label},Switch[\[Psi]i[[0]],Times,l\[Psi]=Length[\[Psi]i],Integer,l\[Psi]=0,_,l\[Psi]=1];Switch[\[Psi]bi[[0]],Times,l\[Psi]b=Length[\[Psi]bi],Integer,l\[Psi]b=0,_,l\[Psi]b=1];Switch[l\[Psi]-l\[Psi]b,0,Switch[l\[Psi],0,ans=Subscript[\[Phi], i],1,ans1[[0]]=\[Psi];ans2[[0]]=\[Psi];ans=\[Psi][ans1,ans2];ans[[0]]=ch[D, Subscript[\[Phi], i]],_,ans1=\[Psi]@@@ans1;ans2=\[Psi]@@@ans2;ans=\[Psi]@@(ans1*ans2);ans[[0]]=ch[D^l\[Psi],Subscript[\[Phi], i]]],1,Switch[l\[Psi]b,0,ans1[[0]]=Subscript[\[Psi], i];ans=ans1,1,ans=ch[D,Subscript[\[Psi], i]][ans1[[1,1]],ans1[[1,2]],ans1[[2,1]],ans1[[2,2]],ans2[[1]],ans2[[2]]] ,_,ans1=\[Psi]@@@ans1;ans2=\[Psi]@@@ans2;ans=\[Psi]@@(ans1*ans2);ans[[0]]=ch[D^l\[Psi]b,Subscript[\[Psi], i]]],-1,Switch[l\[Psi],0,ans2[[0]]=Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i];ans=ans2,1,ans=ch[D,Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i]][ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]],ans2[[2,1]],ans2[[2,2]]],_,ans1=\[Psi]@@@ans1;ans2=\[Psi]@@@ans2;ans=\[Psi]@@(ans1*ans2);ans[[0]]=ch[D^l\[Psi],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i]]],2,Switch[l\[Psi]b,0,ans=Subscript[FL, i][ans1[[1,1]],ans1[[1,2]],ans1[[2,1]],ans1[[2,2]]],1,ans=ch[D,Subscript[FL, i]][ans1[[1,1]],ans1[[1,2]],ans1[[2,1]],ans1[[2,2]],ans1[[3,1]],ans1[[3,2]],ans2[[1]],ans2[[2]]],_,ans1=\[Psi]@@@ans1;ans2=\[Psi]@@@ans2;ans=\[Psi]@@(ans1*ans2);ans[[0]]=ch[D^l\[Psi]b,Subscript[FL, i]]],-2,Switch[l\[Psi],0,ans=Subscript[FR, i][ans2[[1,1]],ans2[[1,2]],ans2[[2,1]],ans2[[2,2]]],1,ans=ch[D,Subscript[FR, i]][ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]],ans2[[2,1]],ans2[[2,2]],ans2[[3,1]],ans2[[3,2]]],_,ans1=\[Psi]@@@ans1;ans2=\[Psi]@@@ans2;ans=\[Psi]@@(ans1*ans2);ans[[0]]=ch[D^l\[Psi],Subscript[FR, i]]],_,Print["spin over 1"]];head=ans[[0]];If[head===Subscript,label=0;head=ans,label=Length[ans]/2];Do[If[ans[[1]]===1,head=Subscript[head,ans[[2]]],head=Superscript[head,ans[[2]]]];ans=Delete[ans,{{1},{2}}],{ii,label}];head];*)
+(* ::Input::Initialization:: *)
+SetAttributes[{\[Psi]},Flat];\[Psi][a_*b_]:=\[Psi][a,b];
+(* Change Amplitude to \[Psi]'s Combination *)
+(* input all the angular bracket then obtain \[Psi]'s Combination *)
+operab[a_]:=Module[{alist,oper=1,la},If[a===1,oper=1,alist=Prod2List[a];la=Length[alist];Do[oper*=Subscript[\[Psi], #1][2,Alphabet["Greek"][[i]]]Subscript[\[Psi], #2][1,Alphabet["Greek"][[i]]]&[alist[[i,1]],alist[[i,2]]],{i,la}]];oper];
+(* input all the square bracket then obtain Overscript[\[Psi], _]'s Combination *)
+opersb[s_]:=Module[{slist,oper=1,ls},If[s===1,oper=1,slist=Prod2List[s];ls=Length[slist];Do[oper*=Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), #1][1,Alphabet["English"][[i]]]Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), #2][2,Alphabet["English"][[i]]]&[slist[[i,1]],slist[[i,2]]],{i,ls}]];oper];
+(* Change \[Psi]'sCombination to each particle *)
+(* input arbitrary \[Psi] and Overscript[\[Psi], _], obtain Subscript[\[Phi], i],Subscript[\[Psi], i] or Subscript[F, i] and some D and \[Sigma]. i means the particle's label *)
+change[\[Psi]i_,\[Psi]bi_,i_,Greek_]:=Module[{l\[Psi],l\[Psi]b,ans1=\[Psi]i,ans2=\[Psi]bi,ans=1,iGreek=Greek},Switch[\[Psi]i[[0]],Times,l\[Psi]=Length[\[Psi]i],Integer,l\[Psi]=0,_,l\[Psi]=1];Switch[\[Psi]bi[[0]],Times,l\[Psi]b=Length[\[Psi]bi],Integer,l\[Psi]b=0,_,l\[Psi]b=1];Switch[l\[Psi]-l\[Psi]b,0,Switch[l\[Psi],0,ans=Subscript[\[Phi], i],1,ans1[[0]]=\[Psi];ans2[[0]]=\[Psi];ans=\[Psi][ans1,ans2];ans[[0]]=(\[Sigma]^Alphabet["Greek"][[iGreek]]);ans=ans (Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]] Subscript[\[Phi], i]);iGreek++,_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans Subscript[\[Phi], i]],1,Switch[l\[Psi]b,0,ans1[[0]]=Subscript[\[Psi], i];ans=ans1,1,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],ans2[[1]],ans2[[2]]] Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]Subscript[\[Psi], i][ans1[[2,1]],ans1[[2,2]]];iGreek++,_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]b}];ans=ans Subscript[\[Psi], i][ans1[[l\[Psi],1]],ans1[[l\[Psi],2]]]],-1,Switch[l\[Psi],0,ans2[[0]]=Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i];ans=ans2,1,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]]]Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i][ans2[[2,1]],ans2[[2,2]]];iGreek++,_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i][ans2[[l\[Psi]b,1]],ans2[[l\[Psi]b,2]]]],2,Switch[l\[Psi]b,0,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],2,Alphabet["English"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],1,Alphabet["English"][[iGreek]]]Subscript[Subscript[Subscript[FL, i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];iGreek+=2,1,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],ans2[[1]],ans2[[2]]]Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],2,Alphabet["English"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek+2]])[ans1[[3,1]],ans1[[3,2]],1,Alphabet["English"][[iGreek]]]Subscript[Subscript[Subscript[FL, i], Alphabet["Greek"][[iGreek+1]]], Alphabet["Greek"][[iGreek+2]]];iGreek+=3,_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]b}];ans=ans (\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[l\[Psi]-1,1]],ans1[[l\[Psi]-1,2]],2,Alphabet["English"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[ans1[[l\[Psi],1]],ans1[[l\[Psi],2]],1,Alphabet["English"][[iGreek]]]Subscript[Subscript[Subscript[FL, i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];iGreek+=2],-2,Switch[l\[Psi],0,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[2,Alphabet["Greek"][[iGreek]],ans2[[1,1]],ans2[[1,2]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[1,Alphabet["Greek"][[iGreek]],ans2[[2,1]],ans2[[2,2]]]Subscript[Subscript[Subscript[FR, i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];iGreek+=2,1,ans=(\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]]]Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[2,Alphabet["Greek"][[iGreek]],ans2[[2,1]],ans2[[2,2]]](\[Sigma]^Alphabet["Greek"][[iGreek+2]])[1,Alphabet["Greek"][[iGreek]],ans2[[3,1]],ans2[[3,2]]]Subscript[Subscript[Subscript[FR, i], Alphabet["Greek"][[iGreek+1]]], Alphabet["Greek"][[iGreek+2]]];iGreek+=3,_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]](\[Sigma]^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans (\[Sigma]^Alphabet["Greek"][[iGreek]])[2,Alphabet["Greek"][[iGreek]],ans2[[l\[Psi]b-1,1]],ans2[[l\[Psi]b-1,2]]](\[Sigma]^Alphabet["Greek"][[iGreek+1]])[1,Alphabet["Greek"][[iGreek]],ans2[[l\[Psi]b,1]],ans2[[l\[Psi]b,2]]]Subscript[Subscript[Subscript[FR, i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];iGreek+=2],_,Print["spin over 1"]];{ans,iGreek}];
+changesp[\[Psi]i_,\[Psi]bi_,i_]:=Module[{l\[Psi],l\[Psi]b,ans1=\[Psi]i,ans2=\[Psi]bi,ans=1,head,label},Switch[\[Psi]i[[0]],Times,l\[Psi]=Length[\[Psi]i],Integer,l\[Psi]=0,_,l\[Psi]=1];Switch[\[Psi]bi[[0]],Times,l\[Psi]b=Length[\[Psi]bi],Integer,l\[Psi]b=0,_,l\[Psi]b=1];Switch[l\[Psi]-l\[Psi]b,0,Switch[l\[Psi],0,ans=Subscript[\[Phi], i],1,ans1[[0]]=\[Psi];ans2[[0]]=\[Psi];ans=\[Psi][ans1,ans2];ans[[0]]=ch[D, Subscript[\[Phi], i]],_,ans1=\[Psi]@@@ans1;ans2=\[Psi]@@@ans2;ans=\[Psi]@@(ans1*ans2);ans[[0]]=ch[D^l\[Psi],Subscript[\[Phi], i]]],1,Switch[l\[Psi]b,0,ans1[[0]]=Subscript[\[Psi], i];ans=ans1,1,ans=ch[D,Subscript[\[Psi], i]][ans1[[1,1]],ans1[[1,2]],ans1[[2,1]],ans1[[2,2]],ans2[[1]],ans2[[2]]] ,_,ans1=\[Psi]@@@ans1;ans2=\[Psi]@@@ans2;ans=\[Psi]@@(ans1*ans2);ans[[0]]=ch[D^l\[Psi]b,Subscript[\[Psi], i]]],-1,Switch[l\[Psi],0,ans2[[0]]=Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i];ans=ans2,1,ans=ch[D,Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i]][ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]],ans2[[2,1]],ans2[[2,2]]],_,ans1=\[Psi]@@@ans1;ans2=\[Psi]@@@ans2;ans=\[Psi]@@(ans1*ans2);ans[[0]]=ch[D^l\[Psi],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i]]],2,Switch[l\[Psi]b,0,ans=Subscript[FL, i][ans1[[1,1]],ans1[[1,2]],ans1[[2,1]],ans1[[2,2]]],1,ans=ch[D,Subscript[FL, i]][ans1[[1,1]],ans1[[1,2]],ans1[[2,1]],ans1[[2,2]],ans1[[3,1]],ans1[[3,2]],ans2[[1]],ans2[[2]]],_,ans1=\[Psi]@@@ans1;ans2=\[Psi]@@@ans2;ans=\[Psi]@@(ans1*ans2);ans[[0]]=ch[D^l\[Psi]b,Subscript[FL, i]]],-2,Switch[l\[Psi],0,ans=Subscript[FR, i][ans2[[1,1]],ans2[[1,2]],ans2[[2,1]],ans2[[2,2]]],1,ans=ch[D,Subscript[FR, i]][ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]],ans2[[2,1]],ans2[[2,2]],ans2[[3,1]],ans2[[3,2]]],_,ans1=\[Psi]@@@ans1;ans2=\[Psi]@@@ans2;ans=\[Psi]@@(ans1*ans2);ans[[0]]=ch[D^l\[Psi],Subscript[FR, i]]],_,Print["spin over 1"]];head=ans[[0]];If[head===Subscript,label=0;head=ans,label=Length[ans]/2];Do[If[ans[[1]]===1,head=Subscript[head,ans[[2]]],head=Superscript[head,ans[[2]]]];ans=Delete[ans,{{1},{2}}],{ii,label}];head];
 
 
-(* ::Input:: *)
-(*\[Sigma]change={\[Sigma]^a_:>\[Sigma][a],Subscript[\[Sigma], a_]:>\[Sigma][a]};*)
-(**)
-(*bar[sign_]:=If[sign===1,{},{\[Sigma]->*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)}];\[Sigma]2[a_,iGreek_]:={{Superscript["g",a[[1,1]] a[[2,1]]],-I},{1,\[Sigma][a[[1,1]],a[[2,1]]]},{iGreek}};(* where \[Sigma]^\[Mu]\[Nu]=(i/2)[\[Gamma]^\[Mu],\[Gamma]^\[Nu]]~(i/2)(\[Sigma]^\[Mu]Overscript[\[Sigma], _]^\[Nu]-\[Sigma]^\[Nu]Overscript[\[Sigma], _]^\[Mu]) *)\[Sigma]3[a_,iGreek_,sign_:1]:=Module[{e=Alphabet["Greek"][[iGreek]]},{{Superscript["g",a[[1,1]] a[[2,1]]],-Superscript["g",a[[1,1]] a[[3,1]]],Superscript["g",a[[2,1]] a[[3,1]]],I sign Signature[{a[[1,1]],a[[2,1]],a[[3,1]],e}]Superscript["\[Epsilon]",a[[1,1]]a[[2,1]]a[[3,1]]e]},{\[Sigma][a[[3,1]]],\[Sigma][a[[2,1]]],\[Sigma][a[[1,1]]],\[Sigma][e]},{iGreek+1}}];*)
-(*(* a is the \[Sigma] chain, such as {\[Sigma]^\[Mu],\[Sigma]^\[Nu],...}.iGreek determines the new \[Sigma] matrix's index. sign determines the first \[Sigma] in \[Sigma] chain is \[Sigma] or Overscript[\[Sigma], _],correspond to 1 and -1 *)*)
-(*\[Sigma]chain[a_,iGreek_,sign_:1]:=Module[{l=Length[a],ans=a//.\[Sigma]change,n,term1,input,output=0},Switch[l,0,term1={{1},{1},{iGreek}},1,term1={{1},{\[Sigma][a[[1,2]]]},{iGreek}}/.bar[sign],2,term1=\[Sigma]2[ans,iGreek]/.bar[sign],_,n=Quotient[l,2];term1=\[Sigma]3[ans[[1;;3]],iGreek,sign];(*Print[term1];*)Do[If[i===n&&n===(l/2),input=Flatten/@(Append[#,ans[[2i]]]&/@List/@term1[[2]]);output=\[Sigma]2[#,term1[[3,1]]]&/@input,input=Flatten/@(Append[#,ans[[2i;;2i+1]]]&/@List/@term1[[2]]);output=\[Sigma]3[#,term1[[3,1]],sign]&/@input];term1[[3]]=output[[1,3]];term1[[2]]=Flatten[output[[All,2]]];term1[[1]]=MapThread[Times[#1,#2]&,{term1[[1]],output[[All,1]]}]//Flatten(*;Print[term1]*),{i,2,n}];term1=term1/.bar[sign]];term1];*)
+(* ::Input::Initialization:: *)
+\[Sigma]change={\[Sigma]^a_:>\[Sigma][a],Subscript[\[Sigma], a_]:>\[Sigma][a]};
+
+bar[sign_]:=If[sign===1,{},{\[Sigma]->
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)}];\[Sigma]2[a_,iGreek_]:={{Superscript["g",a[[1,1]] a[[2,1]]],-I},{1,\[Sigma][a[[1,1]],a[[2,1]]]},{iGreek}};(* where \[Sigma]^\[Mu]\[Nu]=(i/2)[\[Gamma]^\[Mu],\[Gamma]^\[Nu]]~(i/2)(\[Sigma]^\[Mu]Overscript[\[Sigma], _]^\[Nu]-\[Sigma]^\[Nu]Overscript[\[Sigma], _]^\[Mu]) *)\[Sigma]3[a_,iGreek_,sign_:1]:=Module[{e=Alphabet["Greek"][[iGreek]]},{{Superscript["g",a[[1,1]] a[[2,1]]],-Superscript["g",a[[1,1]] a[[3,1]]],Superscript["g",a[[2,1]] a[[3,1]]],I sign Signature[{a[[1,1]],a[[2,1]],a[[3,1]],e}]Superscript["\[Epsilon]",a[[1,1]]a[[2,1]]a[[3,1]]e]},{\[Sigma][a[[3,1]]],\[Sigma][a[[2,1]]],\[Sigma][a[[1,1]]],\[Sigma][e]},{iGreek+1}}];
+(* a is the \[Sigma] chain, such as {\[Sigma]^\[Mu],\[Sigma]^\[Nu],...}.iGreek determines the new \[Sigma] matrix's index. sign determines the first \[Sigma] in \[Sigma] chain is \[Sigma] or Overscript[\[Sigma], _],correspond to 1 and -1 *)
+\[Sigma]chain[a_,iGreek_,sign_:1]:=Module[{l=Length[a],ans=a//.\[Sigma]change,n,term1,input,output=0},Switch[l,0,term1={{1},{1},{iGreek}},1,term1={{1},{\[Sigma][a[[1,2]]]},{iGreek}}/.bar[sign],2,term1=\[Sigma]2[ans,iGreek]/.bar[sign],_,n=Quotient[l,2];term1=\[Sigma]3[ans[[1;;3]],iGreek,sign];(*Print[term1];*)Do[If[i===n&&n===(l/2),input=Flatten/@(Append[#,ans[[2i]]]&/@List/@term1[[2]]);output=\[Sigma]2[#,term1[[3,1]]]&/@input,input=Flatten/@(Append[#,ans[[2i;;2i+1]]]&/@List/@term1[[2]]);output=\[Sigma]3[#,term1[[3,1]],sign]&/@input];term1[[3]]=output[[1,3]];term1[[2]]=Flatten[output[[All,2]]];term1[[1]]=MapThread[Times[#1,#2]&,{term1[[1]],output[[All,1]]}]//Flatten(*;Print[term1]*),{i,2,n}];term1=term1/.bar[sign]];term1];
 
 
-(* ::Input:: *)
-(*Chain[x__]:=Module[{c={x}},If[Length[c]>1,HoldForm[Times[x]],HoldForm[x]]];*)
-(*\[Sigma]trace={\[Sigma][i_,j_]:>0,*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[i_,j_]:>0};*)
-(*(* when calculating the \[Sigma] trace, we make use of \[Sigma]chain[], and set all the \[Sigma] matrix remained go to zero *)*)
-(*trace[\[Sigma]_,iGreek_:1,sign_:1]:=Module[{l=Length[\[Sigma]],T},Switch[l,_?OddQ,T={0,iGreek},_,T=\[Sigma]chain[\[Sigma],iGreek,sign]//.\[Sigma]trace;T={2T[[1]].T[[2]],T[[3,1]]}];T];*)
-(*(* Simplify two epsilon tensor. x,y express the indices of two epsilon *)*)
-(*epsilon2[x_,y_]:=Module[{x1,y1,sign},y1=Permutations[y];x1=ConstantArray[x,Length[y1]];sign=Signature[#]&/@y1;-Times@@@(MapThread[Superscript["g",#1 #2]&,{x1,y1},2]).sign];*)
-(*(* contract the repeated index, disappear g *)*)
-(*contract={MapThread[Superscript["g",i_ j_]#1:>#2/;Signature[{i,j}]>0&,{{Subscript[Subscript[D, a_], j_],Subscript[Subscript[Subscript[FL, a_], j_], q_],Subscript[Subscript[Subscript[FL, a_], q_], j_],Subscript[Subscript[Subscript[FR, a_], j_], q_],Subscript[Subscript[Subscript[FR, a_], q_], j_],ch\[Psi][p_,\[Sigma][j_],q_],ch\[Psi][p_,*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[j_],q_],ch\[Psi][p_,\[Sigma][j_,q1_],q_],ch\[Psi][p_,*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[j_,q1_],q_],ch\[Psi][p_,\[Sigma][q1_,j_],q_],ch\[Psi][p_,*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[q1_,j_],q_]},{Subscript[Subscript[D, a], i],Subscript[Subscript[Subscript[FL, a], i], q],Subscript[Subscript[Subscript[FL, a], q], i],Subscript[Subscript[Subscript[FR, a], i], q],Subscript[Subscript[Subscript[FR, a], q], i],ch\[Psi][p,\[Sigma][i],q],ch\[Psi][p,*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[i],q],ch\[Psi][p,\[Sigma][i,q1],q],ch\[Psi][p,*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[i,q1],q],ch\[Psi][p,\[Sigma][q1,i],q],ch\[Psi][p,*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[q1,i],q]}}],Superscript["g",i_ j_]Superscript["\[Epsilon]",j_ k_ l_ m_]:>Signature[{i,k,l,m}] Signature[{j,k,l,m}] Superscript["\[Epsilon]",i k l m],Subscript[Subscript[Subscript[FL, k_], i_], j_]Superscript["\[Epsilon]",i_ j_ a_ b_]:>2I Subscript[Subscript[Subscript[FL, k], a], b]Signature[{i,j,a,b}],Subscript[Subscript[Subscript[FR, k_], i_], j_]Superscript["\[Epsilon]",i_ j_ a_ b_]:>-2I Subscript[Subscript[Subscript[FR, k], a], b]Signature[{i,j,a,b}],Superscript["\[Epsilon]",i1_ j1_ k1_ l1_]Superscript["\[Epsilon]",i2_ j2_ k2_ l2_]:>epsilon2[{i1,j1,k1,l1},{i2,j2,k2,l2}],Superscript["g",i_ j_]Superscript["g",i_ k_]:>Superscript["g",j k],Superscript["g",i_ i_]:>4,Superscript["g",i_ j_]Superscript["g",i_ j_]:>4}//Flatten;(* let Subscript[F, label] or Subscript[Overscript[F, _], label] absorb redundant epsilon *)Ftilde[iGreek_]:={Subscript[Subscript[Subscript[FL, label_], i_], j_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>-I/2 Subscript[Subscript[Subscript[FL, label], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]]epsilon2[{i,j,Alphabet["Greek"][[iGreek]],Alphabet["Greek"][[iGreek+1]]},{a,b,c,d}],Subscript[Subscript[Subscript[FR, label_], i_], j_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>I/2 Subscript[Subscript[Subscript[FR, label], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]]epsilon2[{i,j,Alphabet["Greek"][[iGreek]],Alphabet["Greek"][[iGreek+1]]},{a,b,c,d}]};*)
-(*(* redefine the index *)*)
-(*beforeform={Subscript[Subscript[D, i_], j_]:>Subscript[D, i][j],Subscript[D, i_][j_]^2:>0,Subscript[D, i_][j_]ch\[Psi][q_,\[Sigma][j_]|*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[j_],Subscript[f_, i_]]:>0,Subscript[D, i_][j_]ch\[Psi][Subscript[f_, i_],\[Sigma][j_]|*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[j_],q_]:>0,Subscript[D, i_][\[Nu]_]ch\[Psi][q_,\[Sigma][\[Mu]_,\[Nu]_]|*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[\[Mu]_,\[Nu]_],Subscript[f_, i_]]:>-I Subscript[D, i][\[Mu]] ch\[Psi][q,1,Subscript[f, i]],Subscript[D, i_][\[Mu]_]ch\[Psi][q_,\[Sigma][\[Mu]_,\[Nu]_]|*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[\[Mu]_,\[Nu]_],Subscript[f_, i_]]:>I Subscript[D, i][\[Nu]] ch\[Psi][q,1,Subscript[f, i]],Subscript[D, i_][\[Mu]_]ch\[Psi][Subscript[q_, i_],\[Sigma][\[Mu]_,\[Nu]_]|*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[\[Mu]_,\[Nu]_],f_]:>-I Subscript[D, i][\[Nu]] ch\[Psi][Subscript[q, i],1,f],Subscript[D, i_][\[Nu]_]ch\[Psi][Subscript[q_, i_],\[Sigma][\[Mu]_,\[Nu]_]|*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[\[Mu]_,\[Nu]_],f_]:>I Subscript[D, i][\[Mu]] ch\[Psi][Subscript[q, i],1,f],Subscript[Subscript[Subscript[FL, i_], j_], k_]:>Subscript[FL, i][j,k],(Subscript[FL, i_][j_,j_]|Subscript[FR, i_][j_,j_]):>0,Subscript[Subscript[Subscript[FR, i_], j_], k_]:>Subscript[FR, i][j,k],Subscript[FL, i_][\[Mu]_,\[Nu]_](Subscript[FR, j_][\[Mu]_,\[Nu]_]|Subscript[FR, j_][\[Nu]_,\[Mu]_]):>0,Subscript[D, i_][j_](Subscript[FL, i_][j_,k_]|Subscript[FR, i_][j_,k_]|Subscript[FL, i_][k_,j_]|Subscript[FR, i_][k_,j_]):>0,Superscript["\[Epsilon]",i_ j_ k_ l_]:>"\[Epsilon]"[i,j,k,l]};*)
-(*(* distribute all D to each field *)*)
-(*Dcontract1={MapThread[MapThread[{Subscript[Subscript[D, i_], j_]#1:>#2,Superscript[Subscript[D, i_],j_]#1:>#3}&,{{#1,ch[p__,#1]},{ch[Subscript[D, j],#2],ch[p,Subscript[D, j],#2]},{ch[Superscript[D,j],#2],ch[p,Superscript[D,j],#2]}}]&,{{Subscript[\[Phi], i_],Subscript[FL, i_][q__],Subscript[FR, i_][q__]},{Subscript[\[Phi], i],Subscript[FL, i][q],Subscript[FR, i][q]}}]}//Flatten;*)
-(*Dcontract2={MapThread[MapThread[{Subscript[Subscript[D, i_], j_] #1:>#2,Superscript[Subscript[D, i_],j_] #1:>#3}&,{{ch\[Psi][#1,q__],ch\[Psi][ch[p__,#1],q__]},{ch\[Psi][ch[Subscript[D, j],#2],q],ch\[Psi][ch[p,Subscript[D, j],#2],q]},{ch\[Psi][ch[Superscript[D,j],#2],q],ch\[Psi][ch[p,Superscript[D,j],#2],q]}}]&,{{Subscript[\[Psi], i_],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i_]},{Subscript[\[Psi], i],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i]}}],MapThread[MapThread[{Subscript[Subscript[D, i_], j_] #1:>#2,Superscript[Subscript[D, i_],j_] #1:>#3}&,{{ch\[Psi][q__,#1],ch\[Psi][q__,ch[p__,#1]]},{ch\[Psi][q,ch[Subscript[D, j],#2]],ch\[Psi][q,ch[p,Subscript[D, j],#2]]},{ch\[Psi][q,ch[Superscript[D,j],#2]],ch\[Psi][q,ch[p,Superscript[D,j],#2]]}}]&,{{Subscript[\[Psi], i_],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i_]},{Subscript[\[Psi], i],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i]}}]}//Flatten;*)
-(*listtotime={ch[p__]:>HoldForm[Times[p]],ch\[Psi][p__]:>HoldForm[Times[p]],F_["down",a_,"down",b_]:>Subscript[Subscript[F, a], b],F_["down",a_,"up",b_]:>Superscript[Subscript[F, a],b],F_["up",a_,"down",b_]:>Subscript[Superscript[F,a],b],F_["up",a_,"up",b_]:>Superscript[Superscript[F,a],b]};*)
-(*(* change tensor index into TensorContract, and get back *)*)
-(*(* define the antisym tensor and vector *)*)
-(*antisym[a_]:={a\[Element]Matrices[{4,4},Antisymmetric[{1,2}]]};*)
-(*sym[v_]:={v\[Element]Arrays[{4}]};*)
-(*(* change tensor into TensorContract *)*)
-(*tensorform[o_]:=Module[{lo,tensor={},tensor1,tensor2,index={},P,cont={},other=o},lo=Length[o];Do[Switch[o[[i,0]],Subscript[FL, _],other/=o[[i]];tensor=Append[tensor,F[o[[i,0,2]]]];index=Append[index,{o[[i,1]],o[[i,2]]}],Subscript[FR, _],other/=o[[i]];tensor=Append[tensor,F[o[[i,0,2]],"b"]];index=Append[index,{o[[i,1]],o[[i,2]]}],Subscript[D, _],other/=o[[i]];tensor=Append[tensor,de[o[[i,0,2]]]];index=Append[index,o[[i,1]]],ch\[Psi],Switch[Length[o[[i,2]]],0,Continue[],1,other/=o[[i]];tensor=Append[tensor,sigma[o[[i,1]],o[[i,3]]]];index=Append[index,o[[i,2,1]]],2,other/=o[[i]];tensor=Append[tensor,sigma2[o[[i,1]],o[[i,3]]]];index=Append[index,{o[[i,2,1]],o[[i,2,2]]}]],"\[Epsilon]",other/=o[[i]];tensor=Append[tensor,epsilon];index=Append[index,{o[[i,1]],o[[i,2]],o[[i,3]],o[[i,4]]}]],{i,lo}];index=index//Flatten;Do[P=Position[index,index[[i]]]//Flatten;If[P[[2]]===i,Continue[]];cont=Append[cont,P],{i,Length[index]}];tensor1=Union[Cases[tensor,_sigma],Cases[tensor,_de]];tensor2=DeleteCases[Complement[tensor,tensor1],epsilon];tensor=TensorContract[TensorProduct@@tensor,cont]other;{tensor,tensor1,tensor2,index,cont,other}];*)
-(*(* change TensorContract into tensor index form *)*)
-(*LorentzIndex=Append[{"\[Mu]","\[Nu]","\[Lambda]","\[Rho]","\[Eta]","\[Sigma]","\[Xi]"},Alphabet["Greek"][[19;;-1]]]//Flatten;*)
-(*tensortooper[t_]:=Module[{ten,other,index,tensorterm,lten,term,iGreek=0,indexnum,indexposition,si},tensorterm=Flatten[{t}/.{Power->ConstantArray,Times->List}];tensorterm=Cases[tensorterm,_TensorContract];other=t/(Times@@tensorterm);term=Length[tensorterm];Do[ten=tensorterm[[j]];indexnum=1;lten=Length[ten[[1]]];index=indexposition=ConstantArray["down",2Length[ten[[2]]]];Do[index[[ten[[2,i,1]]]]=index[[ten[[2,i,2]]]]=LorentzIndex[[i+iGreek]],{i,Length[ten[[2]]]}];iGreek+=Length[ten[[2]]];Do[Switch[ten[[1,l]],epsilon,other*=Signature[{index[[indexnum]],index[[indexnum+1]],index[[indexnum+2]],index[[indexnum+3]]}]Superscript["\[Epsilon]",index[[indexnum]]index[[indexnum+1]]index[[indexnum+2]]index[[indexnum+3]]];indexnum+=4,_de,If[indexposition[[indexnum]]==="up",other*=Superscript[Subscript[D, ten[[1,l,1]]],index[[indexnum]]],other*=Subscript[Subscript[D, ten[[1,l,1]]], index[[indexnum]]];indexposition[[(Position[index,index[[indexnum]]]//Flatten)[[2]]]]="up"];indexnum++,_F,If[Length[ten[[1,l]]]===1,si=FL,si=FR];other*=Subscript[si, ten[[1,l,1]]][indexposition[[indexnum]],index[[indexnum]],indexposition[[indexnum+1]],index[[indexnum+1]]];indexposition[[(Position[index,index[[indexnum]]]//Flatten)[[2]]]]="up";indexposition[[(Position[index,index[[indexnum+1]]]//Flatten)[[2]]]]="up";indexnum+=2,_sigma,Switch[ten[[1,l,1]],Subscript[\[Psi], _],si=\[Sigma],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],si=*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)];If[indexposition[[indexnum]]==="up",other*=ch\[Psi][ten[[1,l,1]],si^index[[indexnum]],ten[[1,l,2]]],other*=ch\[Psi][ten[[1,l,1]],Subscript[si, index[[indexnum]]],ten[[1,l,2]]];indexposition[[(Position[index,index[[indexnum]]]//Flatten)[[2]]]]="up"];indexnum++,_sigma2,Switch[ten[[1,l,1]],Subscript[\[Psi], _],si=\[Sigma],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],si=*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)];Switch[indexposition[[indexnum;;indexnum+1]],{"up","up"},other*=ch\[Psi][ten[[1,l,1]],Superscript[Superscript[si,index[[indexnum]]],index[[indexnum+1]]],ten[[1,l,2]]],{"up","down"},other*=ch\[Psi][ten[[1,l,1]],Subscript[Superscript[si,index[[indexnum]]],index[[indexnum+1]]],ten[[1,l,2]]];indexposition[[(Position[index,index[[indexnum+1]]]//Flatten)[[2]]]]="up",{"down","up"},other*=ch\[Psi][ten[[1,l,1]],Superscript[Subscript[si,index[[indexnum]]],index[[indexnum+1]]],ten[[1,l,2]]];indexposition[[(Position[index,index[[indexnum]]]//Flatten)[[2]]]]="up",{"down","down"},other*=ch\[Psi][ten[[1,l,1]],Subscript[Subscript[si,index[[indexnum]]],index[[indexnum+1]]],ten[[1,l,2]]];indexposition[[(Position[index,index[[indexnum]]]//Flatten)[[2]]]]=indexposition[[(Position[index,index[[indexnum+1]]]//Flatten)[[2]]]]="up"];indexnum+=2,_,Print["some thing are ignored"]],{l,lten}],{j,term}];other];*)
-(*part4[m_]:=If[Length[m]>=4,m[[4]],0];*)
+(* ::Input::Initialization:: *)
+Chain[x__]:=Module[{c={x}},If[Length[c]>1,HoldForm[Times[x]],HoldForm[x]]];
+\[Sigma]trace={\[Sigma][i_,j_]:>0,
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[i_,j_]:>0};
+(* when calculating the \[Sigma] trace, we make use of \[Sigma]chain[], and set all the \[Sigma] matrix remained go to zero *)
+trace[\[Sigma]_,iGreek_:1,sign_:1]:=Module[{l=Length[\[Sigma]],T},Switch[l,_?OddQ,T={0,iGreek},_,T=\[Sigma]chain[\[Sigma],iGreek,sign]//.\[Sigma]trace;T={2T[[1]].T[[2]],T[[3,1]]}];T];
+(* Simplify two epsilon tensor. x,y express the indices of two epsilon *)
+epsilon2[x_,y_]:=Module[{x1,y1,sign},y1=Permutations[y];x1=ConstantArray[x,Length[y1]];sign=Signature[#]&/@y1;-Times@@@(MapThread[Superscript["g",#1 #2]&,{x1,y1},2]).sign];
+(* contract the repeated index, disappear g *)
+contract={MapThread[Superscript["g",i_ j_]#1:>#2/;Signature[{i,j}]>0&,{{Subscript[Subscript[D, a_], j_],Subscript[Subscript[Subscript[FL, a_], j_], q_],Subscript[Subscript[Subscript[FL, a_], q_], j_],Subscript[Subscript[Subscript[FR, a_], j_], q_],Subscript[Subscript[Subscript[FR, a_], q_], j_],ch\[Psi][p_,\[Sigma][j_],q_],ch\[Psi][p_,
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[j_],q_],ch\[Psi][p_,\[Sigma][j_,q1_],q_],ch\[Psi][p_,
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[j_,q1_],q_],ch\[Psi][p_,\[Sigma][q1_,j_],q_],ch\[Psi][p_,
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[q1_,j_],q_]},{Subscript[Subscript[D, a], i],Subscript[Subscript[Subscript[FL, a], i], q],Subscript[Subscript[Subscript[FL, a], q], i],Subscript[Subscript[Subscript[FR, a], i], q],Subscript[Subscript[Subscript[FR, a], q], i],ch\[Psi][p,\[Sigma][i],q],ch\[Psi][p,
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[i],q],ch\[Psi][p,\[Sigma][i,q1],q],ch\[Psi][p,
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[i,q1],q],ch\[Psi][p,\[Sigma][q1,i],q],ch\[Psi][p,
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[q1,i],q]}}],Superscript["g",i_ j_]Superscript["\[Epsilon]",j_ k_ l_ m_]:>Signature[{i,k,l,m}] Signature[{j,k,l,m}] Superscript["\[Epsilon]",i k l m],Subscript[Subscript[Subscript[FL, k_], i_], j_]Superscript["\[Epsilon]",i_ j_ a_ b_]:>2I Subscript[Subscript[Subscript[FL, k], a], b]Signature[{i,j,a,b}],Subscript[Subscript[Subscript[FR, k_], i_], j_]Superscript["\[Epsilon]",i_ j_ a_ b_]:>-2I Subscript[Subscript[Subscript[FR, k], a], b]Signature[{i,j,a,b}],Superscript["\[Epsilon]",i1_ j1_ k1_ l1_]Superscript["\[Epsilon]",i2_ j2_ k2_ l2_]:>epsilon2[{i1,j1,k1,l1},{i2,j2,k2,l2}],Superscript["g",i_ j_]Superscript["g",i_ k_]:>Superscript["g",j k],Superscript["g",i_ i_]:>4,Superscript["g",i_ j_]Superscript["g",i_ j_]:>4}//Flatten;(* let Subscript[F, label] or Subscript[Overscript[F, _], label] absorb redundant epsilon *)Ftilde[iGreek_]:={Subscript[Subscript[Subscript[FL, label_], i_], j_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>-I/2 Subscript[Subscript[Subscript[FL, label], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]]epsilon2[{i,j,Alphabet["Greek"][[iGreek]],Alphabet["Greek"][[iGreek+1]]},{a,b,c,d}],Subscript[Subscript[Subscript[FR, label_], i_], j_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>I/2 Subscript[Subscript[Subscript[FR, label], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]]epsilon2[{i,j,Alphabet["Greek"][[iGreek]],Alphabet["Greek"][[iGreek+1]]},{a,b,c,d}]};
+(* redefine the index *)
+beforeform={Subscript[Subscript[D, i_], j_]:>Subscript[D, i][j],Subscript[D, i_][j_]^2:>0,Subscript[D, i_][j_]ch\[Psi][q_,\[Sigma][j_]|
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[j_],Subscript[f_, i_]]:>0,Subscript[D, i_][j_]ch\[Psi][Subscript[f_, i_],\[Sigma][j_]|
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[j_],q_]:>0,Subscript[D, i_][\[Nu]_]ch\[Psi][q_,\[Sigma][\[Mu]_,\[Nu]_]|
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[\[Mu]_,\[Nu]_],Subscript[f_, i_]]:>-I Subscript[D, i][\[Mu]] ch\[Psi][q,1,Subscript[f, i]],Subscript[D, i_][\[Mu]_]ch\[Psi][q_,\[Sigma][\[Mu]_,\[Nu]_]|
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[\[Mu]_,\[Nu]_],Subscript[f_, i_]]:>I Subscript[D, i][\[Nu]] ch\[Psi][q,1,Subscript[f, i]],Subscript[D, i_][\[Mu]_]ch\[Psi][Subscript[q_, i_],\[Sigma][\[Mu]_,\[Nu]_]|
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[\[Mu]_,\[Nu]_],f_]:>-I Subscript[D, i][\[Nu]] ch\[Psi][Subscript[q, i],1,f],Subscript[D, i_][\[Nu]_]ch\[Psi][Subscript[q_, i_],\[Sigma][\[Mu]_,\[Nu]_]|
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[\[Mu]_,\[Nu]_],f_]:>I Subscript[D, i][\[Mu]] ch\[Psi][Subscript[q, i],1,f],Subscript[Subscript[Subscript[FL, i_], j_], k_]:>Subscript[FL, i][j,k],(Subscript[FL, i_][j_,j_]|Subscript[FR, i_][j_,j_]):>0,Subscript[Subscript[Subscript[FR, i_], j_], k_]:>Subscript[FR, i][j,k],Subscript[FL, i_][\[Mu]_,\[Nu]_](Subscript[FR, j_][\[Mu]_,\[Nu]_]|Subscript[FR, j_][\[Nu]_,\[Mu]_]):>0,Subscript[D, i_][j_](Subscript[FL, i_][j_,k_]|Subscript[FR, i_][j_,k_]|Subscript[FL, i_][k_,j_]|Subscript[FR, i_][k_,j_]):>0,Superscript["\[Epsilon]",i_ j_ k_ l_]:>"\[Epsilon]"[i,j,k,l]};
+(* distribute all D to each field *)
+Dcontract1={MapThread[MapThread[{Subscript[Subscript[D, i_], j_]#1:>#2,Superscript[Subscript[D, i_],j_]#1:>#3}&,{{#1,ch[p__,#1]},{ch[Subscript[D, j],#2],ch[p,Subscript[D, j],#2]},{ch[Superscript[D,j],#2],ch[p,Superscript[D,j],#2]}}]&,{{Subscript[\[Phi], i_],Subscript[FL, i_][q__],Subscript[FR, i_][q__]},{Subscript[\[Phi], i],Subscript[FL, i][q],Subscript[FR, i][q]}}]}//Flatten;
+Dcontract2={MapThread[MapThread[{Subscript[Subscript[D, i_], j_] #1:>#2,Superscript[Subscript[D, i_],j_] #1:>#3}&,{{ch\[Psi][#1,q__],ch\[Psi][ch[p__,#1],q__]},{ch\[Psi][ch[Subscript[D, j],#2],q],ch\[Psi][ch[p,Subscript[D, j],#2],q]},{ch\[Psi][ch[Superscript[D,j],#2],q],ch\[Psi][ch[p,Superscript[D,j],#2],q]}}]&,{{Subscript[\[Psi], i_],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i_]},{Subscript[\[Psi], i],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i]}}],MapThread[MapThread[{Subscript[Subscript[D, i_], j_] #1:>#2,Superscript[Subscript[D, i_],j_] #1:>#3}&,{{ch\[Psi][q__,#1],ch\[Psi][q__,ch[p__,#1]]},{ch\[Psi][q,ch[Subscript[D, j],#2]],ch\[Psi][q,ch[p,Subscript[D, j],#2]]},{ch\[Psi][q,ch[Superscript[D,j],#2]],ch\[Psi][q,ch[p,Superscript[D,j],#2]]}}]&,{{Subscript[\[Psi], i_],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i_]},{Subscript[\[Psi], i],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i]}}]}//Flatten;
+listtotime={ch[p__]:>HoldForm[Times[p]],ch\[Psi][p__]:>HoldForm[Times[p]],F_["down",a_,"down",b_]:>Subscript[Subscript[F, a], b],F_["down",a_,"up",b_]:>Superscript[Subscript[F, a],b],F_["up",a_,"down",b_]:>Subscript[Superscript[F,a],b],F_["up",a_,"up",b_]:>Superscript[Superscript[F,a],b]};
+(* change tensor index into TensorContract, and get back *)
+(* define the antisym tensor and vector *)
+antisym[a_]:={a\[Element]Matrices[{4,4},Antisymmetric[{1,2}]]};
+sym[v_]:={v\[Element]Arrays[{4}]};
+(* change tensor into TensorContract *)
+tensorform[o_]:=Module[{lo,tensor={},tensor1,tensor2,index={},P,cont={},other=o},lo=Length[o];Do[Switch[o[[i,0]],Subscript[FL, _],other/=o[[i]];tensor=Append[tensor,F[o[[i,0,2]]]];index=Append[index,{o[[i,1]],o[[i,2]]}],Subscript[FR, _],other/=o[[i]];tensor=Append[tensor,F[o[[i,0,2]],"b"]];index=Append[index,{o[[i,1]],o[[i,2]]}],Subscript[D, _],other/=o[[i]];tensor=Append[tensor,de[o[[i,0,2]]]];index=Append[index,o[[i,1]]],ch\[Psi],Switch[Length[o[[i,2]]],0,Continue[],1,other/=o[[i]];tensor=Append[tensor,sigma[o[[i,1]],o[[i,3]]]];index=Append[index,o[[i,2,1]]],2,other/=o[[i]];tensor=Append[tensor,sigma2[o[[i,1]],o[[i,3]]]];index=Append[index,{o[[i,2,1]],o[[i,2,2]]}]],"\[Epsilon]",other/=o[[i]];tensor=Append[tensor,epsilon];index=Append[index,{o[[i,1]],o[[i,2]],o[[i,3]],o[[i,4]]}]],{i,lo}];index=index//Flatten;Do[P=Position[index,index[[i]]]//Flatten;If[P[[2]]===i,Continue[]];cont=Append[cont,P],{i,Length[index]}];tensor1=Union[Cases[tensor,_sigma],Cases[tensor,_de]];tensor2=DeleteCases[Complement[tensor,tensor1],epsilon];tensor=TensorContract[TensorProduct@@tensor,cont]other;{tensor,tensor1,tensor2,index,cont,other}];
+(* change TensorContract into tensor index form *)
+LorentzIndex=Append[{"\[Mu]","\[Nu]","\[Lambda]","\[Rho]","\[Eta]","\[Sigma]","\[Xi]"},Alphabet["Greek"][[19;;-1]]]//Flatten;
+tensortooper[t_]:=Module[{ten,other,index,tensorterm,lten,term,iGreek=0,indexnum,indexposition,si},tensorterm=Flatten[{t}/.{Power->ConstantArray,Times->List}];tensorterm=Cases[tensorterm,_TensorContract];other=t/(Times@@tensorterm);term=Length[tensorterm];Do[ten=tensorterm[[j]];indexnum=1;lten=Length[ten[[1]]];index=indexposition=ConstantArray["down",2Length[ten[[2]]]];Do[index[[ten[[2,i,1]]]]=index[[ten[[2,i,2]]]]=LorentzIndex[[i+iGreek]],{i,Length[ten[[2]]]}];iGreek+=Length[ten[[2]]];Do[Switch[ten[[1,l]],epsilon,other*=Signature[{index[[indexnum]],index[[indexnum+1]],index[[indexnum+2]],index[[indexnum+3]]}]Superscript["\[Epsilon]",index[[indexnum]]index[[indexnum+1]]index[[indexnum+2]]index[[indexnum+3]]];indexnum+=4,_de,If[indexposition[[indexnum]]==="up",other*=Superscript[Subscript[D, ten[[1,l,1]]],index[[indexnum]]],other*=Subscript[Subscript[D, ten[[1,l,1]]], index[[indexnum]]];indexposition[[(Position[index,index[[indexnum]]]//Flatten)[[2]]]]="up"];indexnum++,_F,If[Length[ten[[1,l]]]===1,si=FL,si=FR];other*=Subscript[si, ten[[1,l,1]]][indexposition[[indexnum]],index[[indexnum]],indexposition[[indexnum+1]],index[[indexnum+1]]];indexposition[[(Position[index,index[[indexnum]]]//Flatten)[[2]]]]="up";indexposition[[(Position[index,index[[indexnum+1]]]//Flatten)[[2]]]]="up";indexnum+=2,_sigma,Switch[ten[[1,l,1]],Subscript[\[Psi], _],si=\[Sigma],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],si=
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)];If[indexposition[[indexnum]]==="up",other*=ch\[Psi][ten[[1,l,1]],si^index[[indexnum]],ten[[1,l,2]]],other*=ch\[Psi][ten[[1,l,1]],Subscript[si, index[[indexnum]]],ten[[1,l,2]]];indexposition[[(Position[index,index[[indexnum]]]//Flatten)[[2]]]]="up"];indexnum++,_sigma2,Switch[ten[[1,l,1]],Subscript[\[Psi], _],si=\[Sigma],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],si=
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)];Switch[indexposition[[indexnum;;indexnum+1]],{"up","up"},other*=ch\[Psi][ten[[1,l,1]],Superscript[Superscript[si,index[[indexnum]]],index[[indexnum+1]]],ten[[1,l,2]]],{"up","down"},other*=ch\[Psi][ten[[1,l,1]],Subscript[Superscript[si,index[[indexnum]]],index[[indexnum+1]]],ten[[1,l,2]]];indexposition[[(Position[index,index[[indexnum+1]]]//Flatten)[[2]]]]="up",{"down","up"},other*=ch\[Psi][ten[[1,l,1]],Superscript[Subscript[si,index[[indexnum]]],index[[indexnum+1]]],ten[[1,l,2]]];indexposition[[(Position[index,index[[indexnum]]]//Flatten)[[2]]]]="up",{"down","down"},other*=ch\[Psi][ten[[1,l,1]],Subscript[Subscript[si,index[[indexnum]]],index[[indexnum+1]]],ten[[1,l,2]]];indexposition[[(Position[index,index[[indexnum]]]//Flatten)[[2]]]]=indexposition[[(Position[index,index[[indexnum+1]]]//Flatten)[[2]]]]="up"];indexnum+=2,_,Print["some thing are ignored"]],{l,lten}],{j,term}];other];
+part4[m_]:=If[Length[m]>=4,m[[4]],0];
 
 
-(* ::Input:: *)
-(*(* deal with monomial amplitude, input respectively angular brackets and square brackets and particle number *)*)
-(*OperMonoResp[a_:1,s_:1,n_]:=Module[{opA,opS,\[Psi]i=Table[1,{i,n},{j,2}],op=1,lop,index,opi,iGreek=11,coef,chain={},chainnum={},indexa,index\[Alpha],lchain,\[Sigma]m,oper},opA=operab[a];opS=opersb[s];Do[\[Psi]i[[i,1]]=Cases[opA,Subscript[\[Psi], i][_Integer,_]];\[Psi]i[[i,1,0]]=Times;\[Psi]i[[i,2]]=Cases[opS,Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i][_Integer,_]];\[Psi]i[[i,2,0]]=Times,{i,n}];Do[opi=change [\[Psi]i[[i,1]],\[Psi]i[[i,2]],i,iGreek];op=op opi[[1]];iGreek=opi[[2]],{i,n}];*)
-(*op[[0]]=List;opS=Cases[op,Subscript[Subscript[Subscript[FL, _], _], _]]\[Union]Cases[op,Subscript[Subscript[Subscript[FR, _], _], _]];coef=1/2^Length[opS]*I^Length[Cases[op,Subscript[Subscript[D, _], _]]];opS=Union[opS,Cases[op,Subscript[Subscript[D, _], _]],Cases[op,Subscript[\[Phi], _]]];opA=Complement[op,opS];lop=Length[opA];Do[Switch[opA[[i,0]],Subscript[\[Psi], _],If[Cases[chain,opA[[i,0]]]!={},Continue[]];index=opA[[i,2]];If[opA[[i,1]]===1,coef=-coef];chain=Append[chain,opA[[i,0]]];index\[Alpha]=Select[opA,#[[2]]==index&];index\[Alpha]=Complement[index\[Alpha],{opA[[i]]}];Do[If[index\[Alpha][[1,0,1]]===\[Sigma],index=index\[Alpha][[1,4]];chain=Append[chain,index\[Alpha][[1,0]]];If[index\[Alpha][[1,3]]===2,coef=-coef];(**) indexa=Select[opA,part4[#]==index&];indexa=Complement[indexa,index\[Alpha]];If[indexa==={},indexa=Select[opA,#[[2]]==index&];chain=Append[chain,indexa[[1,0]]];chainnum=Append[chainnum,Length[chain]];Break[]];If[indexa[[1,1]]===1,coef=-coef];index=indexa[[1,2]];index\[Alpha]=Select[opA,#[[2]]==index&];index\[Alpha]=Complement[index\[Alpha],indexa];chain=Append[chain,indexa[[1,0]]],chain=Append[chain,index\[Alpha][[1,0]]];chainnum=Append[chainnum,Length[chain]];Break[]],{j,lop}],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],If[Cases[chain,opA[[i,0]]]!={},Continue[]];index=opA[[i,2]];If[opA[[i,1]]===2,coef=-coef];chain=Append[chain,opA[[i,0]]];indexa=Select[opA,part4[#]==index&];indexa=Complement[indexa,{opA[[i]]}];Do[If[indexa==={},indexa=Select[opA,#[[2]]==index&];indexa=Complement[indexa,{opA[[i]]}];chain=Append[chain,indexa[[1,0]]];chainnum=Append[chainnum,Length[chain]];Break[]];index=indexa[[1,2]];If[indexa[[1,1]]===1,coef=-coef];index\[Alpha]=Select[opA,#[[2]]==index&];index\[Alpha]=Complement[index\[Alpha],indexa];chain=Append[chain,indexa[[1,0]]];If[index\[Alpha][[1,0,1]]===\[Sigma],If[index\[Alpha][[1,3]]===2,coef=-coef];index=index\[Alpha][[1,4]];indexa=Select[opA,part4[#]==index&];indexa=Complement[indexa,index\[Alpha]];chain=Append[chain,index\[Alpha][[1,0]]],chainnum=Append[chainnum,Length[chain]];chain=Append[chain,index\[Alpha][[1,0]]];Break[]],{j,lop}]],{i,lop}](*after all the \[Psi] chains are found*);If[Length[opA]>Length[chain],Do[If[opA[[i,0,1]]===\[Sigma],If[Cases[chain,opA[[i,0]]]!={},Continue[]];index=opA[[i,4]];If[opA[[i,3]]===2,coef=-coef];(*Print[coef];*)chain=Append[chain,opA[[i,0]]];indexa=Select[opA,part4[#]==index&];indexa=Complement[indexa,{opA[[i]]}];Do[index=indexa[[1,2]];If[indexa[[1,1]]===1,coef=-coef];(*Print[coef];*)index\[Alpha]=Select[opA,#[[2]]==index&];index\[Alpha]=Complement[index\[Alpha],indexa];chain=Append[chain,indexa[[1,0]]];If[Cases[chain,index\[Alpha][[1,0]]]!={},chainnum=Append[chainnum,Length[chain]];Break[]];chain=Append[chain,index\[Alpha][[1,0]]];index=index\[Alpha][[1,4]];If[index\[Alpha][[1,3]]===2,coef=-coef];(*Print[coef];*)indexa=Select[opA,part4[#]==index&];indexa=Complement[indexa,index\[Alpha]],{j,lop}]],{i,lop}]];*)
-(*(****************************)*)
-(*(*Print[{opA,opS}];Print[{chain,chainnum,coef,iGreek}];*)coef*=Signature[DeleteCases[chain,\[Sigma]^_]];If[chain==={},oper=1,lchain=Length[chainnum];Switch[chain[[1]],Subscript[\[Psi], _],\[Sigma]m=\[Sigma]chain[chain[[2;;chainnum[[1]]-1]],iGreek,1];iGreek=\[Sigma]m[[3,1]];(*chain={chain[[1]],\[Sigma]m};*)oper=Sum[ch\[Psi][chain[[1]],\[Sigma]m[[2,i]],chain[[chainnum[[1]]]]] \[Sigma]m[[1,i]],{i,Length[\[Sigma]m[[2]]]}],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],\[Sigma]m=\[Sigma]chain[chain[[2;;chainnum[[1]]-1]],iGreek,-1];iGreek=\[Sigma]m[[3,1]];oper=Sum[ch\[Psi][chain[[1]],\[Sigma]m[[2,i]],chain[[chainnum[[1]]]]] \[Sigma]m[[1,i]],{i,Length[\[Sigma]m[[2]]]}],\[Sigma]^_,{oper,iGreek}=trace[Append[chain[[2;;chainnum[[1]]]],chain[[1]]],iGreek,-1]]];If[lchain>1,Do[Switch[chain[[chainnum[[j-1]]+1]],Subscript[\[Psi], _],\[Sigma]m=\[Sigma]chain[chain[[chainnum[[j-1]]+2;;chainnum[[j]]-1]],iGreek,1];iGreek=\[Sigma]m[[3,1]];oper*= Sum[ch\[Psi][chain[[chainnum[[j-1]]+1]],\[Sigma]m[[2,i]],chain[[chainnum[[j]]]]] \[Sigma]m[[1,i]],{i,Length[\[Sigma]m[[2]]]}],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],\[Sigma]m=\[Sigma]chain[chain[[chainnum[[j-1]]+2;;chainnum[[j]]-1]],iGreek,-1];iGreek=\[Sigma]m[[3,1]];oper*= Sum[ch\[Psi][chain[[chainnum[[j-1]]+1]],\[Sigma]m[[2,i]],chain[[chainnum[[j]]]]] \[Sigma]m[[1,i]],{i,Length[\[Sigma]m[[2]]]}],\[Sigma]^_,oper*= trace[chain[[chainnum[[j-1]]+1;;chainnum[[j]]]],iGreek][[1]];iGreek= trace[chain[[chainnum[[j-1]]+1;;chainnum[[j]]]],iGreek][[2]]],{j,2,lchain}]];opS[[0]]=Times;oper opS coef];*)
-(*(* input monomial amplitude, label shows which F will absorb epsilon *)*)
-(*OperMono[A_,n_]:=Module[{oper,Aa=1,As=1,LA,coeff=1},Switch[A[[0]],ab,oper=OperMonoResp[A,1,n],sb,oper=OperMonoResp[1,A,n],Power,Switch[A[[1,0]],ab,oper=OperMonoResp[A,1,n],sb,oper=OperMonoResp[1,A,n]],Times,LA=Length[A];Do[Switch[A[[i,0]],ab,Aa*=A[[i]],sb,As*=A[[i]],Power,Switch[A[[i,1,0]],ab,Aa*=A[[i]],sb,As*=A[[i]]],_,coeff*=A[[i]]],{i,LA}];oper=coeff*OperMonoResp[Aa,As,n],_,oper=A OperMonoResp[1,1,n]];oper=Expand[Expand[oper]//.contract]//.contract;oper=Expand[oper//.Ftilde[-2]]//.contract//.beforeform];*)
-(*(* input complete amplitude, firstF shows which F will absorb epsilon *)*)
-(*OperSpMonoResp[a_:1,s_:1,n_]:=Module[{opA,opS,\[Psi]i=Table[1,{i,n},{j,2}],op=1,lop,index,opi,coef,chain={},chainnum={},indexa,index\[Alpha],lchain,\[Sigma]m,oper},opA=operab[a];opS=opersb[s];Do[\[Psi]i[[i,1]]=Cases[opA,Subscript[\[Psi], i][_Integer,_]];\[Psi]i[[i,1,0]]=Times;\[Psi]i[[i,2]]=Cases[opS,Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i][_Integer,_]];\[Psi]i[[i,2,0]]=Times,{i,n}];Do[opi=changesp[\[Psi]i[[i,1]],\[Psi]i[[i,2]],i];op=op opi,{i,n}];op];*)
-(*alphachange={"a"->"\!\(\*OverscriptBox[\(\[Alpha]\), \(.\)]\)","b"->"\!\(\*OverscriptBox[\(\[Beta]\), \(.\)]\)","c"->"\!\(\*OverscriptBox[\(\[Gamma]\), \(.\)]\)","d"->"\!\(\*OverscriptBox[\(\[Delta]\), \(.\)]\)","e"->"\!\(\*OverscriptBox[\(\[Epsilon]\), \(.\)]\)","f"->"\!\(\*OverscriptBox[\(\[Zeta]\), \(.\)]\)"};*)
-(*(* input monomial amplitude, label shows which F will absorb epsilon *)*)
-(*OperSpMono[A_,n_]:=Module[{oper,Aa=1,As=1,LA,coeff=1},Switch[A[[0]],ab,oper=OperSpMonoResp[A,1,n],sb,oper=OperSpMonoResp[1,A,n],Power,Switch[A[[1,0]],ab,oper=OperSpMonoResp[A,1,n],sb,oper=OperSpMonoResp[1,A,n]],Times,LA=Length[A];Do[Switch[A[[i,0]],ab,Aa*=A[[i]],sb,As*=A[[i]],Power,Switch[A[[i,1,0]],ab,Aa*=A[[i]],sb,As*=A[[i]]],_,coeff*=A[[i]]],{i,LA}];oper=coeff*OperSpMonoResp[Aa,As,n],_,oper=A OperSpMonoResp[1,1,n]];oper=oper//.alphachange//.listtotime];*)
-(*OperPoly[A_,n_,OptionsPattern[]]:=Module[{operpoly,form,form1,form2,ten,tAssumptions},If[OptionValue[LorForm],(*If[A[[0]]===Plus,operpoly=OperMono[#,n]&/@A,operpoly=OperMono[A,n]];*)operpoly=Thread[head[A,n],Plus]/.{head->OperMono};(*operpoly=Distr[OperMono[A,n]];*)If[operpoly[[0]]===Plus,operpoly=List@@operpoly;*)
-(*form=tensorform/@operpoly;form1=Union@@form[[All,2]];form2=Union@@form[[All,3]];tAssumptions={epsilon\[Element]Arrays[{4,4,4,4},Antisymmetric[{1,2,3,4}]]}\[Union](antisym/@form2)\[Union](sym/@form1)//Flatten;ten=Map[TensorReduce[#,Assumptions->tAssumptions]&,Plus@@form[[All,1]]//Simplify,{2,3}]//Expand;(*If[ten[[0]]===Plus,operpoly=tensortooper[#,OptionValue[FerCom]]&/@ten,operpoly=tensortooper[ten,OptionValue[FerCom]]];*)operpoly=Thread[head[ten],Plus]/.{head->tensortooper}(*;operpoly=Distr@tensortooper[ten,OptionValue[FerCom]]*),form=Map[TensorReduce,tensorform[operpoly],2];operpoly=tensortooper[form[[1]]]];*)
-(*If[OptionValue[Dcontract],operpoly=operpoly//.Flatten[{Dcontract1,Dcontract2}],operpoly],(*If[A[[0]]===Plus,operpoly=OperSpMono[#,n]&/@A,operpoly=OperSpMono[A,n]];*)operpoly=Thread[head[A,n],Plus]/.{head->OperSpMono}(*;operpoly=Distr@OperSpMono[A,n]*)(*;operpoly=operpoly//.listtotime*)]];*)
-(*(*use with Main.n program*)*)
-(*Options[OperPoly]={LorForm->True,Dcontract->False};*)
+(* ::Input::Initialization:: *)
+(* deal with monomial amplitude, input respectively angular brackets and square brackets and particle number *)
+OperMonoResp[a_:1,s_:1,n_]:=Module[{opA,opS,\[Psi]i=Table[1,{i,n},{j,2}],op=1,lop,index,opi,iGreek=11,coef,chain={},chainnum={},indexa,index\[Alpha],lchain,\[Sigma]m,oper},opA=operab[a];opS=opersb[s];Do[\[Psi]i[[i,1]]=Cases[opA,Subscript[\[Psi], i][_Integer,_]];\[Psi]i[[i,1,0]]=Times;\[Psi]i[[i,2]]=Cases[opS,Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i][_Integer,_]];\[Psi]i[[i,2,0]]=Times,{i,n}];Do[opi=change [\[Psi]i[[i,1]],\[Psi]i[[i,2]],i,iGreek];op=op opi[[1]];iGreek=opi[[2]],{i,n}];
+op[[0]]=List;opS=Cases[op,Subscript[Subscript[Subscript[FL, _], _], _]]\[Union]Cases[op,Subscript[Subscript[Subscript[FR, _], _], _]];coef=1/2^Length[opS]*I^Length[Cases[op,Subscript[Subscript[D, _], _]]];opS=Union[opS,Cases[op,Subscript[Subscript[D, _], _]],Cases[op,Subscript[\[Phi], _]]];opA=Complement[op,opS];lop=Length[opA];Do[Switch[opA[[i,0]],Subscript[\[Psi], _],If[Cases[chain,opA[[i,0]]]!={},Continue[]];index=opA[[i,2]];If[opA[[i,1]]===1,coef=-coef];chain=Append[chain,opA[[i,0]]];index\[Alpha]=Select[opA,#[[2]]==index&];index\[Alpha]=Complement[index\[Alpha],{opA[[i]]}];Do[If[index\[Alpha][[1,0,1]]===\[Sigma],index=index\[Alpha][[1,4]];chain=Append[chain,index\[Alpha][[1,0]]];If[index\[Alpha][[1,3]]===2,coef=-coef];(**) indexa=Select[opA,part4[#]==index&];indexa=Complement[indexa,index\[Alpha]];If[indexa==={},indexa=Select[opA,#[[2]]==index&];chain=Append[chain,indexa[[1,0]]];chainnum=Append[chainnum,Length[chain]];Break[]];If[indexa[[1,1]]===1,coef=-coef];index=indexa[[1,2]];index\[Alpha]=Select[opA,#[[2]]==index&];index\[Alpha]=Complement[index\[Alpha],indexa];chain=Append[chain,indexa[[1,0]]],chain=Append[chain,index\[Alpha][[1,0]]];chainnum=Append[chainnum,Length[chain]];Break[]],{j,lop}],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],If[Cases[chain,opA[[i,0]]]!={},Continue[]];index=opA[[i,2]];If[opA[[i,1]]===2,coef=-coef];chain=Append[chain,opA[[i,0]]];indexa=Select[opA,part4[#]==index&];indexa=Complement[indexa,{opA[[i]]}];Do[If[indexa==={},indexa=Select[opA,#[[2]]==index&];indexa=Complement[indexa,{opA[[i]]}];chain=Append[chain,indexa[[1,0]]];chainnum=Append[chainnum,Length[chain]];Break[]];index=indexa[[1,2]];If[indexa[[1,1]]===1,coef=-coef];index\[Alpha]=Select[opA,#[[2]]==index&];index\[Alpha]=Complement[index\[Alpha],indexa];chain=Append[chain,indexa[[1,0]]];If[index\[Alpha][[1,0,1]]===\[Sigma],If[index\[Alpha][[1,3]]===2,coef=-coef];index=index\[Alpha][[1,4]];indexa=Select[opA,part4[#]==index&];indexa=Complement[indexa,index\[Alpha]];chain=Append[chain,index\[Alpha][[1,0]]],chainnum=Append[chainnum,Length[chain]];chain=Append[chain,index\[Alpha][[1,0]]];Break[]],{j,lop}]],{i,lop}](*after all the \[Psi] chains are found*);If[Length[opA]>Length[chain],Do[If[opA[[i,0,1]]===\[Sigma],If[Cases[chain,opA[[i,0]]]!={},Continue[]];index=opA[[i,4]];If[opA[[i,3]]===2,coef=-coef];(*Print[coef];*)chain=Append[chain,opA[[i,0]]];indexa=Select[opA,part4[#]==index&];indexa=Complement[indexa,{opA[[i]]}];Do[index=indexa[[1,2]];If[indexa[[1,1]]===1,coef=-coef];(*Print[coef];*)index\[Alpha]=Select[opA,#[[2]]==index&];index\[Alpha]=Complement[index\[Alpha],indexa];chain=Append[chain,indexa[[1,0]]];If[Cases[chain,index\[Alpha][[1,0]]]!={},chainnum=Append[chainnum,Length[chain]];Break[]];chain=Append[chain,index\[Alpha][[1,0]]];index=index\[Alpha][[1,4]];If[index\[Alpha][[1,3]]===2,coef=-coef];(*Print[coef];*)indexa=Select[opA,part4[#]==index&];indexa=Complement[indexa,index\[Alpha]],{j,lop}]],{i,lop}]];
+(****************************)
+(*Print[{opA,opS}];Print[{chain,chainnum,coef,iGreek}];*)coef*=Signature[DeleteCases[chain,\[Sigma]^_]];If[chain==={},oper=1,lchain=Length[chainnum];Switch[chain[[1]],Subscript[\[Psi], _],\[Sigma]m=\[Sigma]chain[chain[[2;;chainnum[[1]]-1]],iGreek,1];iGreek=\[Sigma]m[[3,1]];(*chain={chain[[1]],\[Sigma]m};*)oper=Sum[ch\[Psi][chain[[1]],\[Sigma]m[[2,i]],chain[[chainnum[[1]]]]] \[Sigma]m[[1,i]],{i,Length[\[Sigma]m[[2]]]}],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],\[Sigma]m=\[Sigma]chain[chain[[2;;chainnum[[1]]-1]],iGreek,-1];iGreek=\[Sigma]m[[3,1]];oper=Sum[ch\[Psi][chain[[1]],\[Sigma]m[[2,i]],chain[[chainnum[[1]]]]] \[Sigma]m[[1,i]],{i,Length[\[Sigma]m[[2]]]}],\[Sigma]^_,{oper,iGreek}=trace[Append[chain[[2;;chainnum[[1]]]],chain[[1]]],iGreek,-1]]];If[lchain>1,Do[Switch[chain[[chainnum[[j-1]]+1]],Subscript[\[Psi], _],\[Sigma]m=\[Sigma]chain[chain[[chainnum[[j-1]]+2;;chainnum[[j]]-1]],iGreek,1];iGreek=\[Sigma]m[[3,1]];oper*= Sum[ch\[Psi][chain[[chainnum[[j-1]]+1]],\[Sigma]m[[2,i]],chain[[chainnum[[j]]]]] \[Sigma]m[[1,i]],{i,Length[\[Sigma]m[[2]]]}],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],\[Sigma]m=\[Sigma]chain[chain[[chainnum[[j-1]]+2;;chainnum[[j]]-1]],iGreek,-1];iGreek=\[Sigma]m[[3,1]];oper*= Sum[ch\[Psi][chain[[chainnum[[j-1]]+1]],\[Sigma]m[[2,i]],chain[[chainnum[[j]]]]] \[Sigma]m[[1,i]],{i,Length[\[Sigma]m[[2]]]}],\[Sigma]^_,oper*= trace[chain[[chainnum[[j-1]]+1;;chainnum[[j]]]],iGreek][[1]];iGreek= trace[chain[[chainnum[[j-1]]+1;;chainnum[[j]]]],iGreek][[2]]],{j,2,lchain}]];opS[[0]]=Times;oper opS coef];
+(* input monomial amplitude, label shows which F will absorb epsilon *)
+OperMono[A_,n_]:=Module[{oper,Aa=1,As=1,LA,coeff=1},Switch[A[[0]],ab,oper=OperMonoResp[A,1,n],sb,oper=OperMonoResp[1,A,n],Power,Switch[A[[1,0]],ab,oper=OperMonoResp[A,1,n],sb,oper=OperMonoResp[1,A,n]],Times,LA=Length[A];Do[Switch[A[[i,0]],ab,Aa*=A[[i]],sb,As*=A[[i]],Power,Switch[A[[i,1,0]],ab,Aa*=A[[i]],sb,As*=A[[i]]],_,coeff*=A[[i]]],{i,LA}];oper=coeff*OperMonoResp[Aa,As,n],_,oper=A OperMonoResp[1,1,n]];oper=Expand[Expand[oper]//.contract]//.contract;oper=Expand[oper//.Ftilde[-2]]//.contract//.beforeform];
+(* input complete amplitude, firstF shows which F will absorb epsilon *)
+OperSpMonoResp[a_:1,s_:1,n_]:=Module[{opA,opS,\[Psi]i=Table[1,{i,n},{j,2}],op=1,lop,index,opi,coef,chain={},chainnum={},indexa,index\[Alpha],lchain,\[Sigma]m,oper},opA=operab[a];opS=opersb[s];Do[\[Psi]i[[i,1]]=Cases[opA,Subscript[\[Psi], i][_Integer,_]];\[Psi]i[[i,1,0]]=Times;\[Psi]i[[i,2]]=Cases[opS,Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i][_Integer,_]];\[Psi]i[[i,2,0]]=Times,{i,n}];Do[opi=changesp[\[Psi]i[[i,1]],\[Psi]i[[i,2]],i];op=op opi,{i,n}];op];
+alphachange={"a"->"\!\(\*OverscriptBox[\(\[Alpha]\), \(.\)]\)","b"->"\!\(\*OverscriptBox[\(\[Beta]\), \(.\)]\)","c"->"\!\(\*OverscriptBox[\(\[Gamma]\), \(.\)]\)","d"->"\!\(\*OverscriptBox[\(\[Delta]\), \(.\)]\)","e"->"\!\(\*OverscriptBox[\(\[Epsilon]\), \(.\)]\)","f"->"\!\(\*OverscriptBox[\(\[Zeta]\), \(.\)]\)"};
+(* input monomial amplitude, label shows which F will absorb epsilon *)
+OperSpMono[A_,n_]:=Module[{oper,Aa=1,As=1,LA,coeff=1},Switch[A[[0]],ab,oper=OperSpMonoResp[A,1,n],sb,oper=OperSpMonoResp[1,A,n],Power,Switch[A[[1,0]],ab,oper=OperSpMonoResp[A,1,n],sb,oper=OperSpMonoResp[1,A,n]],Times,LA=Length[A];Do[Switch[A[[i,0]],ab,Aa*=A[[i]],sb,As*=A[[i]],Power,Switch[A[[i,1,0]],ab,Aa*=A[[i]],sb,As*=A[[i]]],_,coeff*=A[[i]]],{i,LA}];oper=coeff*OperSpMonoResp[Aa,As,n],_,oper=A OperSpMonoResp[1,1,n]];oper=oper//.alphachange//.listtotime];
+OperPoly[A_,n_,OptionsPattern[]]:=Module[{operpoly,form,form1,form2,ten,tAssumptions},If[OptionValue[LorForm],(*If[A[[0]]===Plus,operpoly=OperMono[#,n]&/@A,operpoly=OperMono[A,n]];*)operpoly=Thread[head[A,n],Plus]/.{head->OperMono};(*operpoly=Distr[OperMono[A,n]];*)If[operpoly[[0]]===Plus,operpoly=List@@operpoly;
+form=tensorform/@operpoly;form1=Union@@form[[All,2]];form2=Union@@form[[All,3]];tAssumptions={epsilon\[Element]Arrays[{4,4,4,4},Antisymmetric[{1,2,3,4}]]}\[Union](antisym/@form2)\[Union](sym/@form1)//Flatten;ten=Map[TensorReduce[#,Assumptions->tAssumptions]&,Plus@@form[[All,1]]//Simplify,{2,3}]//Expand;(*If[ten[[0]]===Plus,operpoly=tensortooper[#,OptionValue[FerCom]]&/@ten,operpoly=tensortooper[ten,OptionValue[FerCom]]];*)operpoly=Thread[head[ten],Plus]/.{head->tensortooper}(*;operpoly=Distr@tensortooper[ten,OptionValue[FerCom]]*),form=Map[TensorReduce,tensorform[operpoly],2];operpoly=tensortooper[form[[1]]]];
+If[OptionValue[Dcontract],operpoly=operpoly//.Flatten[{Dcontract1,Dcontract2}],operpoly],(*If[A[[0]]===Plus,operpoly=OperSpMono[#,n]&/@A,operpoly=OperSpMono[A,n]];*)operpoly=Thread[head[A,n],Plus]/.{head->OperSpMono}(*;operpoly=Distr@OperSpMono[A,n]*)(*;operpoly=operpoly//.listtotime*)]];
+(*use with Main.n program*)
+Options[OperPoly]={LorForm->True,Dcontract->False};
 
 
-(* ::Input:: *)
-(*beforechange={Subscript[Subscript[D, n_], \[Nu]_]|Superscript[Subscript[D, n_],\[Nu]_]:>Subscript[D, n][\[Nu]],Subscript[\[Sigma], \[Mu]_]|Superscript[\[Sigma],\[Mu]_]|\[Sigma]^\[Mu]_:>\[Sigma][\[Mu]],Subscript[\[Gamma], \[Mu]_]|Superscript[\[Gamma],\[Mu]_]|\[Gamma]^\[Mu]_:>\[Gamma][\[Mu]],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\), \[Mu]_]|Superscript[*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\),\[Mu]_]|*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)^\[Mu]_:>*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[\[Mu]],Subscript[Subscript[\[Sigma]_, \[Mu]_], \[Nu]_]|Superscript[Subscript[\[Sigma]_, \[Mu]_],\[Nu]_]|Subscript[Superscript[\[Sigma]_,\[Mu]_],\[Nu]_]|Superscript[Superscript[\[Sigma]_,\[Mu]_],\[Nu]_]:>\[Sigma][\[Mu],\[Nu]],Superscript["\[Epsilon]",Times[a_,b_,c_,d_]]:>"\[Epsilon]"[a,b,c,d]};*)
-(*SetAttributes[{antichange}, HoldAll];*)
-(*antichange[PartofAmp_,Greek_]:=Module[{spinor,particle},Switch[PartofAmp,Subscript[D, _][_],particle=PartofAmp[[0,2]];spinor=-I/2*Subscript[\[Psi], particle][1,Alphabet["Greek"][[Greek]]]Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), particle][1,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]];Greek++,Subscript[FL, _][__],particle=PartofAmp[[0,2]];spinor=1/4*Subscript[\[Psi], particle][1,Alphabet["Greek"][[Greek]]]Subscript[\[Psi], particle][1,Alphabet["Greek"][[Greek+1]]]\[Sigma][PartofAmp[[2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[4]]][2,Alphabet["Greek"][[Greek+1]],1,Alphabet[][[Greek]]];Greek+=2,Subscript[FR, _][__],particle=PartofAmp[[0,2]];spinor=1/4*Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), particle][1,Alphabet[][[Greek]]]Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), particle][1,Alphabet[][[Greek+1]]]\[Sigma][PartofAmp[[2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[4]]][1,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek+1]]];Greek+=2,ch\[Psi][Subscript[\[Psi], _],1,Subscript[\[Psi], _]],spinor=PartofAmp[[1]][2,Alphabet["Greek"][[Greek]]]PartofAmp[[3]][1,Alphabet["Greek"][[Greek]]];Greek++,ch\[Psi][Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],1,Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _]],spinor=PartofAmp[[1]][1,Alphabet[][[Greek]]]PartofAmp[[3]][2,Alphabet[][[Greek]]];Greek++,ch\[Psi][Subscript[\[Psi], _],\[Sigma][_]|\[Gamma][_],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _]],spinor=PartofAmp[[1]][2,Alphabet["Greek"][[Greek]]]\[Sigma][PartofAmp[[2,1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]PartofAmp[[3]][2,Alphabet[][[Greek]]];Greek++,ch\[Psi][Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[_]|\[Gamma][_],Subscript[\[Psi], _]],spinor=PartofAmp[[1]][1,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2,1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]PartofAmp[[3]][1,Alphabet["Greek"][[Greek]]];Greek++,ch\[Psi][Subscript[\[Psi], _],\[Sigma][__],Subscript[\[Psi], _]],spinor=I/2*PartofAmp[[1]][2,Alphabet["Greek"][[Greek]]](\[Sigma][PartofAmp[[2,1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2,2]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek]]]-\[Sigma][PartofAmp[[2,2]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2,1]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek]]])PartofAmp[[3]][1,Alphabet["Greek"][[Greek+1]]];Greek+=2,ch\[Psi][Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],*)
-(*\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[__],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _]],spinor=I/2*PartofAmp[[1]][1,Alphabet[][[Greek]]](\[Sigma][PartofAmp[[2,1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2,2]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek+1]]]-\[Sigma][PartofAmp[[2,2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2,1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek+1]]])PartofAmp[[3]][2,Alphabet[][[Greek+1]]];Greek+=2,"\[Epsilon]"[__],spinor=I/4(\[Sigma][PartofAmp[[1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek+1]]]\[Sigma][PartofAmp[[3]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek+1]]]\[Sigma][PartofAmp[[4]]][1,Alphabet["Greek"][[Greek+1]],1,Alphabet[][[Greek]]]-\[Sigma][PartofAmp[[1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[3]]][1,Alphabet["Greek"][[Greek+1]],1,Alphabet[][[Greek+1]]]\[Sigma][PartofAmp[[4]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek+1]]]);Greek+=2,Subscript[\[Phi], _],spinor=1,_,spinor=PartofAmp];(*Print[spinor];*)spinor];\[Sigma]contract={\[Sigma][\[Mu]_][n1_,\[Alpha]_,n2_,a_]\[Sigma][\[Mu]_][n3_,\[Beta]_,n4_,b_]:>(-1)^(n3+n4) 2\[Epsilon][n1,\[Alpha],n3,\[Beta]]\[Epsilon][n2,a,n4,b]};*)
-(*\[Epsilon]contract={\[Epsilon][n1_,\[Alpha]_,n2_,\[Beta]_]Subscript[\[Psi], i_][n3_,\[Beta]_]:>Subscript[\[Psi], i][n1,\[Alpha]],\[Epsilon][n1_,a_,n2_,b_]Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i_][n3_,b_]:>Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i][n1,a],\[Epsilon][n1_,a_,n2_,b_]\[Epsilon][n3_,b_,n4_,c_]:>\[Epsilon][n1,a,n4,c],\[Epsilon][n1_,a_,n2_,b_]\[Epsilon][n3_,c_,n4_,b_]:>(-1)^(n3+n4+1) \[Epsilon][n1,a,n3,c],\[Epsilon][n1_,b_,n2_,a_]\[Epsilon][n3_,b_,n4_,c_]:>(-1)^(n1+n2+1) \[Epsilon][n2,a,n4,c],\[Epsilon][n1_,a_,n2_,a_]:>2};*)
-(*asbracket={Subscript[\[Psi], i_][2,a_]Subscript[\[Psi], j_][1,a_]:>ab[i,j],Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i_][1,a_]Subscript[*)
-(*\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), j_][2,a_]:>sb[i,j]};*)
-(*(* operators maked by OperPoly[Amp,particle number,firstF\[Rule]?,Dcontract\[Rule]False] , or Oper[Model,type,Amp,toAmp\[Rule]True] *)*)
-(*AmpMono[opermono_]:=Module[{Greek=1,oper,amp,fermion,fermionsign={}},oper=opermono//.beforechange;fermion=Cases[oper,_ch\[Psi]];Do[AppendTo[fermionsign,fermion[[ii,1]]];AppendTo[fermionsign,fermion[[ii,3]]],{ii,Length[fermion]}];fermionsign=Signature[fermionsign];amp=fermionsign*antichange[#,Greek]&/@oper;amp=Expand[amp]//.\[Sigma]contract//.\[Epsilon]contract//.asbracket];*)
-(*Amp[oper_]:=(*If[oper[[0]]===Plus,AmpMono[#]&/@oper,AmpMono[oper]]*)Thread[head[oper],Plus]/.{head->AmpMono};*)
+(* ::Input::Initialization:: *)
+beforechange={Subscript[Subscript[D, n_], \[Nu]_]|Superscript[Subscript[D, n_],\[Nu]_]:>Subscript[D, n][\[Nu]],Subscript[\[Sigma], \[Mu]_]|Superscript[\[Sigma],\[Mu]_]|\[Sigma]^\[Mu]_:>\[Sigma][\[Mu]],Subscript[\[Gamma], \[Mu]_]|Superscript[\[Gamma],\[Mu]_]|\[Gamma]^\[Mu]_:>\[Gamma][\[Mu]],Subscript[
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\), \[Mu]_]|Superscript[
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\),\[Mu]_]|
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)^\[Mu]_:>
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[\[Mu]],Subscript[Subscript[\[Sigma]_, \[Mu]_], \[Nu]_]|Superscript[Subscript[\[Sigma]_, \[Mu]_],\[Nu]_]|Subscript[Superscript[\[Sigma]_,\[Mu]_],\[Nu]_]|Superscript[Superscript[\[Sigma]_,\[Mu]_],\[Nu]_]:>\[Sigma][\[Mu],\[Nu]],Superscript["\[Epsilon]",Times[a_,b_,c_,d_]]:>"\[Epsilon]"[a,b,c,d]};
+SetAttributes[{antichange}, HoldAll];
+antichange[PartofAmp_,Greek_]:=Module[{spinor,particle},Switch[PartofAmp,Subscript[D, _][_],particle=PartofAmp[[0,2]];spinor=-I/2*Subscript[\[Psi], particle][1,Alphabet["Greek"][[Greek]]]Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), particle][1,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]];Greek++,Subscript[FL, _][__],particle=PartofAmp[[0,2]];spinor=1/4*Subscript[\[Psi], particle][1,Alphabet["Greek"][[Greek]]]Subscript[\[Psi], particle][1,Alphabet["Greek"][[Greek+1]]]\[Sigma][PartofAmp[[2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[4]]][2,Alphabet["Greek"][[Greek+1]],1,Alphabet[][[Greek]]];Greek+=2,Subscript[FR, _][__],particle=PartofAmp[[0,2]];spinor=1/4*Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), particle][1,Alphabet[][[Greek]]]Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), particle][1,Alphabet[][[Greek+1]]]\[Sigma][PartofAmp[[2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[4]]][1,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek+1]]];Greek+=2,ch\[Psi][Subscript[\[Psi], _],1,Subscript[\[Psi], _]],spinor=PartofAmp[[1]][2,Alphabet["Greek"][[Greek]]]PartofAmp[[3]][1,Alphabet["Greek"][[Greek]]];Greek++,ch\[Psi][Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],1,Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _]],spinor=PartofAmp[[1]][1,Alphabet[][[Greek]]]PartofAmp[[3]][2,Alphabet[][[Greek]]];Greek++,ch\[Psi][Subscript[\[Psi], _],\[Sigma][_]|\[Gamma][_],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _]],spinor=PartofAmp[[1]][2,Alphabet["Greek"][[Greek]]]\[Sigma][PartofAmp[[2,1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]PartofAmp[[3]][2,Alphabet[][[Greek]]];Greek++,ch\[Psi][Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[_]|\[Gamma][_],Subscript[\[Psi], _]],spinor=PartofAmp[[1]][1,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2,1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]PartofAmp[[3]][1,Alphabet["Greek"][[Greek]]];Greek++,ch\[Psi][Subscript[\[Psi], _],\[Sigma][__],Subscript[\[Psi], _]],spinor=I/2*PartofAmp[[1]][2,Alphabet["Greek"][[Greek]]](\[Sigma][PartofAmp[[2,1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2,2]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek]]]-\[Sigma][PartofAmp[[2,2]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2,1]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek]]])PartofAmp[[3]][1,Alphabet["Greek"][[Greek+1]]];Greek+=2,ch\[Psi][Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _],
+\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)[__],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), _]],spinor=I/2*PartofAmp[[1]][1,Alphabet[][[Greek]]](\[Sigma][PartofAmp[[2,1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2,2]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek+1]]]-\[Sigma][PartofAmp[[2,2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2,1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek+1]]])PartofAmp[[3]][2,Alphabet[][[Greek+1]]];Greek+=2,"\[Epsilon]"[__],spinor=I/4(\[Sigma][PartofAmp[[1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek+1]]]\[Sigma][PartofAmp[[3]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek+1]]]\[Sigma][PartofAmp[[4]]][1,Alphabet["Greek"][[Greek+1]],1,Alphabet[][[Greek]]]-\[Sigma][PartofAmp[[1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[2]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek]]]\[Sigma][PartofAmp[[3]]][1,Alphabet["Greek"][[Greek+1]],1,Alphabet[][[Greek+1]]]\[Sigma][PartofAmp[[4]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek+1]]]);Greek+=2,Subscript[\[Phi], _],spinor=1,_,spinor=PartofAmp];(*Print[spinor];*)spinor];\[Sigma]contract={\[Sigma][\[Mu]_][n1_,\[Alpha]_,n2_,a_]\[Sigma][\[Mu]_][n3_,\[Beta]_,n4_,b_]:>(-1)^(n3+n4) 2\[Epsilon][n1,\[Alpha],n3,\[Beta]]\[Epsilon][n2,a,n4,b]};
+\[Epsilon]contract={\[Epsilon][n1_,\[Alpha]_,n2_,\[Beta]_]Subscript[\[Psi], i_][n3_,\[Beta]_]:>Subscript[\[Psi], i][n1,\[Alpha]],\[Epsilon][n1_,a_,n2_,b_]Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i_][n3_,b_]:>Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i][n1,a],\[Epsilon][n1_,a_,n2_,b_]\[Epsilon][n3_,b_,n4_,c_]:>\[Epsilon][n1,a,n4,c],\[Epsilon][n1_,a_,n2_,b_]\[Epsilon][n3_,c_,n4_,b_]:>(-1)^(n3+n4+1) \[Epsilon][n1,a,n3,c],\[Epsilon][n1_,b_,n2_,a_]\[Epsilon][n3_,b_,n4_,c_]:>(-1)^(n1+n2+1) \[Epsilon][n2,a,n4,c],\[Epsilon][n1_,a_,n2_,a_]:>2};
+asbracket={Subscript[\[Psi], i_][2,a_]Subscript[\[Psi], j_][1,a_]:>ab[i,j],Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), i_][1,a_]Subscript[
+\!\(\*OverscriptBox[\(\[Psi]\), \(_\)]\), j_][2,a_]:>sb[i,j]};
+(* operators maked by OperPoly[Amp,particle number,firstF\[Rule]?,Dcontract\[Rule]False] , or Oper[Model,type,Amp,toAmp\[Rule]True] *)
+AmpMono[opermono_]:=Module[{Greek=1,oper,amp,fermion,fermionsign={}},oper=opermono//.beforechange;fermion=Cases[oper,_ch\[Psi]];Do[AppendTo[fermionsign,fermion[[ii,1]]];AppendTo[fermionsign,fermion[[ii,3]]],{ii,Length[fermion]}];fermionsign=Signature[fermionsign];amp=fermionsign*antichange[#,Greek]&/@oper;amp=Expand[amp]//.\[Sigma]contract//.\[Epsilon]contract//.asbracket];
+Amp[oper_]:=(*If[oper[[0]]===Plus,AmpMono[#]&/@oper,AmpMono[oper]]*)Thread[head[oper],Plus]/.{head->AmpMono};
 
 
-(* ::Input:: *)
-(*(* find monomial Lorentz basis *)*)
-(*Options[MonoLorentzBasis]={finalform->True,FerCom->2};*)
-(*MonoLorentzBasis[state_,k_,OptionsPattern[]]:=Module[{spinorbasis,operbasis,coefbasis,basis,transfer},spinorbasis=amp[#,yngShape[state,k][[1]]]&/@SSYT[state,k];(*If[Position[state,-1]\[NotEqual]{},fF=Position[state,-1][[1,1]],If[Position[state,1]\[NotEqual]{},fF=Position[state,1][[1,1]],fF=0]];*)operbasis=OperPoly[#,Length[state],FerCom->OptionValue[FerCom],Dcontract->False]&/@spinorbasis;(*Print[operbasis//.(Dcontract1\[Union]Dcontract2)//.listtotime];*)operbasis=Flatten[operbasis//.{Plus->List}]//.{Times[_Integer,p__]:>Times[p],Times[_Rational,p__]:>Times[p],Times[_Complex,p__]:>Times[I,p]};(*Print[{state,spinorbasis,operbasis}];*)coefbasis=FindCor[reduce[#,Length[state]],spinorbasis]&/@(Amp[#]&/@operbasis);(*Print[coefbasis];*)basis=Subsets[coefbasis,{Length[spinorbasis]}];Do[If[MatrixRank[basis[[ii]]]===Length[spinorbasis],transfer=basis[[ii]];Break[]],{ii,Length[basis]}];basis=Flatten[Position[coefbasis,#][[1]]&/@transfer];<|"AmpBasis"->spinorbasis,"LorBasis"->operbasis[[basis]]//.(Dcontract1\[Union]Dcontract2)//.If[OptionValue[finalform],listtotime,{}],"Trans"->transfer|>];*)
+(* ::Input::Initialization:: *)
+(* find monomial Lorentz basis *)
+Options[MonoLorentzBasis]={finalform->True};
+MonoLorentzBasis[input_List,OptionsPattern[]]:=MonoLorentzBasis[SSYT@@input,Length[state],OptionValue] (* input = {state,k} *)
+MonoLorentzBasis[spinorbasis_List,num_Integer,OptionsPattern[]]:=Module[{operbasis,coefbasis,basis,transfer},
+operbasis=OperPoly[#,num,Dcontract->False]&/@spinorbasis;operbasis=Flatten[operbasis//.{Plus->List}]//.{Times[_Integer,p__]:>Times[p],Times[_Rational,p__]:>Times[p],Times[_Complex,p__]:>Times[I,p]};coefbasis=FindCor[reduce[#,Length[state]],spinorbasis]&/@(Amp[#]&/@operbasis);basis=Subsets[coefbasis,{Length[spinorbasis]}];Do[If[MatrixRank[basis[[ii]]]===Length[spinorbasis],transfer=basis[[ii]];Break[]],{ii,Length[basis]}];basis=Flatten[Position[coefbasis,#][[1]]&/@transfer];<|"LorBasis"->operbasis[[basis]]//.(Dcontract1\[Union]Dcontract2)//.If[OptionValue[finalform],listtotime,{}],"Trans"->transfer|>];
 
 
 (* ::Subsection:: *)
@@ -943,18 +966,18 @@ LRTableaux[fytl,tYTlist,path[[2;;-1]],n],{i,1,Length[conlist]}
 ]
 SetAttributes[LRTableaux,HoldFirst]
 
-ConvertPathtoYD[nlist_,ydlist_,n_]:=Module[{nl,tydlist},
+ConvertPathtoYD[nlist_,ydlist_,n_]:=ConvertPathtoYD[nlist,ydlist,n]=Module[{nl,tydlist},
 (*Do not take into account the first elements in ydlist*)
 tydlist=PadRight[#,n,0]&/@ydlist;
 nl=Accumulate[nlist];
 nl=(nl-(Total/@tydlist))/n;
 Drop[(tydlist[[#]]+nl[[#]])&/@Range[1,Length[tydlist]]/.{0->Nothing},1]]
 
-GenerateTYT[irrep_,numIP_,baserep_,groupnum_,index_,group_]:=Module[{tindex=index,n=Length[group]+1,standardyt,partbaserep=Dynk2Yng[baserep],ydlist,ll,fytl={}},
+GenerateTYT[irrep_,numIP_,baserep_,fnamenum_,index_,group_]:=GenerateTYT[irrep,numIP,baserep,fnamenum,index,group]=Module[{tindex=index,n=Length[group]+1,standardyt,partbaserep=Dynk2Yng[baserep],ydlist,ll,fytl={}},
 If[Total[baserep]==0,Return[{{}}]];
 (*added following two lines to adapt the GenerateSU3 and GenerateSU3*)
-If[baserep=={0,1},tindex="bb"];
-If[Length[Cases[StringSplit[groupnum,""],"\[Dagger]"]]!=0&&baserep=={1},tindex="aa"];
+If[!MatchQ[baserep,{1,0...}],tindex=StringJoin@@ConstantArray[ToString[index],2]];
+If[Length[StringCases[fnamenum,"\[Dagger]"]]!=0&&baserep=={1},tindex=StringJoin@@ConstantArray[ToString[index],2]];
 partbaserep=partbaserep/.{0->Nothing};
 standardyt=MapThread[Range,{Accumulate[partbaserep]-partbaserep+1,Accumulate[partbaserep]}];
 ll=ConvertPathtoYD[ConstantArray[Total@partbaserep,numIP],#,n]&/@(FindRepPath[group,irrep,ConstantArray[baserep,numIP]]);
@@ -962,7 +985,7 @@ ll=ConvertPathtoYD[ConstantArray[Total@partbaserep,numIP],#,n]&/@(FindRepPath[gr
   i labels the i-th group of the repeated fields,
   j labels the j-th field in this group of repeated fields,
   k labels the k-th fundamental indices of this particular field*)
-ydlist=Table[Map[tindex<>"[ToString["<>ToString[groupnum]<>"],"<>ToString[i]<>","<>ToString[#]<>"]"&,standardyt,{2}],{i,numIP}];
+ydlist=Table[Map[tindex<>"[ToString["<>ToString[fnamenum]<>"],"<>ToString[i]<>","<>ToString[#]<>"]"&,standardyt,{2}],{i,numIP}];
 LRTableaux[fytl,ydlist,#,n]&/@ll;
 fytl
 ]
@@ -974,35 +997,35 @@ fytl
 (*Generate the input for the function GenerateLRT to obtain the y-basis symbolic tensors*)
 GenerateLRInput[nonsinglets_]:=If[nonsinglets[[1]]>1,{nonsinglets[[2]],1,nonsinglets[[2]],nonsinglets[[3]]<>ToString[#]}&/@Range[nonsinglets[[1]]],{{nonsinglets[[2]],1,nonsinglets[[2]],nonsinglets[[3]]}}]
 
-antiIndex[index_]:=ToExpression[StringJoin@@ConstantArray[ToString[index],2]]
-
-(*Generate the replacement rule for the symbolic tensor indices of the output of the function GenerateLRT*)
-ClearAll[GenerateLRRP];
-GenerateLRRP[group_,nonsinglets_]:=Module[{nfield=nonsinglets[[1]],SUNirrep=nonsinglets[[2]],fname=nonsinglets[[3]],fnlist,l=Length[nonsinglets[[2]]],nfund,index},
-nfund=Total[Dynk2Yng[nonsinglets[[2]]]];
-If[nfield>1,
-fnlist=fname<>ToString[#]&/@Range[nonsinglets[[1]]];
-If[l>1,index=Switch[SUNirrep,AFund[group],antiIndex[rep2ind[SUNirrep]],_,rep2ind[Fund[group]]],
-If[StringSplit[fname,""][[-1]]=="\[Dagger]",index=antiIndex[rep2ind[SUNirrep]],index=rep2ind[Fund[group]]]
-];(* get appropriate index name *)
-Flatten[Table[MapThread[Rule,{index[fnlist[[i]],1,#]&/@Range[nfund],index[fname,i,#]&/@Range[nfund]}],{i,nfield}]],{}]
+nonFund2Fund[groupname_,rep_,flag_:False]:=Module[{group=CheckGroup[groupname],indexFund},indexFund=rep2ind[groupname][Fund[group]];
+If[rep!=Fund[group],ToExpression[StringRepeat[ToString[indexFund],2]],
+If[group==SU2&&flag,ToExpression[StringRepeat[ToString[indexFund],2]],indexFund]]
 ]
 
-GenerateLRT[group_,replist_]:=
+(*Generate the replacement rule for the symbolic tensor indices of the output of the function GenerateLRT*)
+GenerateLRRP[groupname_,nonsinglets_]:=Module[{nfield=nonsinglets[[1]],SUNirrep=nonsinglets[[2]],fname=nonsinglets[[3]],fnlist,nfund,index},
+nfund=Total[Dynk2Yng[SUNirrep]];
+If[nfield==1,{},
+fnlist=Array[fname<>ToString[#]&,nonsinglets[[1]]];
+index=nonFund2Fund[groupname,SUNirrep,StringTake[fname,-1]=="\[Dagger]"];(* get appropriate index name *)
+Flatten[Table[MapThread[Rule,{index[fnlist[[i]],1,#]&/@Range[nfund],index[fname,i,#]&/@Range[nfund]}],{i,nfield}]]]
+]
+
+GenerateLRT[groupname_,replist_]:=
 (*replist is a list of elements in the following form: {__,__,__,__}, 
 the first slot is the DykinCoefficient of the constructed representation,
 the second slot is the number of repeated fields that construct the representation in the first slot,
 the third slot is the representation of the repeated fields,
 the last slot is the name of the repeated field*)
-Module[{nlist,irreplist,basereplist,n=Length[group]+1,index,l=Length[replist],tyt1,pathlists={},result={}},
-index=ToString@rep2ind@Fund[group];
+Module[{group=CheckGroup[groupname],indmap=rep2ind[groupname],nlist,irreplist,basereplist,index,tyt1,pathlists={},result={}},
+index=ToString@indmap@Fund[group];
 irreplist=replist[[All,1]];
 nlist=(#[[2]]*Total[Dynk2Yng[#[[3]]]])&/@replist;
 basereplist=replist[[All,3]];
 (*Generate tensor Young Tableaux*)
-tyt1=Distribute[GenerateTYT@@@Join[replist,{index,group}&/@Range[1,l],2],List];
-pathlists=ConvertPathtoYD[nlist,#,n]&/@FindSingletPath[group,irreplist];
-Do[LRTableaux[result,tyt1[[j]],pathlists[[i]],n],{i,1,Length[pathlists]},{j,1,Length[tyt1]}];
+tyt1=Distribute[GenerateTYT@@@(Join[#,{index,group}]&/@replist),List];
+pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindSingletPath[group,irreplist];
+Do[LRTableaux[result,tyt1[[j]],pathlists[[i]],Length[group]+1],{i,1,Length[pathlists]},{j,1,Length[tyt1]}];
 result
 ]
 
@@ -1018,7 +1041,7 @@ If[Head[x]==Times,expr=List@@x,expr=x];
 numberlist=Cases[x,_?NumberQ];
 tensorlist=Sort[Complement[expr,numberlist]];
 headlist=Head/@tensorlist;
-arglist=Flatten[List@@#&/@tensorlist];
+arglist=Flatten[List@@@tensorlist];
 uniquelist=Union[arglist];
 listrepeat=Flatten/@(Position[arglist,#]&/@uniquelist);
 tensorp=TensorProduct@@headlist;
@@ -1047,23 +1070,23 @@ result=ToExpression["t"<>fs[[1]]<>group<>ToString[#]]&/@Range[fs[[2]]];
 If[Cases[tAssumptions,#,Infinity]=={},AppendTo[tAssumptions,#\[Element]Arrays[{dim}]]]&/@result;
 result]
 
-GenerateFieldIndex[model_,group_,flist_]:=Module[{symbols,arg,indices},
-symbols=rep2ind[model[#[[1]]][group]]&/@flist;
+GenerateFieldIndex[model_,groupname_,flist_]:=Module[{symbols,arg,indices},
+symbols=rep2ind[groupname]/@(model[#[[1]]][groupname]&/@flist);
 arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flist;
-Flatten@MapThread[Apply[#1,#2,{1}]&,{symbols,arg}]
+Flatten@MapThread[#1@@@#2&,{symbols,arg}]
 ]
 
-GenerateFieldTensor[model_,group_,flist_,map_]:=Module[{heads,symbols,arg,indices},
+GenerateFieldTensor[model_,groupname_,flist_,map_]:=Module[{heads,symbols,arg,indices},
 (*This function generate the field tensors with the form: t<>F<>Group[ind["F",n,1]]<>n that can multiplied to the group factor, and also an association that map the field tensors to the indicies they carries on*)
 If[Length[flist]==0,Return[1]];
-heads=Flatten[GenerateFieldName[model,group,#]&/@flist];
-indices=GenerateFieldIndex[model,group,flist];
+heads=Flatten[GenerateFieldName[model,groupname,#]&/@flist];
+indices=GenerateFieldIndex[model,groupname,flist];
 map=AssociationThread[heads->indices];
-Times@@(Flatten@MapThread[#1[#2]&,{heads,indices}])
+Times@@(Flatten@MapThread[Construct,{heads,indices}])
 ]
 SetAttributes[GenerateFieldTensor,HoldAll]
 
-Contraction2Tensor[TC_,xmap_,ct_]:=Module[{tlist,r,tensor,ind=0,tensorlist={},pos,tname,pairRep,ranklist,aux1,indexorder,maporder2index=<||>},
+Contraction2Tensor[TC_,xmap_,indmap_,ct_]:=Module[{tlist,r,tensor,ind=0,tensorlist={},pos,tname,pairRep,ranklist,aux1,indexorder,maporder2index=<||>},
 (*convert a single TensorProduct to the tensors without field tensors*)
 If[!MatchQ[TC,_TensorContract],Return[TC]];
 tlist=List@@TC[[1]];
@@ -1071,7 +1094,7 @@ Do[r=Replace[tRank[t],Except[_Integer]->1];
 tensor=Construct[t,++ind];
 Do[AppendTo[tensor,++ind],r-1];
 AppendTo[tensorlist,tensor],{t,tlist}]; (* t \[Rule] t[i,i+1,...,i+rank-1] *)
-tensorlist={#,Complement[tensorlist,#]}&@Select[tensorlist,Length[#]>1&];(* separate field tensors from invariant tensors *)
+tensorlist={#,Complement[tensorlist,#]}&@Select[tensorlist,Length[#]>1&];(* separate field tensors from invariant tensors *) 
 Do[pos=Position[tensorlist,#,3]&/@pair;
 tname=First@Extract[tensorlist,ReplacePart[#,{1,-1}->0]]&/@pos;
 Switch[pos[[All,1,1]],
@@ -1079,7 +1102,8 @@ Switch[pos[[All,1,1]],
 {1,2},tensorlist=ReplacePart[tensorlist,pos[[1]]->xmap[tname[[2]]]],
 {2,1},tensorlist=ReplacePart[tensorlist,pos[[2]]->xmap[tname[[1]]]],
 {1,1},pairRep=MapThread[tRep[#1][[#2[[1,3]]]]&,{tname,pos}];
-If[Equal@@pairRep,tensorlist=ReplacePart[tensorlist,(Join@@pos)->Construct[rep2ind[pairRep[[1]]],++ct[pairRep[[1]]]]],
+If[RepConj[#1]===#2&@@pairRep,
+tensorlist=ReplacePart[tensorlist,(Join@@pos)->#[++ct[#]]&[indmap[pairRep[[1]]] ] ],
 Message[Contraction2Tensor::mismatch,pair,TC];Abort[]]
 ],
 {pair,TC[[2]]}];
@@ -1090,28 +1114,28 @@ Contraction2Tensor::ffcontr="Contraction between fields in `1`";
 Contraction2Tensor::mismatch="Contraction mismatch for pair `1` in `2`";
 
 (* Convert a polynomial of TensorContract to product of tensors with specified form of indices *)
-CounterIni:=Replace[_Symbol->0]/@rep2ind
-UnfoldContraction[x_TensorContract,xmap_]:=Module[{ct=CounterIni},Contraction2Tensor[x,xmap,ct]]
-UnfoldContraction[x_Times,xmap_]:=Module[{ct=CounterIni},Times@@(Contraction2Tensor[#,xmap,ct]&/@Prod2List[x])]
-UnfoldContraction[x_Plus,xmap_]:=Plus@@(UnfoldContraction[#,xmap]&/@Sum2List[x])
+CounterIni[indmap_]:=AssociationThread[DeleteDuplicates@Cases[Values[indmap],_Symbol]->0] (* initialize counter for relevant indices *)
+UnfoldContraction[x_TensorContract,xmap_,indmap_]:=Module[{ct=CounterIni[indmap]},Contraction2Tensor[x,xmap,indmap,ct]]
+UnfoldContraction[x_Times,xmap_,indmap_]:=Module[{ct=CounterIni[indmap]},Times@@(Contraction2Tensor[#,xmap,indmap,ct]&/@Prod2List[x])]
+UnfoldContraction[x_Plus,xmap_,indmap_]:=Plus@@(UnfoldContraction[#,xmap,indmap]&/@Sum2List[x])
 SetAttributes[UnfoldContraction,HoldRest]
 
-RefineTensor[x_,model_,group_,fts_]:=Module[{tempx,flist,tfs,xmap,xposmap,rt,result},
+RefineTensor[x_,model_,groupname_,fts_]:=Module[{tempx,flist,tfs,xmap,xposmap,rt,result},
 tempx=Expand[Expand[x]/.Power[z_,y_]:>Times@@ConstantArray[z,y]];
-flist=Select[fts,Total[model[#[[1]]][group]]!=0&];
-tfs=GenerateFieldTensor[model,group,flist,xmap];
+flist=Select[fts,Total[model[#[[1]]][groupname]]!=0&];
+tfs=GenerateFieldTensor[model,groupname,flist,xmap];
 rt=tReduce[Plus@@(Product2Contract/@(Flatten[{Expand[tempx]}/.Plus->List]*tfs))];
-UnfoldContraction[rt,xmap]
+UnfoldContraction[rt,xmap,rep2ind[groupname]]
 ]
 SetAttributes[RefineTensor,HoldFirst]
 
 (* Refine gauge group tensors with the symmetry of the invariant tensors *)
-TRefineTensor[x_,model_,group_,fts_]:=Module[{trank,tdim,result,len},
+TRefineTensor[x_,model_,groupname_,fts_]:=Module[{trank,tdim,result,len},
 trank=tRank[x];
 tdim=tDimensions[x];
 result=Flatten[{x}];
 len=Length[result];
-result=RefineTensor[#,model,group,fts]&/@result;
+result=RefineTensor[#,model,groupname,fts]&/@result;
 If[!IntegerQ[trank]||trank==0,Return[result[[1]]]];
 unflatten[result,tdim]
 ]
@@ -1176,14 +1200,31 @@ relist=FindIrrepCombination[group,MapAt[model[#][groupin]&,#,1]&/@flist,Constant
 sym={DeleteCases[#[[All,1]],{1}],Times@@#[[All,2]]}&/@Distribute[#,List]&/@relist[[2]]; (* collect multiplicity for SUN combinations respectively *)
 sym=Join@@MapThread[MapAt[Function[x,#2 x],#1,{All,2}]&,{sym,relist[[3]]}]; 
 sym=Merge[Rule@@@sym,Apply[Plus]];(* combine multiplicity from SUM combinations *)
-
 Return[KeyMap[MapThread[Rule,{repfs,#}]&,sym]](* attach repeated field names *)
 ]
 
+
+(* ::Input::Initialization:: *)
+ConvertToFundamental[model_,groupname_,fname_]:=Module[{rep=model[fname][groupname],convert},
+convert=ConvertToFundamental[model,groupname,rep];
+If[CheckGroup[model,groupname]==SU2&&rep=={1},
+If[StringTake[fname,-1]=="\[Dagger]",Return[convert[[2]]],Return[convert[[1]]]],
+Return[convert]];
+]
+ConvertToFundamental::name="`1` does not have the representation `2`.";
+
+ConvertFactor[model_,groupname_,input_]:=
+(*input is the form {field,num}, *)
+Module[{fname=input[[1]],num=input[[2]]},
+Product[Times@@Map[If[MatchQ[#,1|_dummyIndex],#,Fold[Prepend,#,{i,fname}]]&,Prod2List@ConvertToFundamental[model,groupname,fname],{2}],{i,num}]
+]
+
+
+(* ::Input::Initialization:: *)
 SNirrepAuX[input_]:={#[[All,1]],input[[3]]*Times@@#[[All,2]]}&/@Distribute[input[[2]],List]
 (* SNirrepAux[{SUNrepeatrep,SNreps,multi}] = {{SNrep_comb,total_multiplicity},...} *)
 
-GetGroupFactor[model_,groupname_,type_]:=Module[{flist=CheckType[model,type],group=ToExpression@StringDrop[groupname,-1],
+GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=ToExpression@StringDrop[groupname,-1],
 SUNreplist,repeatlist,nonsinglets,repeatnonsinglets,repeatsinglets,
 displacements,indexlist,Irreplist,SNCollections,nonSingletSN,
 fieldcombs,convertfactor,ruleLRRP,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,
@@ -1202,443 +1243,73 @@ SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];
 nonSingletSN=MapAt[Select[#,model[#[[1]]][groupname]!=Singlet[group]&]&,SNCollections,{All,1}];(*Select out SN syms of nonsinglet repeated fields *)
 
 fieldcombs=Join@@(GenerateLRInput/@nonsinglets);
-convertfactor=Times@@(ConvertFactor[model,group,#]&/@flist);
-ruleLRRP=Join@@(GenerateLRRP[group,#]&/@nonsinglets);(*Select out nonsinglet fields for constructing singlet*)
-YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@Map[ToExpression,GenerateLRT[group,fieldcombs],{2}]/.ruleLRRP)]*convertfactor];
+convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);
+ruleLRRP=Join@@(GenerateLRRP[groupname,#]&/@nonsinglets);(*Select out nonsinglet fields for constructing singlet*)
+YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@Map[ToExpression,GenerateLRT[groupname,fieldcombs],{2}]/.ruleLRRP)]*convertfactor];
 MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,groupname,flist]];
-tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tval[group]]&/@MbasisAll;
+tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;
 vMbasisAll=Flatten/@tMbasisAll;
 MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
 If[MatrixRank[vMbasis]!=Length[vMbasis],Print["Warning: non-independent basis!!!!!"]];
-If[Length@repeatlist==0,Return[<|"basis"->{Mbasis},"coord"-><|{}->IdentityMatrix[Length[Mbasis]]|>|>]];
-If[Length@repeatnonsinglets==0,Return[<|"basis"->{Mbasis},"coord"-><|(#[[3]]->{#[[1]]}&/@repeatsinglets)->(Nest[List,#,Length[repeatlist]]&/@IdentityMatrix[Length[Mbasis]])|>|>]];
+
+Mbasis=Switch[OptionValue[OutputMode],
+"working",Mbasis,
+"tensor contract",Mbasis, (* needs implementation *)
+"indexed",Mbasis/.GenerateReplacingRule[model,type],
+"print",Mbasis/.GenerateReplacingRule[model,type]//RefineReplace];
+
+If[Length@repeatlist==0,Return[<|"basis"->Mbasis,"coord"-><|{}->IdentityMatrix[Length[Mbasis]]|>|>]];
+If[Length@repeatnonsinglets==0,Return[<|"basis"->Mbasis,"coord"-><|(#[[3]]->{#[[1]]}&/@repeatsinglets)->(Nest[List,#,Length[repeatlist]]&/@IdentityMatrix[Length[Mbasis]])|>|>]];
 
 qr=QRDecomposition[Transpose[vMbasis]];
 tdims=Map[SnIrrepDim,SNCollections[[All,1,All,2]],{2}];(*Get tensor dimensions of each SN syms*)
 coords=AssociationThread[SNCollections[[All,1]]->MapThread[GetSymBasis[tMbasis,#1,displacements,qr,#2]&,{nonSingletSN,tdims}]];
 <|"basis"->Mbasis,"coord"->coords|>
 ]
-
-
-
-(* ::Subsection:: *)
-(*Group Profiles*)
-
-
-(* ::Subsubsection::Closed:: *)
-(*Define invariant tensors*)
-
-
-(* ::Input::Initialization:: *)
-(* invariant tensors for SU(2) and SU(3) *)
-AppendTo[tAssumptions,dabc\[Element]Arrays[{8,8,8},Reals,Symmetric[{1,2,3}]]];
-AppendTo[tRep,dabc->{{1,1},{1,1},{1,1}}];
-
-AppendTo[tAssumptions,fabc\[Element]Arrays[{8,8,8},Reals,Antisymmetric[{1,2,3}]]];
-AppendTo[tRep,fabc->{{1,1},{1,1},{1,1}}];
-
-AppendTo[tAssumptions,del8n\[Element]Arrays[{8,8},Reals,Symmetric[{1,2}]]];
-AppendTo[tRep,del8n->{{1,1},{1,1}}];
-
-AppendTo[tAssumptions,del3n\[Element]Arrays[{3,3},Reals,Symmetric[{1,2}]]];
-AppendTo[tRep,del3n->{{2},{2}}];
-
-AppendTo[tAssumptions,del[2]\[Element]Arrays[{2,2},Reals]];
-AppendTo[tRep,del[2]->{{1},{1}}];
-
-AppendTo[tAssumptions,del[3]\[Element]Arrays[{3,3},Reals]];
-AppendTo[tRep,del[3]->{{1,0},{0,1}}];
-
-AppendTo[tAssumptions,eps3n\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
-AppendTo[tRep,eps3n->{{2},{2},{2}}];
-
-AppendTo[tAssumptions,eps3a\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
-AppendTo[tRep,eps3a->{{0,1},{0,1},{0,1}}];
-
-AppendTo[tAssumptions,eps3f\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
-AppendTo[tRep,eps3f->{{1,0},{1,0},{1,0}}];
-
-AppendTo[tAssumptions,eps2a\[Element]Arrays[{2,2},Reals,Antisymmetric[{1,2}]]];
-AppendTo[tRep,eps2a->{{1},{1}}];
-
-AppendTo[tAssumptions,eps2f\[Element]Arrays[{2,2},Reals,Antisymmetric[{1,2}]]];
-AppendTo[tRep,eps2f->{{1},{1}}];
-
-AppendTo[tAssumptions,\[Lambda]\[Element]Arrays[{8,3,3},Reals]];
-AppendTo[tRep,\[Lambda]->{{1,1},{1,0},{0,1}}];
-
-AppendTo[tAssumptions,\[Tau]\[Element]Arrays[{3,2,2},Reals]];
-AppendTo[tRep,\[Tau]->{{2},{1},{1}}];
-
-
-(* ::Subsubsection::Closed:: *)
-(*Attach numerical values*)
-
-
-(* ::Input::Initialization:: *)
-(*neumarical function of various invarinat tensors*)GellMann[n_]:=GellMann[n]=Flatten[Table[(*Symmetric case*)SparseArray[{{j,k}->1,{k,j}->1},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Flatten[Table[(*Antisymmetric case*)SparseArray[{{j,k}->-I,{k,j}->+I},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Table[(*Diagonal case*)Sqrt[2/l/(l+1)] SparseArray[Table[{j,j}->1,{j,1,l}]~Join~{{l+1,l+1}->-l},{n,n}],{l,1,n-1}];
-deltaG[rep_List]:=SymmetrizedArray@IdentityMatrix[DimR[ToExpression["SU"<>ToString[Length[rep]+1]],rep]]
-epsG[rep_List]:=SymmetrizedArray@LeviCivitaTensor[DimR[ToExpression["SU"<>ToString[Length[rep]+1]],rep]]
-\[Lambda]G=GellMann[3];
-fG=SymmetrizedArray[-(I/4)Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]-\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]];
-dG=SymmetrizedArray[1/4 Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]+\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]];
-
-
-(* ::Input::Initialization:: *)
-(* Invariant tensor replacement: symbolic to numeric *)
-tSU2val={eps2f->LeviCivitaTensor[2],eps2a->LeviCivitaTensor[2],\[Tau]->GellMann[2],del[2]->IdentityMatrix[2],del3n->IdentityMatrix[3],eps3n->LeviCivitaTensor[3]};
-tSU3val={eps3f->LeviCivitaTensor[3],eps3a->LeviCivitaTensor[3],\[Lambda]->GellMann[3],del[3]->IdentityMatrix[3],del8n->IdentityMatrix[8],fabc->fG,dabc->dG};
-tval=<|SU2->tSU2val,SU3->tSU3val|>;
-tYDcol=<|SU2->eps2a,SU3->eps3a|>;
-
-
-(* ::Subsubsection::Closed:: *)
-(*Tensor properties and Reduction*)
-
-
-(* ::Input::Initialization:: *)
-(* invariant tensor simplification *)
-Unprotect[Times];
-Clear[Times];
-count=0;
-(*eps2a[i_,j_]eps2f[l_,m_]=Det@Map[del[2]@@#&, Partition[Distribute[{{i,j},{l,m}},List],2],{2}];*)
-eps2a[x_,y_] eps2f[z_,y_]:=del[2][x,z];
-eps2a[x_,y_] eps2f[y_,z_]:=-del[2][x,z];
-eps2a[x_,y_] eps2f[w_,z_]:=del[2][x,w] del[2][y,z]-del[2][x,z] del[2][y,w];
-del[x_][i_,j_]del[x_][j_,k_]:=del[x][i,k];
-del[x_][i_,i_]:=x;
-del3n[i_,i_]:=3;
-del8n[i_,i_]:=8;
-del[2][a_,c_]\[Tau][J_,a_,b_]:=\[Tau][J,c,b];
-del[2][c_,a_]\[Tau][J_,b_,a_]:=\[Tau][J,b,c];
-\[Tau][i_,j_,j_]:=0;
-\[Tau][i_,j_,k_]\[Tau][l_,k_,m_]:=Module[{},count++;I eps3n[i,l,z[count]]\[Tau][z[count],j,m]+del3n[i,l]del[2][m,j]];
-eps3n[i_,j_,k_]eps3n[l_,m_,n_]=Det@Map[del3n@@#&, Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}];
-del3n[a_,d_]eps3n[a_,b_,c_]:=eps3n[d,b,c]
-del3n[a_,d_]eps3n[b_,a_,c_]:=eps3n[b,d,c]
-del3n[a_,d_]eps3n[c_,b_,a_]:=eps3n[c,b,d]
-del3n[a_,c_]del3n[a_,b_]:=del3n[c,b]
-(*del[2][a_,b_]\[Tau]\[Tau][i_,j_,a_,c_]:=\[Tau]\[Tau][i,j,b,c];
-del[2][b_,a_]\[Tau]\[Tau][i_,j_,c_,a_]:=\[Tau]\[Tau][i,j,c,b];
-\[Tau]\[Tau][i_,j_,l_,l_]:=2deln[i,j];*)
-eps2f[i_,j_]del[2][i_,k_]:=eps2f[k,j];
-eps2f[i_,j_]del[2][j_,k_]:=eps2f[i,k];
-eps2a[i_,j_]del[2][k_,i_]:=eps2a[k,j];
-eps2a[i_,j_]del[2][k_,j_]:=eps2a[i,k];
-SetAttributes[del3n,Orderless];
-SetAttributes[del8n,Orderless];
-eps3a[i_,j_,k_]eps3f[l_,m_,n_]=Det@Map[del[3]@@#&, Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}];
-del[3][i_,j_]del[3][j_,k_]:=del[3][i,k];
-del[3][i_,i_]:=3;
-del[3][a_,c_]\[Lambda][J_,a_,b_]:=\[Lambda][J,c,b];
-del[3][c_,a_]\[Lambda][J_,b_,a_]:=\[Lambda][J,b,c];
-\[Lambda][i_,j_,j_]:=0;
-eps3f[i_,j_,k_]del[3][i_,l_]:=eps3f[l,j,k];
-eps3f[i_,j_,k_]del[3][j_,l_]:=eps3f[i,l,k];
-eps3f[i_,j_,k_]del[3][k_,l_]:=eps3f[i,j,l];
-eps3a[i_,j_,k_]del[3][l_,i_]:=eps3a[l,j,k];
-eps3a[i_,j_,k_]del[3][l_,j_]:=eps3a[i,l,k];
-eps3a[i_,j_,k_]del[3][l_,k_]:=eps3a[i,j,l];
-SetAttributes[dabc,Orderless];
-del8n[a_,d_]fabc[a_,b_,c_]:=fabc[d,b,c]
-del8n[a_,d_]fabc[b_,a_,c_]:=fabc[b,d,c]
-del8n[a_,d_]fabc[c_,b_,a_]:=fabc[c,b,d]
-del8n[a_,d_]dabc[a_,b_,c_]:=dabc[d,b,c]
-del8n[a_,d_]dabc[b_,a_,c_]:=dabc[b,d,c]
-del8n[a_,d_]dabc[c_,b_,a_]:=dabc[c,b,d]
-del8n[a_,c_]del8n[a_,b_]:=del8n[c,b]
-\[Lambda][i_,j_,k_]\[Lambda][l_,k_,m_]:=Module[{},count++;(I fabc[i,l,z[count]]+dabc[i,l,z[count]])\[Lambda][z[count],j,m]+2/3 del8n[i,l]del[3][m,j]]
-Protect[Times];
-
-
-(* ::Subsubsection::Closed:: *)
-(*Indexing and High rep related*)
-
-
-(* ::Input::Initialization:: *)
-(* Define internal indexing system *)
-rep2ind=<|{0}->Function[x,Nothing],{1}->a,{2}->A,{0,0}->Function[x,Nothing],{1,0}->b,{0,1}->b,{1,1}->B|>;
-
-
-(* ::Input::Initialization:: *)
-(*obtain the additional prefactor that used to convert all the non-fundamental indices into fundamental ones*)
-ConvertFactor[model_,group_,input_]:=
-(*input is the form {field,num}, *)
-Module[{fname=input[[1]],num=input[[2]],rep},
-If[group==SU3,
-rep=model[fname]["SU3c"];
-Switch[rep,
-{0,1}, Return[Times@@(eps3f[b[fname,#,1],bb[fname,#,1],bb[fname,#,2]]&/@Range[1,num])],
-{1,1},Return[ Times@@(\[Lambda][B[fname,#,1],b[fname,#,2],e[fname,#,1]]eps3f[e[fname,#,1],b[fname,#,1],b[fname,#,3]]&/@Range[1,num])],
-_,Return[1]
-]
-];
-If[group==SU2,
-rep=model[fname]["SU2w"];
-Switch[rep,
-{1}, If[StringSplit[fname,""][[-1]]=="\[Dagger]",Times@@(eps2f[a[fname,#,1],aa[fname,#,1]]&/@Range[1,num]),1],
-{2}, Times@@(\[Tau][A[fname,#,1],a[fname,#,1],d[fname,#,1]]eps2f[d[fname,#,1],a[fname,#,2]]&/@Range[1,num]),
-_,1
-]
-]
-]
-
-
-(* ::Input:: *)
-(*GenerateLRRP[nonsinglets_]:=Module[{nfield=nonsinglets[[1]],SUNirrep=nonsinglets[[2]],fname=nonsinglets[[3]],fnlist,l=Length[nonsinglets[[2]]],nfund,b1s,b2s},nfund=Total[Dynk2Yng[nonsinglets[[2]]]];If[nfield>1,fnlist=(fname<>ToString[#1]&)/@Range[nonsinglets[[1]]];Switch[l,*)
-(*2,If[SUNirrep=={0,1},Flatten[Table[MapThread[Rule,{(bb[fnlist[[i]],1,#1]&)/@Range[nfund],(bb[fname,i,#1]&)/@Range[nfund]}],{i,nfield}]],Flatten[Table[MapThread[Rule,{(b[fnlist[[i]],1,#1]&)/@Range[nfund],(b[fname,i,#1]&)/@Range[nfund]}],{i,nfield}]]],*)
-(*1,If[SUNirrep=={1}&&StringSplit[fname,""][[-1]]=="\[Dagger]",Flatten[Table[MapThread[Rule,{(aa[fnlist[[i]],1,#1]&)/@Range[nfund],(aa[fname,i,#1]&)/@Range[nfund]}],{i,nfield}]],Flatten[Table[MapThread[Rule,{(a[fnlist[[i]],1,#1]&)/@Range[nfund],(a[fname,i,#1]&)/@Range[nfund]}],{i,nfield}]]]],{}]*)
-(*]*)
-
-
-(* ::Input:: *)
-(*(**************************** Final Output *********************************)*)
-(**)
-(*GetMultiAuX[input_]:=Transpose[{#[[1;;-1,1]],input[[3]]*Times@@#[[1;;-1,2]]}&/@Distribute[input[[2]],List]]*)
-(*(* GetMultiAux[{SUNrepeatrep,SNreps,multi}] = {{SNrep_comb,...},{total_multiplicity,...}} *)*)
-(**)
-(*(*Get the list of SU3 group factor for a given type in different bases*)*)
-(*GenerateSU3[model_,type_]:=Module[{flist,repeatlist,ruleLRRP,convertfactor,SUNreplist,nonsinglets,repeatnonsinglets,repeatsinglets,displacements,Irreplist,SNCollections,nonSingletSN,fieldcombs,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,indexlist,qr,tdims,coords},*)
-(*flist=CheckType[model,type];*)
-(*convertfactor=Times@@(ConvertFactor[model,SU3,#]&/@flist);*)
-(*SUNreplist={#[[2]],model[#[[1]]]["SU3c"],#[[1]]}&/@flist;*)
-(*repeatlist=Select[SUNreplist,#[[1]]>1&];*)
-(*nonsinglets=DeleteCases[SUNreplist,{_,{0,0},_}];*)
-(*repeatnonsinglets=DeleteCases[repeatlist,{_,{0,0},_}];*)
-(*repeatsinglets=Select[repeatlist,#[[2]]=={0,0}&];*)
-(*If[Length@nonsinglets==0,Return[<|"basis"->{1},"coord"-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->Nest[{#}&,1,Length[repeatlist]+2]|>|>]];*)
-(*displacements=Association@MapThread[Rule,{nonsinglets[[1;;-1,3]],Prepend[Accumulate[nonsinglets[[1;;-1,1]]],0][[1;;-2]]}];*)
-(*indexlist=GenerateFieldIndex[model,"SU3c",flist];(*Pick out the relevant SU3 indices in order*)*)
-(*Irreplist=Transpose@FindIrrepCombination[SU3,SUNreplist[[1;;-1,{2,1}]],{0,0}];*)
-(*SNCollections=Normal@Merge[Association@MapThread[Rule,MapAt[MapThread[Rule,{SUNreplist[[1;;-1,3]],#}]&,GetMultiAuX[#],{1,All}]]&/@Irreplist,Total];(*get different SN syms and the corresponding multiplicity*)*)
-(*SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];*)
-(*nonSingletSN=MapAt[Select[#,model[#[[1]]]["SU3c"]!={0,0}&]&,SNCollections,{All,1}];(*Select out SN syms of nonsinglet repeated fields *)*)
-(*fieldcombs=Join@@(GenerateLRInput/@nonsinglets);*)
-(*ruleLRRP=Join@@(GenerateLRRP/@nonsinglets);(*Select out nonsinglet fields for constructing singlet*)*)
-(*YDbasis=Expand[Flatten[((Times@@(eps3a@@@Transpose[#]))&/@MapAt[ToExpression,GenerateLRT[SU3,fieldcombs],{All,All}]/.ruleLRRP)]*convertfactor];*)
-(*MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,"SU3c",flist](*/.ruleRP*)];*)
-(*tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tSU3val]&/@MbasisAll;*)
-(*vMbasisAll=Flatten/@tMbasisAll;*)
-(*MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];*)
-(*If[Length@repeatlist==0,Return[<|"basis"->{Mbasis},"coord"-><|{}->IdentityMatrix[Length[Mbasis]]|>|>]];*)
-(*If[Length@repeatnonsinglets==0,Return[<|"basis"->{Mbasis},"coord"-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->(Nest[List,#,Length[repeatlist]]&/@IdentityMatrix[Length[Mbasis]])|>|>]];*)
-(*If[MatrixRank[vMbasis]!=Length[vMbasis],Print["Warning: non-independent basis!!!!!"];];*)
-(*qr=QRDecomposition[Transpose[vMbasis]];*)
-(*tdims=MapAt[SnIrrepDim,SNCollections[[1;;-1,1,1;;-1,2]],{All,All}];(*Get tensor dimensions of each SN syms*)*)
-(*coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasis[tMbasis,#1,displacements,qr,#2]&,{nonSingletSN,tdims}]}];*)
-(*<|"basis"->Mbasis,"coord"->coords|>*)
-(*]*)
-(**)
-(*(*Get the list of SU2 group factor for a given type in different bases*)*)
-(*GenerateSU2[model_,type_]:=Module[{flist,repeatlist,ruleLRRP,convertfactor,SUNreplist,nonsinglets,repeatnonsinglets,repeatsinglets,displacements,Irreplist,SNCollections,nonSingletSN,fieldcombs,YDbasis,MbasisAll,Mbasis,tMbasisAll,tMbasis,vMbasisAll,vMbasis,indexlist,qr,tdims,coords},*)
-(*flist=CheckType[model,type];*)
-(*convertfactor=Times@@(ConvertFactor[model,SU2,#]&/@flist);*)
-(*SUNreplist={#[[2]],model[#[[1]]]["SU2w"],#[[1]]}&/@flist;*)
-(*repeatlist=Select[SUNreplist,#[[1]]>1&];*)
-(*nonsinglets=DeleteCases[SUNreplist,{_,{0},_}];*)
-(*repeatnonsinglets=DeleteCases[repeatlist,{_,{0},_}];*)
-(*repeatsinglets=Select[repeatlist,#[[2]]=={0}&];*)
-(*If[Length@nonsinglets==0,Return[<|"basis"->{1},"coord"-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->Nest[{#}&,1,Length[repeatlist]+2]|>|>]];*)
-(*displacements=Association@MapThread[Rule,{nonsinglets[[1;;-1,3]],Prepend[Accumulate[nonsinglets[[1;;-1,1]]],0][[1;;-2]]}];*)
-(*indexlist=GenerateFieldIndex[model,"SU2w",flist];(*Pick out the relevant SU2 indices in order*)*)
-(*Irreplist=Transpose@FindIrrepCombination[SU2,SUNreplist[[1;;-1,{2,1}]],{0}];*)
-(*SNCollections=Normal@Merge[Association@MapThread[Rule,MapAt[MapThread[Rule,{SUNreplist[[1;;-1,3]],#}]&,GetMultiAuX[#],{1,All}]]&/@Irreplist,Total];(*get different SN syms and the corresponding multiplicity*)*)
-(*SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];*)
-(*nonSingletSN=MapAt[Select[#,model[#[[1]]]["SU2w"]!={0}&]&,SNCollections,{All,1}];(*Select out SN syms of nonsinglet repeated fields *)*)
-(*fieldcombs=Join@@(GenerateLRInput/@nonsinglets);*)
-(*ruleLRRP=Join@@(GenerateLRRP/@nonsinglets);(*Select out nonsinglet fields for constructing singlet*)*)
-(*YDbasis=Expand[Flatten[((Times@@(eps2a@@@Transpose[#]))&/@MapAt[ToExpression,GenerateLRT[SU2,fieldcombs],{All,All}])]*convertfactor]/.ruleLRRP;*)
-(*MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,"SU2w",flist](*/.ruleRP*)];*)
-(*tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tSU2val]&/@MbasisAll;*)
-(*vMbasisAll=Flatten/@tMbasisAll;*)
-(*MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];*)
-(*If[Length@repeatlist==0,Return[<|"basis"->{Mbasis},"coord"-><|{}->IdentityMatrix[Length[Mbasis]]|>|>]];*)
-(*If[Length@repeatnonsinglets==0,Return[<|"basis"->{Mbasis},"coord"-><|Rule@@@({#[[3]],{#[[1]]}}&/@repeatsinglets[[1;;-1]])->(Nest[List,#,Length[repeatlist]]&/@IdentityMatrix[Length[Mbasis]])|>|>]];*)
-(*If[MatrixRank[vMbasis]!=Length[vMbasis],Print["Warning: non-independent basis!!!!!"];];*)
-(*qr=QRDecomposition[Transpose[vMbasis]];*)
-(*tdims=MapAt[SnIrrepDim,SNCollections[[1;;-1,1,1;;-1,2]],{All,All}];(*Get tensor dimensions of each SN syms*)*)
-(*coords=Association@MapThread[Rule,{SNCollections[[1;;-1,1]],MapThread[GetSymBasis[tMbasis,#1,displacements,qr,#2]&,{nonSingletSN,tdims}]}];*)
-(*<|"basis"->Mbasis,"coord"->coords|>*)
-(*]*)
+Options[GetGroupFactor]={OutputMode->"indexed"};
 
 
 (* ::Subsection:: *)
 (*Formating & Output*)
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Formating*)
 
 
 (* ::Input::Initialization:: *)
-(* Group tensor formating *)
-(* simplification when contracted with fields *)
-RMDelta[in_]:=Module[{rule},rule=Rule@@@(Reverse/@Sort/@Cases[List@@in,del[2][x__]|del[3][x__]|del3n[x__]|del8n[x__]:>{x}]);in/.{del[2][__]->1,del[3][__]->1,del3n[__]->1,del8n[__]->1}/.rule]
-ContractDelta[in_]:=Switch[Expand[in],_Times,RMDelta[in],_Plus,Plus@@(RMDelta/@List@@Expand[in])]
-(* getting printable form *)
-Sortarg[x_]:=Module[{arg=List@@x,sortedarg},sortedarg=Sort[arg];permutationSignature[FindPermutation[sortedarg,arg]]Head[x]@@sortedarg];
+(******************* Group tensor formating **********************)
 
-RefineReplace[x_] := 
- Module[{result}, 
-  result=x/.eps2a[y__]:> Sortarg[eps2a[y]]/.eps2f[y__] :>  Sortarg[eps2f[y]]/.eps3n[y__] :>  Sortarg[eps3n[y]] /. 
-       eps3a[y__] :>  Sortarg[eps3a[y]] /. 
-      eps3f[y__] :>  Sortarg[eps3f[y]] /. 
-     eps8n[y__] :>  Sortarg[eps8n[y]] /. 
-    fabc[y__] :>  Sortarg[fabc[y]];
-  result /. eps2a[y__] :> \!\(\*
+(* getting printable form *)
+PrintTensor=\!\(\*
 TagBox[
 StyleBox[
-RowBox[{"\"\<\\!\\(\\*SuperscriptBox[\\(\\[Epsilon]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
+RowBox[{"\"\<\\!\\(\\*SubsuperscriptBox[\\(\>\"", "<>", "#tensor", "<>", "\"\<\\), \\(\>\"", "<>", "#downind", "<>", "\"\<\\), \\(\>\"", "<>", "#upind", "<>", "\"\<\\)]\\)\>\""}],
 ShowSpecialCharacters->False,
 ShowStringCharacters->True,
 NumberMarks->True],
-FullForm]\) /. eps2f[y__] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SubscriptBox[\\(\\[Epsilon]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. eps3n[y__] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SuperscriptBox[\\(\\[Epsilon]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. \[Tau][w_, y_, z_] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<(\\!\\(\\*SuperscriptBox[\\(\\[Tau]\\), \\(\>\"", "<>", 
-RowBox[{"ToString", "[", "w", "]"}], "<>", "\"\<\\)]\\)\\!\\(\\*SubsuperscriptBox[\\()\\), \\(\>\"", "<>", 
-RowBox[{"ToString", "[", "y", "]"}], "<>", "\"\<\\), \\(\>\"", "<>", 
-RowBox[{"ToString", "[", "z", "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. del[2][y_, z_] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SubsuperscriptBox[\\(\\[Delta]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "z"}], "]"}], "<>", "\"\<\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. del3n[y__] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SuperscriptBox[\\(\\[Delta]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. eps3a[y__] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SuperscriptBox[\\(\\[Epsilon]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. eps3f[y__] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SubscriptBox[\\(\\[Epsilon]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. eps8n[y__] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SuperscriptBox[\\(\\[Epsilon]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. \[Lambda][w_, y_, z_] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<(\\!\\(\\*SuperscriptBox[\\(\\[Lambda]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "w"}], "]"}], "<>", "\"\<\\)]\\)\\!\\(\\*SubsuperscriptBox[\\()\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "z"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. del8n[y__] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SuperscriptBox[\\(\\[Delta]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. del[3][y_, z_] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SubsuperscriptBox[\\(\\[Delta]\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "z"}], "]"}], "<>", "\"\<\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. fabc[y__] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SuperscriptBox[\\(f\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\) /. dabc[y__] :> \!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SuperscriptBox[\\(d\\), \\(\>\"", "<>", 
-RowBox[{"StringJoin", "[", 
-RowBox[{"List", "@", "y"}], "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\)
-  ]
+FullForm]\)&;
+Sortarg[asTlist_]:= #[y__] :> Signature[#[y]]Sort[#[y]]& /@ asTlist 
+RefineReplace[x_]:=Module[{asTlist=Select[Keys@tOut,MatchQ[tSymmetry[#],_Antisymmetric]&]},
+x/.Sortarg[asTlist]/.tOut]
+
+IndexIterator[indlist_,indexct_]:=Module[{index=++indexct[indlist]},indlist[[index]]]
+SetAttributes[IndexIterator,HoldRest];
+
 (* Generate the replacing rule of the tensor indices for the final output form *)
 GenerateReplacingRule[model_,type:(_Times|_Power)]:=GenerateReplacingRule[model,CheckType[model,type]]
-GenerateReplacingRule[model_,flist_List]:=Module[{flistsu3,flistsu2,fexpandsu3,fexpandsu2,symbols,arg,listindsu3,listindsu2,listgensu3,listgensu2,c1=0,c2=0,c3=0,c4=0,dummy},
-flistsu3=Select[flist,Total[model[#[[1]]]["SU3c"]]!=0&];
-flistsu2=Select[flist,Total[model[#[[1]]]["SU2w"]]!=0&];
-fexpandsu3=Flatten[ConstantArray@@@flistsu3];
-fexpandsu2=Flatten[ConstantArray@@@flistsu2];
-symbols=rep2ind[model[#[[1]]]["SU3c"]]&/@flistsu3;
-arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flistsu3;
-listindsu3=Flatten[MapThread[Apply[#1,#2,{1}]&,{symbols,arg}]];
-symbols=rep2ind[model[#[[1]]]["SU2w"]]&/@flistsu2;
-arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flistsu2;
-listindsu2=Flatten[MapThread[Apply[#1,#2,{1}]&,{symbols,arg}]];
-listgensu3=Switch[model[#]["SU3c"],{1,0},SU3FUND[[++c1]],{0,1},SU3FUND[[++c1]],{1,1},SU3ADJ[[++c2]]]&/@fexpandsu3;
-listgensu2=Switch[model[#]["SU2w"],{1},SU2FUND[[++c3]],{2},SU2ADJ[[++c4]]]&/@fexpandsu2;
-Sow[dummy={c1,c2,c3,c4}];
-Join[MapThread[Rule,{listindsu3,listgensu3}],MapThread[Rule,{listindsu2,listgensu2}],MapThread[Construct,{{b[i_]:> SU3FUND[[#]]&,B[i_]:> SU3ADJ[[#]]&,a[i_]:> SU2FUND[[#]]&,A[i_]:> SU2ADJ[[#]]&},dummy+i}]]
+GenerateReplacingRule[model_,flist_List]:=Module[{nonsingletlist,fexpand,symbollist,arglist,listind,listgen,indexct,indpair,listdummy},
+nonsingletlist=AssociationMap[Function[groupname,Select[flist,Function[fname,model[fname[[1]]][groupname]!=Singlet[CheckGroup[groupname]]]]],Select[model[Gauge],nonAbelian]]; 
+fexpand=Flatten[ConstantArray@@@#]&/@nonsingletlist;
+symbollist=KeyValueMap[Function[fname,rep2ind[#1][model[fname[[1]]][#1]]]/@#2 &,nonsingletlist]; 
+arglist=Map[Function[fname,Array[{fname[[1]],#,1}&,fname[[2]]]],nonsingletlist,{2}];
+listind=Join@@MapThread[Function[{symbol,arg},symbol@@@arg],Catenate/@{symbollist,arglist}];
+
+indexct=AssociationThread[Union@Catenate[rep2indOut]->0]; 
+listgen=Join@@KeyValueMap[Function[{groupname,namelist},IndexIterator[rep2indOut[groupname][model[#][groupname]],indexct]&/@namelist],fexpand]; 
+indpair=Join@@Values@Merge[{rep2ind,rep2indOut},Values[Merge[#,Identity]]& ]//DeleteDuplicates;
+listdummy=Function[{ind,indexlist,ct},ind[ii_]:>indexlist[[ct+ii]]]@@@(Append[#,indexct[#[[2]]]]&/@indpair);
+Return[Thread[listind->Flatten@listgen]~Join~listdummy];
 ]
 
 
@@ -1648,6 +1319,8 @@ Join[MapThread[Rule,{listindsu3,listgensu3}],MapThread[Rule,{listindsu2,listgens
 (* Lorentz Structure formating *)
 
 
+(* ::Input::Initialization:: *)
+(* Operator formating *)
 SetAttributes[{indexmap, indexmap4com}, HoldAll]; 
 indexmap[model_, field_, label_, su2fcount_, su2acount_, su3fcount_, su3acount_, flcount_] := 
    Module[{su2antiflag = False, fund = 1, antifund = 1, adj = 1, fla}, 
@@ -1710,23 +1383,36 @@ groupindex4com[model_, flistexpand_] := Module[{su2fcount = 0, su2acount = 0, su
             ch[p2__, OverTilde[f2_]]}, {f1, ch[p1, f1], f1, ch[p1, f1]}, 
            {f2, f2, ch[p2, f2], ch[p2, f2]}}]}]]]]; 
 
-
-transform[ope_, OptionsPattern[]] := Module[{Dcon, l2t, fieldlist, model, type, fer}, 
-    If[OptionValue[Dcontract], Dcon = Flatten[{Dcontract1, Dcontract2}], Dcon = {}]; 
-     If[OptionValue[final], l2t = listtotime, l2t = {}]; If[OptionValue[ReplaceField] === {}, 
-      ope //. Dcon //. l2t, {model, type, fer} = OptionValue[ReplaceField]; 
-       fieldlist = SortBy[Join @@ Apply[ConstantArray, BreakString[type], {1}], 
-         model[#1][helicity] & ]; If[fer === 4, 
-        ope = ope //. {\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a, Subscript[\[Sigma], a_] | 
-              Subscript[OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]], 
-              a_] :> Superscript[\[Gamma], a]}; ope = ope //. {(a_)[(b_)[\[Gamma], a1_], b1_] :> 
-             a[b[\[Sigma], a1], b1]}; ope //. Dcon //. groupindex4com[model, fieldlist] //. l2t, 
-        ope //. Dcon //. groupindex[model, fieldlist] //. l2t]]]; 
+transform[ope_, OptionsPattern[]] := Module[{Dcon, l2t, fieldlist, model, type, fer},
+If[OptionValue[Dcontract], Dcon = Flatten[{Dcontract1, Dcontract2}], Dcon = {}];
+If[OptionValue[final], l2t = listtotime, l2t = {}];
+If[OptionValue[ReplaceField] === {}, Return[ope //. Dcon //. l2t],
+{model, type, fer} = OptionValue[ReplaceField];
+fieldlist = CheckType[model,type,Counting->False]; 
+Switch[fer,
+4,(* four-component fermions *)
+ope = ope //. {\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,
+Subscript[\[Sigma], a_] |  Subscript[OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], 
+Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]};
+ope = ope //. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}; 
+ope //. Dcon //. groupindex4com[model, fieldlist] //. l2t,
+2,(* two-component fermions *)
+ope //. Dcon //. groupindex[model, fieldlist] //. l2t]]
+]
 Options[transform] = {final -> True, Dcontract -> True, ReplaceField -> {}}; 
-Options[Oper] = {ReplaceField -> {}, LorForm -> True, toAmp -> False, final -> True}; 
-Oper[A_, n_, OptionsPattern[]] := transform[OperPoly[A, n, LorForm -> OptionValue[LorForm]], 
-    final -> OptionValue[final], Dcontract -> OptionValue[toAmp], 
-    ReplaceField -> OptionValue[ReplaceField]]; 
+
+Oper[A_, n_, OptionsPattern[]] := transform[OperPoly[A, n, LorForm -> OptionValue[LorForm]],
+final -> OptionValue[final], 
+Dcontract -> OptionValue[Dcontract],
+ReplaceField -> OptionValue[ReplaceField]]; 
+Options[Oper] = {ReplaceField -> {}, LorForm -> True, Dcontract -> False, final -> True}; 
+
+(* simplification when contracted with fields *)
+RMDelta[in_]:=Module[{rule,delTlist=Select[Keys[tOut], StringMatchQ[ToString[#],"del"~~__]&]},
+rule=Rule@@@(Reverse/@Sort/@Cases[List@@in,Alternatives@@(Construct[#,x__]&/@delTlist) :>{x}]);
+in/.Thread[delTlist->(1&)]/.rule
+]
+ContractDelta[in_]:=Switch[Expand[in],_Times,RMDelta[in],_Plus,Plus@@(RMDelta/@List@@Expand[in])]
 
 
 (* ::Subsubsection::Closed:: *)
@@ -1915,10 +1601,10 @@ Type2TermsPro[model_,type_,OptionsPattern[]]:=Module[{flist,len,lorentzB,groupB,
 flist=CheckType[model,type];
 lorentzB=LorentzBasisForType[model,type,OutputFormat->OptionValue[OutputFormat],FerCom->OptionValue[FerCom],Coord->True];
 len=Length[Keys[lorentzB[coord]][[1]]];(*num of repeated fields*)
-groupB=(*Through[{GenerateSU3,GenerateSU2}[model,type]];*)GetGroupFactor[model,#,type]&/@Select[model[Gauge],nonAbelian];
+groupB=(*Through[{GenerateSU3,GenerateSU2}[model,type]];*)GetGroupFactor[model,#,type,OutputMode->"indexed"]&/@Select[model[Gauge],nonAbelian];
 nFac=Length[groupB]+1;(*number of factors to do Inner Product Decomposition for Sn groups*)
 
-basisTotal=Flatten[lorentzB[basis]\[TensorProduct]Through[(TensorProduct@@groupB)["basis"]]]/.GenerateReplacingRule[model,type];
+basisTotal=Flatten[lorentzB[basis]\[TensorProduct]Through[(TensorProduct@@groupB)["basis"]]];
 If[OptionValue[OutputFormat]=="operator",basisTotal=ContractDelta/@basisTotal];
 basisTotal=RefineReplace/@basisTotal;
 If[len==0,Return[<|{}->basisTotal|>]];
@@ -2002,10 +1688,10 @@ n1*n2
 (* ::Input::Initialization:: *)
 SetAttributes[DefSMEFT,HoldFirst];
 DefSMEFT[model_,nf_:3]:=Module[{},
-model=<|Global->{"Baryon","Lepton"}|>;
-AddGroup[model,"SU3c","G",{0,0}];
-AddGroup[model,"SU2w","W",{0,0}];
-AddGroup[model,"U1y","B",{0,0}];
+model=<|Global->{"Baryon","Lepton"}|>;rep2ind=<||>;rep2indOut=<||>;
+AddGroup[model,"SU3c","G",{0,0},<|{0,0}->{Function[x,Nothing],{}},{1,0}->{b,SU3FUND},{0,1}->{b,SU3FUND},{1,1}->{B,SU3ADJ}|>];
+AddGroup[model,"SU2w","W",{0,0},<|{0}->{Function[x,Nothing],{}},{1}->{a,SU2FUND},{2}->{A,SU2ADJ}|>];
+AddGroup[model,"U1y","B",{0,0},<||>];
 AddField[model,"Q",-1/2,{{1,0},{1},1/6},{1/3,0},nf,True];
 AddField[model,"uc",-1/2,{{0,1},{0},-2/3},{-1/3,0},nf,True];
 AddField[model,"dc",-1/2,{{0,1},{0},1/3},{-1/3,0},nf,True];
