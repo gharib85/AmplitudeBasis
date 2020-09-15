@@ -484,7 +484,7 @@ Protect[Times]
 (* ::Input::Initialization:: *)
 SetAttributes[{AddGroup,AddField},HoldFirst];
 (* Adding new Gauge Group to a Model *)
-AddGroup[model_,groupname_String,field_String,Globalreps_List,ind_]:=Module[{profile,group,Freps},
+AddGroup[model_,groupname_String,field_String,Globalreps_List,ind_Association]:=Module[{profile,group,Freps},
 (* read group info from profile *)
 profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile",StringDrop[groupname,-1]<>"_profile.m"}];
 If[FileExistsQ[profile],Get[profile];group=CheckGroup[groupname],
@@ -494,8 +494,8 @@ If[!MatchQ[group,_List],Message[AddGroup::groupnotlist,group];Abort[]]; (* check
 model=Merge[{model,<|Gauge->{groupname}|>},Apply[Join]]; (* add gauge group to the model *)
 AssociateTo[model[#],groupname->Singlet[group]]&/@Fields[model]; (* pre-existing fields set to singlet by default *)
 Freps=MapAt[Adjoint,MapAt[Singlet,CheckGroup/@model[Gauge],{;;-2}],-1]; (* gauge boson representations under all groups *)
-AddField[model,field<>"L",-1,Freps,Globalreps,1,False];
-AddField[model,field<>"R",1,Freps,Globalreps,1,False]; (* add gauge bosons *)
+AddField[model,field<>"L",-1,Freps,Globalreps,Hermitian->True];
+AddField[model,field<>"R",1,Freps,Globalreps,Hermitian->True]; (* add gauge bosons *)
 Conj[field<>"L"]=field<>"R";
 Conj[field<>"R"]=field<>"L"; (* define special conjugation relation (not denoted by \[Dagger]) for gauge boson names *)
 SetSimplificationRule[model]; (* define simplification rules for all gauge groups *)
@@ -1257,7 +1257,7 @@ Options[GetGroupFactor]={OutputMode->"indexed"};
 (*Formating & Output*)
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Formating*)
 
 
@@ -1306,22 +1306,49 @@ Return[Thread[listind->Flatten@listgen]~Join~listdummy];
 (* ::Input::Initialization:: *)
 (* Operator formating *)
 SetAttributes[{indexmap, indexmap4com}, HoldAll]; 
-indexmap[model_, field_, label_, su2fcount_, su2acount_, su3fcount_, su3acount_, flcount_] := 
-   Module[{su2antiflag = False, fund = 1, antifund = 1, adj = 1, fla}, 
-    If[StringSplit[field, ""][[-1]] == "\[Dagger]", su2antiflag = True]; 
-     Switch[model[field]["SU2w"], {1}, If[su2antiflag, antifund *= SU2FUND[[++su2fcount]], 
-       fund *= SU2FUND[[++su2fcount]]], {2}, adj *= SU2ADJ[[++su2acount]]]; 
-     Switch[model[field]["SU3c"], {0, 1}, antifund *= SU3FUND[[++su3fcount]], {1, 0}, 
-      fund *= SU3FUND[[++su3fcount]], {1, 1}, adj *= SU3ADJ[[++su3acount]]]; 
-     If[model[field][nfl] != 1, fla = FLAVOR[[++flcount]], fla = 1]; 
-     {Subscript[FL, label] | Subscript[FR, label] | Subscript[\[Psi], label] | 
-        Subscript[OverBar[\[Psi]], label] | Subscript[\[Phi], label] -> 
-       (Superscript[Subscript[Subscript[field, fla], fund], antifund*adj] //. 
-        {Superscript[f_, 1] :> f, Subscript[f_, 1] :> f})}]; 
-groupindex[model_, flistexpand_] := Module[{su2fcount = 0, su2acount = 0, su3fcount = 0, 
-     su3acount = 0, flavor = 0, n, index}, n = Length[flistexpand]; 
-     Flatten[MapThread[indexmap[model, #1, #2, su2fcount, su2acount, su3fcount, su3acount, 
-         flavor] & , {flistexpand, Array[#1 & , n]}]]]; 
+SetAttributes[indexmap2, HoldAll]; 
+indexmap[model_, field_, label_, su2fcount_, su2acount_, su3fcount_, su3acount_, flcount_] :=
+Module[{su2antiflag = False, fund = 1, antifund = 1, adj = 1, fla},
+If[StringSplit[field, ""][[-1]] == "\[Dagger]", su2antiflag = True];
+Switch[model[field]["SU2w"], 
+{1}, If[su2antiflag, antifund *= SU2FUND[[++su2fcount]],fund *= SU2FUND[[++su2fcount]]], 
+{2}, adj *= SU2ADJ[[++su2acount]]
+];
+Switch[model[field]["SU3c"], 
+{0, 1},antifund *= SU3FUND[[++su3fcount]], 
+{1, 0},fund *= SU3FUND[[++su3fcount]], 
+{1, 1},adj *= SU3ADJ[[++su3acount]]
+];
+If[model[field][nfl]>1, fla = model[field][indfl][[++flcount]], fla = 1];
+{Subscript[FL, label] | Subscript[FR, label] | Subscript[\[Psi], label] | Subscript[OverBar[\[Psi]], label] | Subscript[\[Phi], label] -> 
+       (Superscript[Subscript[Subscript[field, fla], fund], antifund*adj] //. {Superscript[f_, 1] :> f, Subscript[f_, 1] :> f})}
+]
+groupindex[model_, flistexpand_] := Module[{su2fcount = 0, su2acount = 0, su3fcount = 0, su3acount = 0, flavor = 0, n= Length[flistexpand]},
+     Flatten[MapThread[indexmap[model, #1, #2, su2fcount, su2acount, su3fcount, su3acount,flavor] & , {flistexpand, Array[#1 & , n]}]]]
+
+indexmap2[model_, field_, label_,indexct_,flavorct_] :=
+Module[{hel=model[field][helicity],su2antiflag = False,irrep,group,indexList,index,tensorform}, 
+tensorform=<|"tensor"->field,"upind"->"","downind"->""|>;
+If[model[field][nfl]>1, tensorform["downind"]= model[field][indfl][[++flavorct]];
+tensorform["tensor"]=PrintTensor[tensorform];
+tensorform["downind"]=""];
+If[StringTake[field,-1] == "\[Dagger]", su2antiflag = True];
+Do[irrep=model[field][groupname];
+group=CheckGroup[model,groupname];
+indexList=rep2indOut[groupname][irrep];
+If[indexList=={},Continue[]]; (* singlet *)
+index=IndexIterator[indexList,indexct];
+If[Fund[group]==irrep,If[group==SU2&&su2antiflag,tensorform["upind"]=tensorform["upind"]<>index,tensorform["upind"]=tensorform["upind"]<>index],
+tensorform["upind"]=tensorform["upind"]<>index],
+{groupname,Select[model[Gauge],nonAbelian]}];
+
+Subscript[h2f[hel], label] -> PrintTensor[tensorform]
+]
+groupindex2[model_, flistexpand_] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
+indexct=AssociationThread[Union@Catenate[rep2indOut]->0];
+MapThread[indexmap2[model, #1, #2,indexct,flavorct] & , {flistexpand,Range[n]}]
+]
+
 indexmap4com[model_, field_, label_, su2fcount_, su2acount_, su3fcount_, su3acount_, 
     flcount_] := Module[{su2antiflag = False, fund = 1, antifund = 1, adj = 1, fla, 
      field4com, fieldtran, head}, If[StringSplit[field, ""][[-1]] == "\[Dagger]", 
