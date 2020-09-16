@@ -507,20 +507,23 @@ AddGroup::profile="Profile for group `1` not found.";
 
 (* Adding New Field to a Model *)
 AddField::overh="helicity of `1` is neither integer nor half-integer.";
-Options[AddField]={Flavor->{1},Hermitian->False};
+Options[AddField]={Flavor->1,Hermitian->False,Chirality->{}};
 AddField[model_,field_String,hel_,Greps_List,Globalreps_List,OptionsPattern[]]:=Module[{attribute=<||>,flavor=OptionValue[Flavor],NAgroups,shape},
 If[IntegerQ[2hel],AppendTo[attribute,helicity->hel],Message[AddField::overh,field]];
 AssociateTo[attribute,Thread[model[Gauge]->Greps]];
 AssociateTo[attribute,Thread[model[Global]->Globalreps]];
-If[flavor=={1},AppendTo[attribute,nfl->1],AssociateTo[attribute,{nfl->flavor[[1]],indfl->flavor[[2]]}]];
-AppendTo[attribute,stat->If[IntegerQ[hel],"boson","fermion"]];
+Switch[flavor,
+_Integer,AssociateTo[attribute,{nfl->flavor,indfl->FLAVOR}],
+_List,AssociateTo[attribute,{nfl->flavor[[1]],indfl->flavor[[2]]}]];
+AssociateTo[attribute,stat->If[IntegerQ[hel],"boson","fermion"]];
+If[attribute[stat]=="fermion" ,AssociateTo[attribute,chirality->OptionValue[Chirality]]];
 AppendTo[model,field->attribute];
 
 NAgroups=Select[model[Gauge],nonAbelian];
 shape=MapThread[DimR[#1,#2]&,{CheckGroup/@NAgroups,Cases[Greps,_List]}];
 AppendTo[tAssumptions,ToExpression["t"<>field<>ToString[NAgroups[[#]]]]\[Element]Arrays[{shape[[#]]}]]&/@Range[1,Length[shape]];
 
-If[!OptionValue[Hermitian]&&Last@Characters[field]!="\[Dagger]",AddField[model,field<>"\[Dagger]",-hel,RepConj/@Greps,RepConj/@Globalreps,Flavor->OptionValue[Flavor]];
+If[!OptionValue[Hermitian]&&Last@Characters[field]!="\[Dagger]",AddField[model,field<>"\[Dagger]",-hel,RepConj/@Greps,RepConj/@Globalreps,Flavor->OptionValue[Flavor],Chirality->(OptionValue[Chirality]/.{"left"->"right","right"->"left"})];
 Conj[field]=field<>"\[Dagger]";
 Conj[field<>"\[Dagger]"]=field;
 ];
@@ -1257,7 +1260,7 @@ Options[GetGroupFactor]={OutputMode->"indexed"};
 (*Formating & Output*)
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Formating*)
 
 
@@ -1309,8 +1312,19 @@ SetAttributes[SetIndex,HoldAll];
 Options[SetIndex]={FieldRename->{}};
 Options[groupindex]={FieldRename->{}};
 SetIndex[model_, field_, label_,indexct_,flavorct_,OptionsPattern[]] :=
-Module[{hel=model[field][helicity],su2antiflag = False,irrep,group,indexList,index,tensorform}, 
-tensorform=<|"tensor"->Replace[field,OptionValue[FieldRename]],"upind"->"","downind"->""|>;
+Module[{hel=model[field][helicity],fieldname=field,head=Identity,su2antiflag = False,irrep,group,indexList,index,tensorform}, 
+If[model[field][stat]=="fermion"&&MemberQ[OptionValue[FieldRename],"set chirality"],
+fieldname=model[field][chirality][[1]];
+head=model[field][chirality][[2]];
+If[head=="right",fieldname=\!\(\*
+TagBox[
+StyleBox[
+RowBox[{"\"\<\\!\\(\\*OverscriptBox[\\(\>\"", "<>", "fieldname", "<>", "\"\<\\), \\(_\\)]\\)\>\""}],
+ShowSpecialCharacters->False,
+ShowStringCharacters->True,
+NumberMarks->True],
+FullForm]\)]];
+tensorform=<|"tensor"->fieldname,"upind"->"","downind"->""|>;
 If[model[field][nfl]>1, tensorform["downind"]= model[field][indfl][[++flavorct]];
 tensorform["tensor"]=PrintTensor@tensorform;
 tensorform["downind"]=""];
@@ -1323,49 +1337,28 @@ index=IndexIterator[indexList,indexct];
 If[Fund[group]==irrep,If[group==SU2&&su2antiflag,tensorform["upind"]=tensorform["upind"]<>index,tensorform["upind"]=tensorform["upind"]<>index],
 tensorform["upind"]=tensorform["upind"]<>index],
 {groupname,Select[model[Gauge],nonAbelian]}];
-Subscript[h2f[hel], label] -> PrintTensor@tensorform
+Subscript[h2f[hel], label] -> head[PrintTensor@tensorform]
 ]
 groupindex[model_, flistexpand_,OptionsPattern[]] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
 indexct=AssociationThread[Union@Catenate[rep2indOut]->0];
 MapThread[SetIndex[model, #1, #2,indexct,flavorct,FieldRename->OptionValue[FieldRename]] & , {flistexpand,Range[n]}]
 ]
-(*groupindex4com[model_, flistexpand_] := Module[{indexct,flcount = 0, n=Length[flistexpand]},
-indexct=AssociationThread[Union@Catenate[rep2indOut]->0];
-MapThread[SetIndex[model, #1, #2, indexct, flcount]& , {flistexpand, Range[n]}]
-] 
-*)
-bilinear2com={ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]],
-ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],
-ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),1,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],1,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),1,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],1,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],
-ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],
-ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]]};
-bilinear4com={ch\[Psi][f1_,"C",q,f2_],ch\[Psi][ch[p1__,f1_],"C",q_,f2_],ch\[Psi][f1_,"C",q_,ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],"C",q_,ch[p2__,f2_]],
-ch\[Psi][f1_,q_,"C",f2_],ch\[Psi][ch[p1__,f1_],q_,"C",f2_],ch\[Psi][f1_,q_,"C",ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],q,"C",ch[p2__,f2_]],
-ch\[Psi][f2_,1,f1_],ch\[Psi][f2_,1,ch[p1__,f1_]],ch\[Psi][ch[p2__,f2_],1,f1_],ch\[Psi][ch[p2__,f2_],1,ch[p1__,f1_]],
-ch\[Psi][f2_,q_,f1_],ch\[Psi][f2_,q_,ch[p1__,f1_]],ch\[Psi][ch[p2__,f2_],q_,f1_],ch\[Psi][ch[p2__,f2_],q_,ch[p1__,f1_]],
-ch\[Psi][f1_,q_,f2_],ch\[Psi][ch[p1__,f1_],q_,f2_],ch\[Psi][f1_,q_,ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],q_,ch[p2__,f2_]]};
-bilinearSign={1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,-1,1,1,1,1};
-spinor2to4=MapThread[RuleDelayed,{bilinear2com,bilinearSign*bilinear4com/.x_Pattern:>x[[1]]}];
-spinor4to2=MapThread[RuleDelayed,{bilinear4com,bilinearSign*bilinear2com/.x_Pattern:>x[[1]]}];
 
-transform[ope_, OptionsPattern[]] := Module[{Dcon, l2t, model, type, fer, fieldlist, result=ope,fieldrename=<||>},
-If[OptionValue[Dcontract], Dcon = Flatten[{Dcontract1, Dcontract2}], Dcon = {}];
-If[OptionValue[final], l2t = listtotime, l2t = {}];
-If[OptionValue[ReplaceField] === {}, Return[ope //. Dcon //. l2t]];
+spinorH2C={ch\[Psi]["left"[f1_],q_,"left"[f2_]]:>ch\[Psi][f1,"C",q,f2],ch\[Psi][ch[p1__,"left"[f1_]],q_,"left"[f2_]]:>ch\[Psi][ch[p1,f1],"C",q,f2],ch\[Psi]["left"[f1_],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][f1,"C",q,ch[p2,f2]],ch\[Psi][ch[p1__,"left"[f1_]],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][ch[p1,f1],"C",q,ch[p2,f2]],ch\[Psi]["right"[f1_],q_,"right"[f2_]]:>ch\[Psi][f1,q,"C",f2],ch\[Psi][ch[p1__,"right"[f1_]],q_,"right"[f2_]]:>ch\[Psi][ch[p1,f1],q,"C",f2],ch\[Psi]["right"[f1_],q_,ch[p2__,"right"[f2_]]]:>ch\[Psi][f1,q,"C",ch[p2,f2]],ch\[Psi][ch[p1__,"right"[f1_]],q_,ch[p2__,"right"[f2_]]]:>ch\[Psi][ch[p1,f1],q,"C",ch[p2,f2]],ch\[Psi]["left"[f1_],1,"right"[f2_]]:>ch\[Psi][f2,1,f1],ch\[Psi][ch[p1__,"left"[f1_]],1,"right"[f2_]]:>ch\[Psi][f2,1,ch[p1,f1]],ch\[Psi]["left"[f1_],1,ch[p2__,"right"[f2_]]]:>ch\[Psi][ch[p2,f2],1,f1],ch\[Psi][ch[p1__,"left"[f1_]],1,ch[p2__,"right"[f2_]]]:>ch\[Psi][ch[p2,f2],1,ch[p1,f1]],ch\[Psi]["left"[f1_],q_,"right"[f2_]]:>-ch\[Psi][f2,q,f1],ch\[Psi][ch[p1__,"left"[f1_]],q_,"right"[f2_]]:>-ch\[Psi][f2,q,ch[p1,f1]],ch\[Psi]["left"[f1_],q_,ch[p2__,"right"[f2_]]]:>-ch\[Psi][ch[p2,f2],q,f1],ch\[Psi][ch[p1__,"left"[f1_]],q_,ch[p2__,"right"[f2_]]]:>-ch\[Psi][ch[p2,f2],q,ch[p1,f1]],ch\[Psi]["right"[f1_],q_,"left"[f2_]]:>ch\[Psi][f1,q,f2],ch\[Psi][ch[p1__,"right"[f1_]],q_,"left"[f2_]]:>ch\[Psi][ch[p1,f1],q,f2],ch\[Psi]["right"[f1_],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][f1,q,ch[p2,f2]],ch\[Psi][ch[p1__,"right"[f1_]],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][ch[p1,f1],q,ch[p2,f2]]};
+
+
+transform[ope_, OptionsPattern[]] := Module[{result=ope,model, type, fer, fieldlist,Dcon={},fchain={},l2t={}, fieldrename={}},
+If[OptionValue[Dcontract],Dcon=Flatten[{Dcontract1, Dcontract2}]];
+If[OptionValue[final],l2t=listtotime];
+If[OptionValue[ReplaceField] === {},result//.Dcon//.l2t]; (* abstract operators *)
 {model, type, fer} = OptionValue[ReplaceField];
 fieldlist = CheckType[model,type,Counting->False];
-If[fer==4,AssociateTo[fieldrename,Weyl2Dirac]; (* assign fermion renaming dictionary *)
-result=result//.{\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[\[Sigma] |  OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]}//. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]} (* change \[Sigma] matrices to \[Gamma] matrices *)
+If[fer==4,AppendTo[fieldrename,"set chirality"]; (* rename fermion due to conventional chirality *)
+result=result//.{\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[\[Sigma] |  OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]}//. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}; (* change \[Sigma] matrices to \[Gamma] matrices *)
+fchain=spinorH2C
 ];
-result//.Dcon//.groupindex[model,fieldlist,FieldRename->fieldrename]//.l2t
+result//.Dcon//.groupindex[model,fieldlist,FieldRename->fieldrename]/.fchain//.l2t
 ]
-(*Switch[fer,
-4,(* four-component fermions *)
-ope //. {\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[\[Sigma] |  OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]}//. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}
-//. Dcon //. groupindex[model, fieldlist,FieldRename->Weyl2Dirac] /.spinor2to4//. l2t,
-2,(* two-component fermions *)
-ope //. Dcon //. groupindex[model, fieldlist] //. l2t]]
-*)
 Options[transform] = {final -> True, Dcontract -> True, ReplaceField -> {}}; 
 
 Oper[A_, n_, OptionsPattern[]] := transform[OperPoly[A, n, LorForm -> OptionValue[LorForm]],
@@ -1662,40 +1655,6 @@ FLAVOR={"p"}\[Union]Alphabet[][[18;;-1]];
 
 
 (* ::Input::Initialization:: *)
-Weyl2Dirac=<|"Q"->"q","Q\[Dagger]"->\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(q\\), \\(_\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\),"uc"->\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(u\\), \\(_\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\),"uc\[Dagger]"->"u","dc"->\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(d\\), \\(_\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\),"dc\[Dagger]"->"d","ec"->\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(e\\), \\(_\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\),"ec\[Dagger]"->"e","L"->"l","L\[Dagger]"->\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\)|>;
-
-
-(* ::Input::Initialization:: *)
 (* Define SMEFT *)
 SetAttributes[DefSMEFT,HoldFirst];
 DefSMEFT[model_,nf_:3]:=Module[{},
@@ -1703,11 +1662,11 @@ model=<|Global->{"Baryon","Lepton"}|>;rep2ind=<||>;rep2indOut=<||>;
 AddGroup[model,"SU3c","G",{0,0},<|{0,0}->{Function[x,Nothing],{}},{1,0}->{b,SU3FUND},{0,1}->{b,SU3FUND},{1,1}->{B,SU3ADJ}|>];
 AddGroup[model,"SU2w","W",{0,0},<|{0}->{Function[x,Nothing],{}},{1}->{a,SU2FUND},{2}->{A,SU2ADJ}|>];
 AddGroup[model,"U1y","B",{0,0},<||>];
-AddField[model,"Q",-1/2,{{1,0},{1},1/6},{1/3,0},Flavor->{nf,FLAVOR}];
-AddField[model,"uc",-1/2,{{0,1},{0},-2/3},{-1/3,0},Flavor->{nf,FLAVOR}];
-AddField[model,"dc",-1/2,{{0,1},{0},1/3},{-1/3,0},Flavor->{nf,FLAVOR}];
-AddField[model,"L",-1/2,{{0,0},{1},-1/2},{0,1},Flavor->{nf,FLAVOR}];
-AddField[model,"ec",-1/2,{{0,0},{0},1},{0,-1},Flavor->{nf,FLAVOR}];
+AddField[model,"Q",-1/2,{{1,0},{1},1/6},{1/3,0},Flavor->nf,Chirality->{"q","left"}];
+AddField[model,"uc",-1/2,{{0,1},{0},-2/3},{-1/3,0},Flavor->nf,Chirality->{"u","right"}];
+AddField[model,"dc",-1/2,{{0,1},{0},1/3},{-1/3,0},Flavor->nf,Chirality->{"d","right"}];
+AddField[model,"L",-1/2,{{0,0},{1},-1/2},{0,1},Flavor->nf,Chirality->{"l","left"}];
+AddField[model,"ec",-1/2,{{0,0},{0},1},{0,-1},Flavor->nf,Chirality->{"e","right"}];
 AddField[model,"H",0,{{0,0},{1},1/2},{0,0}]
 ]
 
