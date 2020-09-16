@@ -471,7 +471,7 @@ CheckGroup[groupname_String]:=Module[{group=ToExpression@StringDrop[groupname,-1
 CheckGroup::ndef="Group `1` not defined.";
 
 (* Names for Abstract Fields *)
-h2f=<|-1->FL,-1/2->\[Psi]L,0->\[Phi],1/2->\[Psi]R,1->FR|>;
+h2f=<|-1->FL,-1/2->\[Psi],0->\[Phi],1/2->OverBar[\[Psi]],1->FR|>;
 state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
 
 Fields[model_]:=Keys@Select[model,MatchQ[#,_Association]&]
@@ -1305,32 +1305,14 @@ Return[Thread[listind->Flatten@listgen]~Join~listdummy];
 
 (* ::Input::Initialization:: *)
 (* Operator formating *)
-SetAttributes[{indexmap, indexmap4com}, HoldAll]; 
-SetAttributes[indexmap2, HoldAll]; 
-indexmap[model_, field_, label_, su2fcount_, su2acount_, su3fcount_, su3acount_, flcount_] :=
-Module[{su2antiflag = False, fund = 1, antifund = 1, adj = 1, fla},
-If[StringSplit[field, ""][[-1]] == "\[Dagger]", su2antiflag = True];
-Switch[model[field]["SU2w"], 
-{1}, If[su2antiflag, antifund *= SU2FUND[[++su2fcount]],fund *= SU2FUND[[++su2fcount]]], 
-{2}, adj *= SU2ADJ[[++su2acount]]
-];
-Switch[model[field]["SU3c"], 
-{0, 1},antifund *= SU3FUND[[++su3fcount]], 
-{1, 0},fund *= SU3FUND[[++su3fcount]], 
-{1, 1},adj *= SU3ADJ[[++su3acount]]
-];
-If[model[field][nfl]>1, fla = model[field][indfl][[++flcount]], fla = 1];
-{Subscript[FL, label] | Subscript[FR, label] | Subscript[\[Psi], label] | Subscript[OverBar[\[Psi]], label] | Subscript[\[Phi], label] -> 
-       (Superscript[Subscript[Subscript[field, fla], fund], antifund*adj] //. {Superscript[f_, 1] :> f, Subscript[f_, 1] :> f})}
-]
-groupindex[model_, flistexpand_] := Module[{su2fcount = 0, su2acount = 0, su3fcount = 0, su3acount = 0, flavor = 0, n= Length[flistexpand]},
-     Flatten[MapThread[indexmap[model, #1, #2, su2fcount, su2acount, su3fcount, su3acount,flavor] & , {flistexpand, Array[#1 & , n]}]]]
-
-indexmap2[model_, field_, label_,indexct_,flavorct_] :=
+SetAttributes[SetIndex,HoldAll]; 
+Options[SetIndex]={FieldRename->{}};
+Options[groupindex]={FieldRename->{}};
+SetIndex[model_, field_, label_,indexct_,flavorct_,OptionsPattern[]] :=
 Module[{hel=model[field][helicity],su2antiflag = False,irrep,group,indexList,index,tensorform}, 
-tensorform=<|"tensor"->field,"upind"->"","downind"->""|>;
+tensorform=<|"tensor"->Replace[field,OptionValue[FieldRename]],"upind"->"","downind"->""|>;
 If[model[field][nfl]>1, tensorform["downind"]= model[field][indfl][[++flavorct]];
-tensorform["tensor"]=PrintTensor[tensorform];
+tensorform["tensor"]=PrintTensor@tensorform;
 tensorform["downind"]=""];
 If[StringTake[field,-1] == "\[Dagger]", su2antiflag = True];
 Do[irrep=model[field][groupname];
@@ -1341,72 +1323,39 @@ index=IndexIterator[indexList,indexct];
 If[Fund[group]==irrep,If[group==SU2&&su2antiflag,tensorform["upind"]=tensorform["upind"]<>index,tensorform["upind"]=tensorform["upind"]<>index],
 tensorform["upind"]=tensorform["upind"]<>index],
 {groupname,Select[model[Gauge],nonAbelian]}];
-
-Subscript[h2f[hel], label] -> PrintTensor[tensorform]
+Subscript[h2f[hel], label] -> PrintTensor@tensorform
 ]
-groupindex2[model_, flistexpand_] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
+groupindex[model_, flistexpand_,OptionsPattern[]] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
 indexct=AssociationThread[Union@Catenate[rep2indOut]->0];
-MapThread[indexmap2[model, #1, #2,indexct,flavorct] & , {flistexpand,Range[n]}]
+MapThread[SetIndex[model, #1, #2,indexct,flavorct,FieldRename->OptionValue[FieldRename]] & , {flistexpand,Range[n]}]
 ]
+(*groupindex4com[model_, flistexpand_] := Module[{indexct,flcount = 0, n=Length[flistexpand]},
+indexct=AssociationThread[Union@Catenate[rep2indOut]->0];
+MapThread[SetIndex[model, #1, #2, indexct, flcount]& , {flistexpand, Range[n]}]
+] 
+*)
+bilinear2com={ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]],
+ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],
+ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),1,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],1,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),1,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],1,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],
+ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],
+ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]]};
+bilinear4com={ch\[Psi][f1_,"C",q,f2_],ch\[Psi][ch[p1__,f1_],"C",q_,f2_],ch\[Psi][f1_,"C",q_,ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],"C",q_,ch[p2__,f2_]],
+ch\[Psi][f1_,q_,"C",f2_],ch\[Psi][ch[p1__,f1_],q_,"C",f2_],ch\[Psi][f1_,q_,"C",ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],q,"C",ch[p2__,f2_]],
+ch\[Psi][f2_,1,f1_],ch\[Psi][f2_,1,ch[p1__,f1_]],ch\[Psi][ch[p2__,f2_],1,f1_],ch\[Psi][ch[p2__,f2_],1,ch[p1__,f1_]],
+-ch\[Psi][f2_,q_,f1_],-ch\[Psi][f2_,q_,ch[p1__,f1_]],-ch\[Psi][ch[p2__,f2_],q_,f1_],-ch\[Psi][ch[p2__,f2_],q_,ch[p1__,f1_]],
+ch\[Psi][f1_,q_,f2_],ch\[Psi][ch[p1__,f1_],q_,f2_],ch\[Psi][f1_,q_,ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],q_,ch[p2__,f2_]]};
 
-indexmap4com[model_, field_, label_, su2fcount_, su2acount_, su3fcount_, su3acount_, 
-    flcount_] := Module[{su2antiflag = False, fund = 1, antifund = 1, adj = 1, fla, 
-     field4com, fieldtran, head}, If[StringSplit[field, ""][[-1]] == "\[Dagger]", 
-      su2antiflag = True]; Switch[model[field]["SU2w"], {1}, 
-      If[su2antiflag, antifund *= SU2FUND[[++su2fcount]], fund *= SU2FUND[[++su2fcount]]], 
-      {2}, adj *= SU2ADJ[[++su2acount]]]; Switch[model[field]["SU3c"], {0, 1}, 
-      antifund *= SU3FUND[[++su3fcount]], {1, 0}, fund *= SU3FUND[[++su3fcount]], {1, 1}, 
-      adj *= SU3ADJ[[++su3acount]]]; If[model[field][nfl] != 1, fla = FLAVOR[[++flcount]], 
-      fla = 1]; field4com = StringDelete[field, "c\[Dagger]"] //. {"Q\[Dagger]" -> OverBar["q"], 
-        "Q" -> "q", "uc" -> OverBar["u"], "dc" -> OverBar["d"], "ec" -> OverBar["e"], 
-        "L\[Dagger]" -> OverBar["l"], "L" -> "l"}; fieldtran = 
-      {Subscript[FL, label] | Subscript[FR, label] | Subscript[\[Psi], label] | 
-         Subscript[OverBar[\[Psi]], label] | Subscript[\[Phi], label] -> 
-        (head[Superscript[Subscript[Subscript[field4com, fla], fund], antifund*adj]] //. 
-         {Superscript[f_, 1] :> f, Subscript[f_, 1] :> f})}; If[Head[field4com] === OverBar, 
-      head = OverBar, If[Abs[model[field][helicity]] === 1/2, head = OverTilde, 
-       head = Times]]; fieldtran]; 
-groupindex4com[model_, flistexpand_] := Module[{su2fcount = 0, su2acount = 0, su3fcount = 0, 
-     su3acount = 0, flcount = 0, n, index}, n = Length[flistexpand]; 
-     Flatten[Append[MapThread[indexmap4com[model, #1, #2, su2fcount, su2acount, su3fcount, 
-          su3acount, flcount] & , {flistexpand, Array[#1 & , n]}], 
-       Flatten[{MapThread[ch\[Psi][#1, q_, #2] :> ch\[Psi][#3, "C", q, #4] & , 
-          {{OverTilde[f1_], ch[p1__, OverTilde[f1_]], OverTilde[f1_], 
-            ch[p1__, OverTilde[f1_]]}, {OverTilde[f2_], OverTilde[f2_], 
-            ch[p2__, OverTilde[f2_]], ch[p2__, OverTilde[f2_]]}, {f1, ch[p1, f1], f1, 
-            ch[p1, f1]}, {f2, f2, ch[p2, f2], ch[p2, f2]}}], 
-         MapThread[ch\[Psi][#1, q_, #2] :> ch\[Psi][#3, q, "C", #4] & , 
-          {{OverBar[f1_], ch[p1__, OverBar[f1_]], OverBar[f1_], ch[p1__, OverBar[f1_]]}, 
-           {OverBar[f2_], OverBar[f2_], ch[p2__, OverBar[f2_]], ch[p2__, OverBar[f2_]]}, 
-           {f1, ch[p1, f1], f1, ch[p1, f1]}, {f2, f2, ch[p2, f2], ch[p2, f2]}}], 
-         MapThread[ch\[Psi][#1, 1, #2] :> ch\[Psi][#3, 1, #4] & , 
-          {{OverTilde[f1_], ch[p1__, OverTilde[f1_]], OverTilde[f1_], 
-            ch[p1__, OverTilde[f1_]]}, {OverBar[f2_], OverBar[f2_], ch[p2__, OverBar[f2_]], 
-            ch[p2__, OverBar[f2_]]}, {f2, f2, ch[p2, f2], ch[p2, f2]}, 
-           {f1, ch[p1, f1], f1, ch[p1, f1]}}], MapThread[
-          ch\[Psi][#1, q_, #2] :> -ch\[Psi][#3, q, #4] & , {{OverTilde[f1_], 
-            ch[p1__, OverTilde[f1_]], OverTilde[f1_], ch[p1__, OverTilde[f1_]]}, 
-           {OverBar[f2_], OverBar[f2_], ch[p2__, OverBar[f2_]], ch[p2__, OverBar[f2_]]}, 
-           {f2, f2, ch[p2, f2], ch[p2, f2]}, {f1, ch[p1, f1], f1, ch[p1, f1]}}], 
-         MapThread[ch\[Psi][#1, q_, #2] :> ch\[Psi][#3, q, #4] & , 
-          {{OverBar[f1_], ch[p1__, OverBar[f1_]], OverBar[f1_], ch[p1__, OverBar[f1_]]}, 
-           {OverTilde[f2_], OverTilde[f2_], ch[p2__, OverTilde[f2_]], 
-            ch[p2__, OverTilde[f2_]]}, {f1, ch[p1, f1], f1, ch[p1, f1]}, 
-           {f2, f2, ch[p2, f2], ch[p2, f2]}}]}]]]]; 
-
-transform[ope_, OptionsPattern[]] := Module[{Dcon, l2t, fieldlist, model, type, fer},
+transform[ope_, OptionsPattern[]] := Module[{Dcon, l2t, fieldlist, model, type, fer,spinor2to4},
 If[OptionValue[Dcontract], Dcon = Flatten[{Dcontract1, Dcontract2}], Dcon = {}];
 If[OptionValue[final], l2t = listtotime, l2t = {}];
 If[OptionValue[ReplaceField] === {}, Return[ope //. Dcon //. l2t],
 {model, type, fer} = OptionValue[ReplaceField];
 fieldlist = CheckType[model,type,Counting->False]; 
+spinor2to4=MapThread[RuleDelayed,{bilinear2com,bilinear4com/.x_Pattern:>x[[1]]}];
 Switch[fer,
 4,(* four-component fermions *)
-ope = ope //. {\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,
-Subscript[\[Sigma], a_] |  Subscript[OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], 
-Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]};
-ope = ope //. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}; 
-ope //. Dcon //. groupindex4com[model, fieldlist] //. l2t,
+ope //. {\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[\[Sigma] |  OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]}//. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}
+//. Dcon //. groupindex[model, fieldlist,FieldRename->Weyl2Dirac] /.spinor2to4//. l2t,
 2,(* two-component fermions *)
 ope //. Dcon //. groupindex[model, fieldlist] //. l2t]]
 ]
@@ -1703,6 +1652,10 @@ SU3FUND=Alphabet[];
 SU2ADJ=ToUpperCase/@DeleteCases[Alphabet[][[9;;-1]],"l"];
 SU2FUND=Alphabet[][[9;;-1]];
 FLAVOR={"p"}\[Union]Alphabet[][[18;;-1]];
+
+
+(* ::Input::Initialization:: *)
+Weyl2Dirac=<| "Q" -> "q","Q\[Dagger]" -> OverBar["q"], "uc" -> OverBar["u"],"uc\[Dagger]"->"u", "dc" -> OverBar["d"],"dc\[Dagger]"->"d", "ec" -> OverBar["e"],"ec\[Dagger]"->"e", "L" -> "l", "L\[Dagger]" -> OverBar["l"]|>;
 
 
 (* ::Input::Initialization:: *)
