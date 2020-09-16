@@ -1342,23 +1342,30 @@ ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \
 bilinear4com={ch\[Psi][f1_,"C",q,f2_],ch\[Psi][ch[p1__,f1_],"C",q_,f2_],ch\[Psi][f1_,"C",q_,ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],"C",q_,ch[p2__,f2_]],
 ch\[Psi][f1_,q_,"C",f2_],ch\[Psi][ch[p1__,f1_],q_,"C",f2_],ch\[Psi][f1_,q_,"C",ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],q,"C",ch[p2__,f2_]],
 ch\[Psi][f2_,1,f1_],ch\[Psi][f2_,1,ch[p1__,f1_]],ch\[Psi][ch[p2__,f2_],1,f1_],ch\[Psi][ch[p2__,f2_],1,ch[p1__,f1_]],
--ch\[Psi][f2_,q_,f1_],-ch\[Psi][f2_,q_,ch[p1__,f1_]],-ch\[Psi][ch[p2__,f2_],q_,f1_],-ch\[Psi][ch[p2__,f2_],q_,ch[p1__,f1_]],
+ch\[Psi][f2_,q_,f1_],ch\[Psi][f2_,q_,ch[p1__,f1_]],ch\[Psi][ch[p2__,f2_],q_,f1_],ch\[Psi][ch[p2__,f2_],q_,ch[p1__,f1_]],
 ch\[Psi][f1_,q_,f2_],ch\[Psi][ch[p1__,f1_],q_,f2_],ch\[Psi][f1_,q_,ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],q_,ch[p2__,f2_]]};
+bilinearSign={1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,-1,1,1,1,1};
+spinor2to4=MapThread[RuleDelayed,{bilinear2com,bilinearSign*bilinear4com/.x_Pattern:>x[[1]]}];
+spinor4to2=MapThread[RuleDelayed,{bilinear4com,bilinearSign*bilinear2com/.x_Pattern:>x[[1]]}];
 
-transform[ope_, OptionsPattern[]] := Module[{Dcon, l2t, fieldlist, model, type, fer,spinor2to4},
+transform[ope_, OptionsPattern[]] := Module[{Dcon, l2t, model, type, fer, fieldlist, result=ope,fieldrename=<||>},
 If[OptionValue[Dcontract], Dcon = Flatten[{Dcontract1, Dcontract2}], Dcon = {}];
 If[OptionValue[final], l2t = listtotime, l2t = {}];
-If[OptionValue[ReplaceField] === {}, Return[ope //. Dcon //. l2t],
+If[OptionValue[ReplaceField] === {}, Return[ope //. Dcon //. l2t]];
 {model, type, fer} = OptionValue[ReplaceField];
-fieldlist = CheckType[model,type,Counting->False]; 
-spinor2to4=MapThread[RuleDelayed,{bilinear2com,bilinear4com/.x_Pattern:>x[[1]]}];
-Switch[fer,
+fieldlist = CheckType[model,type,Counting->False];
+If[fer==4,AssociateTo[fieldrename,Weyl2Dirac]; (* assign fermion renaming dictionary *)
+result=result//.{\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[\[Sigma] |  OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]}//. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]} (* change \[Sigma] matrices to \[Gamma] matrices *)
+];
+result//.Dcon//.groupindex[model,fieldlist,FieldRename->fieldrename]//.l2t
+]
+(*Switch[fer,
 4,(* four-component fermions *)
 ope //. {\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[\[Sigma] |  OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]}//. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}
 //. Dcon //. groupindex[model, fieldlist,FieldRename->Weyl2Dirac] /.spinor2to4//. l2t,
 2,(* two-component fermions *)
 ope //. Dcon //. groupindex[model, fieldlist] //. l2t]]
-]
+*)
 Options[transform] = {final -> True, Dcontract -> True, ReplaceField -> {}}; 
 
 Oper[A_, n_, OptionsPattern[]] := transform[OperPoly[A, n, LorForm -> OptionValue[LorForm]],
@@ -1655,7 +1662,37 @@ FLAVOR={"p"}\[Union]Alphabet[][[18;;-1]];
 
 
 (* ::Input::Initialization:: *)
-Weyl2Dirac=<| "Q" -> "q","Q\[Dagger]" -> OverBar["q"], "uc" -> OverBar["u"],"uc\[Dagger]"->"u", "dc" -> OverBar["d"],"dc\[Dagger]"->"d", "ec" -> OverBar["e"],"ec\[Dagger]"->"e", "L" -> "l", "L\[Dagger]" -> OverBar["l"]|>;
+Weyl2Dirac=<|"Q"->"q","Q\[Dagger]"->\!\(\*
+TagBox[
+StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(q\\), \\(_\\)]\\)\>\"",
+ShowSpecialCharacters->False,
+ShowStringCharacters->True,
+NumberMarks->True],
+FullForm]\),"uc"->\!\(\*
+TagBox[
+StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(u\\), \\(_\\)]\\)\>\"",
+ShowSpecialCharacters->False,
+ShowStringCharacters->True,
+NumberMarks->True],
+FullForm]\),"uc\[Dagger]"->"u","dc"->\!\(\*
+TagBox[
+StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(d\\), \\(_\\)]\\)\>\"",
+ShowSpecialCharacters->False,
+ShowStringCharacters->True,
+NumberMarks->True],
+FullForm]\),"dc\[Dagger]"->"d","ec"->\!\(\*
+TagBox[
+StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(e\\), \\(_\\)]\\)\>\"",
+ShowSpecialCharacters->False,
+ShowStringCharacters->True,
+NumberMarks->True],
+FullForm]\),"ec\[Dagger]"->"e","L"->"l","L\[Dagger]"->\!\(\*
+TagBox[
+StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\>\"",
+ShowSpecialCharacters->False,
+ShowStringCharacters->True,
+NumberMarks->True],
+FullForm]\)|>;
 
 
 (* ::Input::Initialization:: *)
