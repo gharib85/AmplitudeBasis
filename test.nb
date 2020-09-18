@@ -10,17 +10,17 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[    141181,       3298]
-NotebookOptionsPosition[    137618,       3232]
-NotebookOutlinePosition[    137992,       3248]
-CellTagsIndexPosition[    137949,       3245]
+NotebookDataLength[    302110,       7211]
+NotebookOptionsPosition[    288206,       7029]
+NotebookOutlinePosition[    288575,       7045]
+CellTagsIndexPosition[    288532,       7042]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
 Cell[BoxData["Exit"], "Input",
  CellChangeTimes->{{3.8077822427314253`*^9, 3.807782243242146*^9}},
- CellLabel->"In[26]:=",ExpressionUUID->"86f0e2bb-59f3-4843-ac31-0ba346eb986c"],
+ CellLabel->"In[10]:=",ExpressionUUID->"86f0e2bb-59f3-4843-ac31-0ba346eb986c"],
 
 Cell[CellGroupData[{
 
@@ -33,8 +33,7 @@ Cell[BoxData[
    3.80785017787072*^9, {3.807850284663167*^9, 3.807850289494253*^9}},
  CellLabel->"In[1]:=",ExpressionUUID->"df6cc513-5992-4b56-802f-1e63bfb91837"],
 
-Cell[BoxData["\<\"C:\\\\Users\\\\jerry\\\\Git\\\\AmplitudeBasis\"\>"], \
-"Output",
+Cell[BoxData["\<\"/Users/Jerry/Documents/git/AmplitudeBasis\"\>"], "Output",
  CellChangeTimes->{
   3.807782776598729*^9, 3.807782930664781*^9, 3.807783065487377*^9, 
    3.807783206604755*^9, 3.807783252469243*^9, 3.807783411414812*^9, 
@@ -83,8 +82,8 @@ Cell[BoxData["\<\"C:\\\\Users\\\\jerry\\\\Git\\\\AmplitudeBasis\"\>"], \
    3.809217207377475*^9, {3.809217268379321*^9, 3.8092172763521137`*^9}, 
    3.809218846544757*^9, 3.809219146639757*^9, 3.809221540001565*^9, 
    3.809232313233026*^9, 3.8092326195729103`*^9, 3.8092330521101294`*^9, 
-   3.809233877666795*^9},
- CellLabel->"Out[1]=",ExpressionUUID->"64bbd6e0-5d97-47c9-b37c-f7ced467aa30"]
+   3.809233877666795*^9, {3.8093928427333803`*^9, 3.8093928495857162`*^9}},
+ CellLabel->"Out[1]=",ExpressionUUID->"9e0d51de-9b73-41d1-8715-e8dca23b16fa"]
 }, Open  ]],
 
 Cell[BoxData[
@@ -98,6 +97,13 @@ Cell[BoxData[
 Cell[CellGroupData[{
 
 Cell["Example", "Subsection",ExpressionUUID->"eb721b37-d0a8-4122-b8cb-c729b286f84c"],
+
+Cell[CellGroupData[{
+
+Cell["SMEFT", "Subsubsection",
+ CellChangeTimes->{{3.809392857391884*^9, 
+  3.8093928779498377`*^9}},ExpressionUUID->"65388917-30e9-422d-827d-\
+880610291599"],
 
 Cell[BoxData[
  RowBox[{
@@ -387,10 +393,10 @@ Cell[BoxData[
  InterpretationBox[
   RowBox[{"\<\"Evaluating class: \"\>", "\[InvisibleSpace]", 
    DynamicBox[ToBoxes[AmplitudeBasis`class$122107, StandardForm],
-    ImageSizeCache->{16., {2., 14.}}], "\[InvisibleSpace]", "\<\" (\"\>", 
+    ImageSizeCache->{243., {3., 12.}}], "\[InvisibleSpace]", "\<\" (\"\>", 
    "\[InvisibleSpace]", 
    DynamicBox[ToBoxes[AmplitudeBasis`iter$122107, StandardForm],
-    ImageSizeCache->{8., {0., 10.}}], "\[InvisibleSpace]", "\<\"/\"\>", 
+    ImageSizeCache->{99., {2., 12.}}], "\[InvisibleSpace]", "\<\"/\"\>", 
    "\[InvisibleSpace]", "9", "\[InvisibleSpace]", "\<\")\"\>"}],
   SequenceForm["Evaluating class: ", 
    Dynamic[AmplitudeBasis`class$122107], " (", 
@@ -721,6 +727,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(e\\), \\(_\\)]\\)\\), \\(p\\), \
 \\(\\)]\\)\\), \\(\\), \\(\\)]\\)\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
+              
               HoldForm], ")"}], " ", 
             RowBox[{"(", 
              TagBox[
@@ -742,6 +749,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(u\\), \\(_\\)]\\)\\), \\(t\\), \
 \\(\\)]\\)\\), \\(\\), \\(b\\)]\\)\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
+              
               HoldForm], ")"}], " ", 
             RowBox[{"(", 
              TagBox[
@@ -981,6 +989,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(e\\), \\(_\\)]\\)\\), \\(p\\), \
                SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], "\<\"\[Nu]\"\>"], 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
+             
              HoldForm], ")"}], " ", 
            
            TemplateBox[{
@@ -1070,6 +1079,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(e\\), \\(_\\)]\\)\\), \\(p\\), \
                SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], "\<\"\[Nu]\"\>"], 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
+             
              HoldForm], ")"}], " ", 
            
            TemplateBox[{
@@ -1125,6 +1135,7 @@ SubsuperscriptBox[\\(l\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
             
             SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(WL\\), \\(\\), \
 \\(I\\)]\\)\"\>", "\<\"\[Mu]\"\>"], "\<\"\[Nu]\"\>"], " ", 
+           
            TemplateBox[{
             TemplateBox[{
               "\"\\!\\(\\*SubsuperscriptBox[\\(WL\\), \\(\\), \\(J\\)]\\)\"", 
@@ -1281,6 +1292,7 @@ SubsuperscriptBox[\\(q\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(bj\\)]\\)\"\>"}],
                RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(q\\), \\(_\\)]\\)\\), \\(s\\), \
 \\(\\)]\\)\\), \\(\\), \\(ck\\)]\\)\"\>", " ", "\<\"C\"\>", 
+                
                 " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(q\\), \\(_\\)]\\)\\), \\(t\\), \
 \\(\\)]\\)\\), \\(\\), \\(dl\\)]\\)\"\>"}],
@@ -1332,6 +1344,7 @@ SubsuperscriptBox[\\(e\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(\\)]\\)\"\>",
               " ", "\<\"C\"\>", 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(c\\)]\\)\"\>"}],
+             
              HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"Q\"\>", " ", "\<\"Q\[Dagger]\"\>", " ", "\<\"uc\"\>", 
@@ -1359,6 +1372,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(q\\), \\(_\\)]\\)\\), \\(s\\), \
 \\(\\)]\\)\\), \\(\\), \\(cj\\)]\\)\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(d\\)]\\)\"\>"}],
+              
               HoldForm], ")"}]}], ",", 
            RowBox[{
             RowBox[{"(", 
@@ -1378,6 +1392,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(q\\), \\(_\\)]\\)\\), \\(s\\), \
 \\(\\)]\\)\\), \\(\\), \\(cj\\)]\\)\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(d\\)]\\)\"\>"}],
+              
               HoldForm], ")"}]}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"dc\"\>", " ", "\<\"dc\[Dagger]\"\>", " ", "\<\"Q\"\>", 
@@ -1396,6 +1411,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(q\\), \\(_\\)]\\)\\), \\(t\\), \
 \\(\\)]\\)\\), \\(\\), \\(dj\\)]\\)\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(d\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(c\\)]\\)\"\>"}],
+              
               HoldForm], ")"}], " ", 
             RowBox[{"(", 
              TagBox[
@@ -1415,6 +1431,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(q\\), \\(_\\)]\\)\\), \\(t\\), \
 \\(\\)]\\)\\), \\(\\), \\(dj\\)]\\)\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(d\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(c\\)]\\)\"\>"}],
+              
               HoldForm], ")"}], " ", 
             RowBox[{"(", 
              TagBox[
@@ -1529,6 +1546,7 @@ SubsuperscriptBox[\\(d\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(b\\)]\\)\"\>",
               " ", "\<\"C\"\>", 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(c\\)]\\)\"\>"}],
+             
              HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"ec\"\>", " ", "\<\"ec\[Dagger]\"\>", " ", "\<\"Q\"\>", 
@@ -1589,6 +1607,7 @@ SubsuperscriptBox[\\(u\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(c\\)]\\)\"\>",
                " ", "\<\"C\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(d\\)]\\)\"\>"}],
+              
               HoldForm], ")"}]}], "}"}]}], ",", 
          RowBox[{
           RowBox[{"{", 
@@ -1619,6 +1638,7 @@ SubsuperscriptBox[\\(u\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(c\\)]\\)\"\>",
                " ", "\<\"C\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(d\\)]\\)\"\>"}],
+              
               HoldForm], ")"}]}], "}"}]}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"dc\"\>", " ", "\<\"dc\[Dagger]\"\>", " ", "\<\"uc\"\>", 
@@ -1647,6 +1667,7 @@ SubsuperscriptBox[\\(d\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(c\\)]\\)\"\>",
                " ", "\<\"C\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(d\\)]\\)\"\>"}],
+              
               HoldForm], ")"}]}], ",", 
            RowBox[{
             RowBox[{"(", 
@@ -1667,6 +1688,7 @@ SubsuperscriptBox[\\(d\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(c\\)]\\)\"\>",
                " ", "\<\"C\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(d\\)]\\)\"\>"}],
+              
               HoldForm], ")"}]}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"L\"\>", " ", "\<\"L\[Dagger]\"\>", " ", "\<\"uc\"\>", 
@@ -1684,6 +1706,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(u\\), \\(_\\)]\\)\\), \\(r\\), \
 \\(\\)]\\)\\), \\(\\), \\(a\\)]\\)\"\>", 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(p\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
+             
              HoldForm], ")"}], " ", 
            RowBox[{"(", 
             TagBox[
@@ -1693,6 +1716,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\), \\(s\\), \
 \\(\\)]\\)\\), \\(\\), \\(j\\)]\\)\"\>", 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(b\\)]\\)\"\>"}],
+             
              HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"ec\"\>", " ", "\<\"ec\[Dagger]\"\>", " ", "\<\"uc\"\>", 
@@ -1720,6 +1744,7 @@ SubsuperscriptBox[\\(e\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(\\)]\\)\"\>",
               " ", "\<\"C\"\>", 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(b\\)]\\)\"\>"}],
+             
              HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{
@@ -1744,6 +1769,7 @@ SubsuperscriptBox[\\(d\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(c\\)]\\)\"\>",
                " ", "\<\"C\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(d\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(d\\)]\\)\"\>"}],
+              
               HoldForm], ")"}], " ", 
             RowBox[{"(", 
              TagBox[
@@ -1774,6 +1800,7 @@ SubsuperscriptBox[\\(d\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(c\\)]\\)\"\>",
                " ", "\<\"C\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(d\\), \\(t\\), \\(\\)]\\)\\), \\(\\), \\(d\\)]\\)\"\>"}],
+              
               HoldForm], ")"}], " ", 
             RowBox[{"(", 
              TagBox[
@@ -1801,6 +1828,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\), \\(t\\), \
 \\(\\)]\\)\\), \\(\\), \\(j\\)]\\)\"\>", 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(d\\), \\(s\\), \\(\\)]\\)\\), \\(\\), \\(b\\)]\\)\"\>"}],
+             
              HoldForm], ")"}], " ", 
            RowBox[{"(", 
             TagBox[
@@ -1810,6 +1838,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(d\\), \\(_\\)]\\)\\), \\(p\\), \
 \\(\\)]\\)\\), \\(\\), \\(a\\)]\\)\"\>", 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
+             
              HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"dc\"\>", " ", "\<\"dc\[Dagger]\"\>", " ", "\<\"ec\"\>", 
@@ -1861,6 +1890,7 @@ SubsuperscriptBox[\\(l\\), \\(p\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>",
                " ", "\<\"C\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(j\\)]\\)\"\>"}],
+              
               HoldForm], ")"}], " ", 
             RowBox[{"(", 
              TagBox[
@@ -1891,6 +1921,7 @@ SubsuperscriptBox[\\(l\\), \\(p\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>",
                " ", "\<\"C\"\>", 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(j\\)]\\)\"\>"}],
+              
               HoldForm], ")"}], " ", 
             RowBox[{"(", 
              TagBox[
@@ -1927,6 +1958,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(e\\), \\(_\\)]\\)\\), \\(p\\), \
 \\(\\)]\\)\\), \\(\\), \\(\\)]\\)\"\>", 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
+             
              HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{
@@ -2007,6 +2039,7 @@ SubsuperscriptBox[\\(q\\), \\(p\\), \\(\\)]\\)\\), \\(\\), \\(ai\\)]\\)\"\>"}],
               RowBox[{
                TemplateBox[{"D","\"\[Mu]\""},
                 "Superscript"], 
+               
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(H\[Dagger]\\), \\(\\), \
 \\(k\\)]\\)\"\>"}],
               HoldForm], ")"}], " ", 
@@ -2055,6 +2088,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(u\\), \\(_\\)]\\)\\), \\(p\\), \
               SubscriptBox["\[Gamma]", "\<\"\[Mu]\"\>"], 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(d\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(b\\)]\\)\"\>"}],
+             
              HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"D\"\>", " ", "\<\"H\"\>", " ", "\<\"H\[Dagger]\"\>", 
@@ -2084,6 +2118,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(u\\), \\(_\\)]\\)\\), \\(p\\), \
               SubscriptBox["\[Gamma]", "\<\"\[Mu]\"\>"], 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(u\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(b\\)]\\)\"\>"}],
+             
              HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"D\"\>", " ", "\<\"dc\"\>", " ", "\<\"dc\[Dagger]\"\>", 
@@ -2113,6 +2148,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(d\\), \\(_\\)]\\)\\), \\(p\\), \
               SubscriptBox["\[Gamma]", "\<\"\[Mu]\"\>"], 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(d\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(b\\)]\\)\"\>"}],
+             
              HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"D\"\>", " ", "\<\"H\"\>", " ", "\<\"H\[Dagger]\"\>", 
@@ -2143,6 +2179,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\), \\(r\\), \
                SubscriptBox["\[Gamma]", "\<\"\[Mu]\"\>"], 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(p\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
+              
               HoldForm], ")"}]}], ",", 
            RowBox[{
             RowBox[{"-", "\[ImaginaryI]"}], 
@@ -2165,6 +2202,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\), \\(r\\), \
                SubscriptBox["\[Gamma]", "\<\"\[Mu]\"\>"], 
                " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(p\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
+              
               HoldForm], ")"}]}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
       RowBox[{
        RowBox[{"\<\"D\"\>", " ", "\<\"ec\"\>", " ", "\<\"ec\[Dagger]\"\>", 
@@ -2220,7 +2258,6 @@ SubsuperscriptBox[\\(e\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(\\)]\\)\"\>"}],
             TagBox[
              RowBox[{
               SubscriptBox["D", "\<\"\[Mu]\"\>"], 
-              
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(H\[Dagger]\\), \\(\\), \
 \\(k\\)]\\)\"\>"}],
              HoldForm], ")"}], " ", 
@@ -2348,6 +2385,7 @@ SubsuperscriptBox[\\(\\!\\(\\*OverscriptBox[\\(e\\), \\(_\\)]\\)\\), \\(p\\), \
 \\(\\)]\\)\\), \\(\\), \\(\\)]\\)\"\>", 
               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\\!\\(\\*\
 SubsuperscriptBox[\\(l\\), \\(r\\), \\(\\)]\\)\\), \\(\\), \\(i\\)]\\)\"\>"}],
+             
              HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}]}], 
      "\[RightAssociation]"}]}], ",", 
    RowBox[{
@@ -2408,10 +2446,10 @@ Cell[BoxData[
  InterpretationBox[
   RowBox[{"\<\"Evaluating class: \"\>", "\[InvisibleSpace]", 
    DynamicBox[ToBoxes[AmplitudeBasis`class$52592, StandardForm],
-    ImageSizeCache->{88., {2., 11.}}], "\[InvisibleSpace]", "\<\" (\"\>", 
+    ImageSizeCache->{99., {2., 12.}}], "\[InvisibleSpace]", "\<\" (\"\>", 
    "\[InvisibleSpace]", 
    DynamicBox[ToBoxes[AmplitudeBasis`iter$52592, StandardForm],
-    ImageSizeCache->{80., {2., 11.}}], "\[InvisibleSpace]", "\<\"/\"\>", 
+    ImageSizeCache->{90., {2., 12.}}], "\[InvisibleSpace]", "\<\"/\"\>", 
    "\[InvisibleSpace]", "15", "\[InvisibleSpace]", "\<\")\"\>"}],
   SequenceForm["Evaluating class: ", 
    Dynamic[AmplitudeBasis`class$52592], " (", 
@@ -3113,6 +3151,3765 @@ SubsuperscriptBox[\\(\[Tau]\\), \\(\\), \\(I\\)]\\)\\), \\(n\\), \
    3.809152695695055*^9},
  CellLabel->"Out[73]=",ExpressionUUID->"e61ff662-18b2-4b24-a128-34a77060ab07"]
 }, Open  ]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Other Model", "Subsubsection",
+ CellChangeTimes->{{3.809392892626513*^9, 
+  3.809392901757702*^9}},ExpressionUUID->"747425ed-ad4d-4b87-a1c8-\
+d1751815b654"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"LEFTFUND", "=", 
+   RowBox[{"{", 
+    RowBox[{
+    "\"\<i\>\"", ",", "\"\<j\>\"", ",", "\"\<k\>\"", ",", "\"\<l\>\"", ",", 
+     "\"\<m\>\"", ",", "\"\<n\>\""}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"RIGHTFUND", "=", 
+   RowBox[{"{", 
+    RowBox[{
+    "\"\<\!\(\*OverscriptBox[\(i\), \(_\)]\)\>\"", ",", 
+     "\"\<\!\(\*OverscriptBox[\(j\), \(_\)]\)\>\"", ",", 
+     "\"\<\!\(\*OverscriptBox[\(k\), \(_\)]\)\>\"", ",", 
+     "\"\<\!\(\*OverscriptBox[\(l\), \(_\)]\)\>\"", ",", 
+     "\"\<\!\(\*OverscriptBox[\(m\), \(_\)]\)\>\"", ",", 
+     "\"\<\!\(\*OverscriptBox[\(n\), \(_\)]\)\>\""}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"LEFTADJ", "=", 
+   RowBox[{"{", 
+    RowBox[{"\"\<I\>\"", ",", "\"\<J\>\"", ",", "\"\<K\>\""}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"RIGHTADJ", "=", 
+   RowBox[{"{", 
+    RowBox[{
+    "\"\<\!\(\*OverscriptBox[\(I\), \(_\)]\)\>\"", ",", 
+     "\"\<\!\(\*OverscriptBox[\(J\), \(_\)]\)\>\"", ",", 
+     "\"\<\!\(\*OverscriptBox[\(K\), \(_\)]\)\>\""}], "}"}]}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.809393143605673*^9, 3.8093932739445133`*^9}},
+ CellLabel->"In[3]:=",ExpressionUUID->"7ff7aa61-825a-49fd-ac8e-ecc1622efcdb"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Define", " ", "New", " ", "Model"}], " ", "*)"}], "\n", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"Clear", "[", "DefModel", "]"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"SetAttributes", "[", 
+     RowBox[{"DefModel", ",", "HoldFirst"}], "]"}], ";"}], "\n", 
+   RowBox[{
+    RowBox[{"DefModel", "[", "model_", "]"}], ":=", 
+    RowBox[{"Module", "[", 
+     RowBox[{
+      RowBox[{"{", "}"}], ",", "\n", 
+      RowBox[{
+       RowBox[{"model", "=", 
+        RowBox[{"<|", 
+         RowBox[{"Global", "->", 
+          RowBox[{"{", "}"}]}], "|>"}]}], ";", 
+       RowBox[{"rep2ind", "=", 
+        RowBox[{"<|", "|>"}]}], ";", 
+       RowBox[{"rep2indOut", "=", 
+        RowBox[{"<|", "|>"}]}], ";", "\n", 
+       RowBox[{"AddGroup", "[", 
+        RowBox[{"model", ",", "\"\<SU2l\>\"", ",", "\"\<U\>\"", ",", 
+         RowBox[{"{", "}"}], ",", 
+         RowBox[{"<|", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"{", "0", "}"}], "->", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"Function", "[", 
+               RowBox[{"x", ",", "Nothing"}], "]"}], ",", 
+              RowBox[{"{", "}"}]}], "}"}]}], ",", 
+           RowBox[{
+            RowBox[{"{", "1", "}"}], "->", 
+            RowBox[{"{", 
+             RowBox[{"a", ",", "LEFTFUND"}], "}"}]}], ",", 
+           RowBox[{
+            RowBox[{"{", "2", "}"}], "->", 
+            RowBox[{"{", 
+             RowBox[{"A", ",", "LEFTADJ"}], "}"}]}]}], "|>"}]}], "]"}], ";", 
+       "\n", 
+       RowBox[{"AddGroup", "[", 
+        RowBox[{"model", ",", "\"\<SU2r\>\"", ",", "\"\<V\>\"", ",", 
+         RowBox[{"{", "}"}], ",", 
+         RowBox[{"<|", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"{", "0", "}"}], "->", 
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{"Function", "[", 
+               RowBox[{"x", ",", "Nothing"}], "]"}], ",", 
+              RowBox[{"{", "}"}]}], "}"}]}], ",", 
+           RowBox[{
+            RowBox[{"{", "1", "}"}], "->", 
+            RowBox[{"{", 
+             RowBox[{"a", ",", "RIGHTFUND"}], "}"}]}], ",", 
+           RowBox[{
+            RowBox[{"{", "2", "}"}], "->", 
+            RowBox[{"{", 
+             RowBox[{"A", ",", "RIGHTADJ"}], "}"}]}]}], "|>"}]}], "]"}], ";", 
+       "\n", 
+       RowBox[{"AddField", "[", 
+        RowBox[{"model", ",", "\"\<ql\>\"", ",", 
+         RowBox[{
+          RowBox[{"-", "1"}], "/", "2"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", "1", "}"}], ",", 
+           RowBox[{"{", "0", "}"}]}], "}"}], ",", 
+         RowBox[{"{", "}"}], ",", 
+         RowBox[{"Chirality", "->", 
+          RowBox[{"{", 
+           RowBox[{"\"\<ql\>\"", ",", "\"\<left\>\""}], "}"}]}]}], "]"}], ";",
+        "\n", 
+       RowBox[{"AddField", "[", 
+        RowBox[{"model", ",", "\"\<qr\>\"", ",", 
+         RowBox[{
+          RowBox[{"-", "1"}], "/", "2"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", "0", "}"}], ",", 
+           RowBox[{"{", "1", "}"}]}], "}"}], ",", 
+         RowBox[{"{", "}"}], ",", 
+         RowBox[{"Chirality", "->", 
+          RowBox[{"{", 
+           RowBox[{"\"\<qr\>\"", ",", "\"\<right\>\""}], "}"}]}]}], "]"}], 
+       ";", "\n", 
+       RowBox[{"AddField", "[", 
+        RowBox[{"model", ",", "\"\<Hl\>\"", ",", "0", ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", "1", "}"}], ",", 
+           RowBox[{"{", "0", "}"}]}], "}"}], ",", 
+         RowBox[{"{", "}"}]}], "]"}], ";", "\n", 
+       RowBox[{"AddField", "[", 
+        RowBox[{"model", ",", "\"\<Hr\>\"", ",", "0", ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", "0", "}"}], ",", 
+           RowBox[{"{", "1", "}"}]}], "}"}], ",", 
+         RowBox[{"{", "}"}]}], "]"}]}]}], "\n", "]"}]}]}]}]], "Input",
+ CellChangeTimes->{{3.809393034611546*^9, 3.809393128727746*^9}, {
+  3.809393282538768*^9, 3.8093934216458693`*^9}, {3.8093934527192497`*^9, 
+  3.809393506928225*^9}, {3.809393555507976*^9, 3.809393570145918*^9}},
+ CellLabel->"In[10]:=",ExpressionUUID->"90f79b1e-fd7d-405b-8625-18ae2296d99a"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"DefModel", "[", "Model", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.809393535731731*^9, 3.809393541488456*^9}},
+ CellLabel->"In[13]:=",ExpressionUUID->"90736950-4baf-4b8a-a0f7-bff5f5a3c8ea"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"GenerateOperatorList", "[", 
+  RowBox[{"Model", ",", "6"}], "]"}]], "Input",
+ CellChangeTimes->{{3.80939357571737*^9, 3.8093935860491943`*^9}},
+ CellLabel->"In[14]:=",ExpressionUUID->"55435aaf-01c1-46ad-8f7c-507870f540df"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"Generating types of operators ...\"\>"], "Print",
+ CellChangeTimes->{3.80939358720151*^9},
+ CellLabel->
+  "During evaluation of \
+In[14]:=",ExpressionUUID->"c748dc7b-1e3c-49dd-89ff-1187025f3ffd"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Evaluating class: \"\>", "\[InvisibleSpace]", 
+   DynamicBox[ToBoxes[AmplitudeBasis`class$13107, StandardForm],
+    ImageSizeCache->{17., {2., 15.}}], "\[InvisibleSpace]", "\<\" (\"\>", 
+   "\[InvisibleSpace]", 
+   DynamicBox[ToBoxes[AmplitudeBasis`iter$13107, StandardForm],
+    ImageSizeCache->{9., {1., 10.}}], "\[InvisibleSpace]", "\<\"/\"\>", 
+   "\[InvisibleSpace]", "9", "\[InvisibleSpace]", "\<\")\"\>"}],
+  SequenceForm["Evaluating class: ", 
+   Dynamic[AmplitudeBasis`class$13107], " (", 
+   Dynamic[AmplitudeBasis`iter$13107], "/", 9, ")"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393587599043*^9},
+ CellLabel->
+  "During evaluation of \
+In[14]:=",ExpressionUUID->"b6326031-f28a-4dc2-a3cd-a8d1f9a7eee5"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Time spent: \"\>", "\[InvisibleSpace]", 
+   "17.129206`7.384252230160578"}],
+  SequenceForm["Time spent: ", 17.129206`7.384252230160578],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393604325778*^9},
+ CellLabel->
+  "During evaluation of \
+In[14]:=",ExpressionUUID->"43be3843-9bd7-4093-8840-8fc04d714b96"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{
+    SuperscriptBox["FL", "3"], "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", 
+     RowBox[{
+      RowBox[{
+       SuperscriptBox["\<\"UL\"\>", "3"], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(IJK\\)]\\)\"\>", " ", 
+           SubscriptBox[
+            
+            SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \
+\\(I\\)]\\)\"\>", "\<\"\[Mu]\"\>"], "\<\"\[Nu]\"\>"], " ", 
+           SubscriptBox[
+            
+            TemplateBox[{
+             "\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \\(J\\)]\\)\"",
+              "\"\[Mu]\""},
+             "Superscript"], "\<\"\[Lambda]\"\>"], " ", 
+           
+           TemplateBox[{
+            TemplateBox[{
+              "\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \\(K\\)]\\)\"", 
+               "\"\[Nu]\""}, "Superscript", SyntaxForm -> SuperscriptBox],
+             "\"\[Lambda]\""},
+            "Superscript"]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       SuperscriptBox["\<\"VL\"\>", "3"], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\nI_\\nJ_\\nK\\)]\\)\"\>", " ", 
+           SubscriptBox[
+            
+            SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(I\\), \\(_\\)]\\)\\)]\\)\"\>", "\<\"\[Mu]\"\>"], \
+"\<\"\[Nu]\"\>"], " ", 
+           SubscriptBox[
+            
+            TemplateBox[{
+             "\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(J\\), \\(_\\)]\\)\\)]\\)\"","\"\[Mu]\""},
+             "Superscript"], "\<\"\[Lambda]\"\>"], " ", 
+           
+           TemplateBox[{
+            TemplateBox[{
+              "\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(K\\), \\(_\\)]\\)\\)]\\)\"", "\"\[Nu]\""}, 
+              "Superscript", SyntaxForm -> SuperscriptBox],"\"\[Lambda]\""},
+            "Superscript"]}], "}"}]}], "\[RightAssociation]"}]}]}], 
+     "\[RightAssociation]"}]}], ",", 
+   RowBox[{
+    SuperscriptBox["\[Psi]", "4"], "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", 
+     RowBox[{
+      RowBox[{
+       SuperscriptBox["\<\"ql\"\>", "4"], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ik\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(jl\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(j\\)]\
+\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(k\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(l\\)]\
+\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"ql\"\>", "2"], " ", 
+        SuperscriptBox["\<\"qr\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nj\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ij\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(j\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       SuperscriptBox["\<\"qr\"\>", "4"], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nk\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\nj_\\nl\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}]}], 
+     "\[RightAssociation]"}]}], ",", 
+   RowBox[{
+    RowBox[{"FL", " ", "\[Phi]", " ", 
+     SuperscriptBox["\[Psi]", "2"]}], "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", "\[RightAssociation]"}]}], ",", 
+   RowBox[{
+    RowBox[{
+     SuperscriptBox["FL", "2"], " ", 
+     SuperscriptBox["\[Phi]", "2"]}], "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"\<\"Hl\"\>", " ", "\<\"Hl\[Dagger]\"\>", " ", 
+        SuperscriptBox["\<\"UL\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>", " ", 
+           SubscriptBox[
+            
+            SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \
+\\(I\\)]\\)\"\>", "\<\"\[Mu]\"\>"], "\<\"\[Nu]\"\>"], " ", 
+           
+           TemplateBox[{
+            TemplateBox[{
+              "\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \\(J\\)]\\)\"", 
+               "\"\[Mu]\""}, "Superscript", SyntaxForm -> SuperscriptBox],
+             "\"\[Nu]\""},
+            "Superscript"]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"Hr\"\>", " ", "\<\"Hr\[Dagger]\"\>", " ", 
+        SuperscriptBox["\<\"UL\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+           SubscriptBox[
+            
+            SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \
+\\(I\\)]\\)\"\>", "\<\"\[Mu]\"\>"], "\<\"\[Nu]\"\>"], " ", 
+           
+           TemplateBox[{
+            TemplateBox[{
+              "\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \\(J\\)]\\)\"", 
+               "\"\[Mu]\""}, "Superscript", SyntaxForm -> SuperscriptBox],
+             "\"\[Nu]\""},
+            "Superscript"]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"Hl\"\>", " ", "\<\"Hl\[Dagger]\"\>", " ", 
+        SuperscriptBox["\<\"VL\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>", " ", 
+           SubscriptBox[
+            
+            SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(I\\), \\(_\\)]\\)\\)]\\)\"\>", "\<\"\[Mu]\"\>"], \
+"\<\"\[Nu]\"\>"], " ", 
+           
+           TemplateBox[{
+            TemplateBox[{
+              "\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(J\\), \\(_\\)]\\)\\)]\\)\"", "\"\[Mu]\""}, 
+              "Superscript", SyntaxForm -> SuperscriptBox],"\"\[Nu]\""},
+            "Superscript"]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"Hr\"\>", " ", "\<\"Hr\[Dagger]\"\>", " ", 
+        SuperscriptBox["\<\"VL\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+           SubscriptBox[
+            
+            SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(I\\), \\(_\\)]\\)\\)]\\)\"\>", "\<\"\[Mu]\"\>"], \
+"\<\"\[Nu]\"\>"], " ", 
+           
+           TemplateBox[{
+            TemplateBox[{
+              "\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(J\\), \\(_\\)]\\)\\)]\\)\"", "\"\[Mu]\""}, 
+              "Superscript", SyntaxForm -> SuperscriptBox],"\"\[Nu]\""},
+            "Superscript"]}], "}"}]}], "\[RightAssociation]"}]}]}], 
+     "\[RightAssociation]"}]}], ",", 
+   RowBox[{
+    RowBox[{
+     SuperscriptBox["\[Psi]", "2"], " ", 
+     SuperscriptBox[
+      OverscriptBox["\[Psi]", "_"], "2"]}], "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"ql\"\>", "2"], " ", 
+        SuperscriptBox["\<\"ql\[Dagger]\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(j\\)]\
+\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \
+\\(\\), \\(k\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"ql\"\>", " ", "\<\"ql\[Dagger]\"\>", " ", "\<\"qr\"\>", 
+        " ", "\<\"qr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \
+\\(\\), \\(j\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"qr\"\>", "2"], " ", 
+        SuperscriptBox["\<\"qr\[Dagger]\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \
+\\(\\), \\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>", 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}]}], 
+     "\[RightAssociation]"}]}], ",", 
+   RowBox[{
+    RowBox[{"D", " ", 
+     SuperscriptBox["\[Phi]", "2"], " ", "\[Psi]", " ", 
+     OverscriptBox["\[Psi]", "_"]}], "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", 
+        SuperscriptBox["\<\"Hl\"\>", "2"], " ", "\<\"ql\"\>", 
+        " ", "\<\"ql\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"-", "\[ImaginaryI]"}], 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\
+\"\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ik\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(k\\)]\
+\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", " ", 
+              SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", "\<\"Hl\"\>", " ", "\<\"Hl\[Dagger]\"\>", 
+        " ", "\<\"ql\"\>", " ", "\<\"ql\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{
+           "\[ImaginaryI]", 
+            " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(j\\)]\\)\"\>", " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               TemplateBox[{"D","\"\[Mu]\""},
+                "Superscript"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \
+\\(\\), \\(k\\)]\\)\"\>"}],
+              HoldForm], ")"}], " ", 
+            RowBox[{"(", 
+             TagBox[
+              
+              RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", " ", 
+               SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \
+\\(\\), \\(l\\)]\\)\"\>"}],
+              HoldForm], ")"}]}], ",", 
+           RowBox[{
+           "\[ImaginaryI]", 
+            " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(j\\)]\\)\"\>", " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               TemplateBox[{"D","\"\[Mu]\""},
+                "Superscript"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \
+\\(\\), \\(k\\)]\\)\"\>"}],
+              HoldForm], ")"}], " ", 
+            RowBox[{"(", 
+             TagBox[
+              
+              RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", " ", 
+               SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \
+\\(\\), \\(l\\)]\\)\"\>"}],
+              HoldForm], ")"}]}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", "\<\"Hl\"\>", " ", "\<\"Hr\"\>", 
+        " ", "\<\"ql\"\>", " ", "\<\"qr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"-", "\[ImaginaryI]"}], 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\
+\"\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ij\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", " ", 
+              SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", "\<\"Hl\"\>", " ", "\<\"Hr\[Dagger]\"\>", 
+        " ", "\<\"ql\"\>", " ", "\<\"qr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", "0", "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", "\<\"Hl\[Dagger]\"\>", " ", "\<\"Hr\"\>", 
+        " ", "\<\"ql\"\>", " ", "\<\"qr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+          "\[ImaginaryI]", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", " ", 
+              SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", "\<\"Hl\[Dagger]\"\>", 
+        " ", "\<\"Hr\[Dagger]\"\>", " ", "\<\"ql\"\>", 
+        " ", "\<\"qr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+          "\[ImaginaryI]", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \
+\\(k_\\ni\\), \\(\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", " ", 
+              SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", 
+        SuperscriptBox["\<\"Hr\"\>", "2"], " ", "\<\"ql\"\>", 
+        " ", "\<\"ql\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+          "\[ImaginaryI]", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nj\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", " ", 
+              SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", "\<\"Hr\"\>", " ", "\<\"Hr\[Dagger]\"\>", 
+        " ", "\<\"ql\"\>", " ", "\<\"ql\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+          "\[ImaginaryI]", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \
+\\(i\\)]\\)\"\>", " ", 
+              SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", 
+        SuperscriptBox["\<\"Hl\"\>", "2"], " ", "\<\"qr\"\>", 
+        " ", "\<\"qr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+          "\[ImaginaryI]", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\
+\"\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ij\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\
+\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+              SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", "\<\"Hl\"\>", " ", "\<\"Hl\[Dagger]\"\>", 
+        " ", "\<\"qr\"\>", " ", "\<\"qr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+          "\[ImaginaryI]", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\
+\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+              SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", 
+        SuperscriptBox["\<\"Hr\"\>", "2"], " ", "\<\"qr\"\>", 
+        " ", "\<\"qr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"-", "\[ImaginaryI]"}], 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nk\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             
+             RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+              SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"D\"\>", " ", "\<\"Hr\"\>", " ", "\<\"Hr\[Dagger]\"\>", 
+        " ", "\<\"qr\"\>", " ", "\<\"qr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{
+           "\[ImaginaryI]", 
+            " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               TemplateBox[{"D","\"\[Mu]\""},
+                "Superscript"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \
+\\(\\), \\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}], " ", 
+            RowBox[{"(", 
+             TagBox[
+              
+              RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+               SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \
+\\(\\), \\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}]}], ",", 
+           RowBox[{
+           "\[ImaginaryI]", 
+            " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               TemplateBox[{"D","\"\[Mu]\""},
+                "Superscript"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \
+\\(\\), \\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}], " ", 
+            RowBox[{"(", 
+             TagBox[
+              
+              RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+               SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \
+\\(\\), \\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}]}]}], "}"}]}], "\[RightAssociation]"}]}]}], 
+     "\[RightAssociation]"}]}], ",", 
+   RowBox[{
+    RowBox[{
+     SuperscriptBox["D", "2"], " ", 
+     SuperscriptBox["\[Phi]", "4"]}], "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hl\"\>", "4"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\
+\"\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ik\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(jl\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(k\\)]\
+\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(l\\)]\
+\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hl\"\>", "3"], " ", "\<\"Hl\[Dagger]\"\>"}], 
+       "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\
+\"\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ik\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(k\\)]\
+\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hl\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hl\[Dagger]\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           
+           RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\
+\\)\"\>", 
+            " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(j\\)]\\)\"\>", " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \
+\\(\\), \\(k\\)]\\)\"\>"}],
+              HoldForm], ")"}], " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               TemplateBox[{"D","\"\[Mu]\""},
+                "Superscript"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \
+\\(\\), \\(l\\)]\\)\"\>"}],
+              HoldForm], ")"}]}], ",", 
+           
+           RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\
+\\)\"\>", 
+            " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(k\\)]\\)\"\>", " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+              HoldForm], ")"}], " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               TemplateBox[{"D","\"\[Mu]\""},
+                "Superscript"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \
+\\(\\), \\(l\\)]\\)\"\>"}],
+              HoldForm], ")"}]}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hl\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hr\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nj\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ij\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\
+\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hl\"\>", "2"], " ", "\<\"Hr\"\>", 
+        " ", "\<\"Hr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ij\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\
+\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hl\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hr\[Dagger]\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", "0", "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", "\<\"Hl\"\>", 
+        " ", "\<\"Hl\[Dagger]\"\>", " ", 
+        SuperscriptBox["\<\"Hr\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nj\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", "\<\"Hl\"\>", 
+        " ", "\<\"Hl\[Dagger]\"\>", " ", "\<\"Hr\"\>", 
+        " ", "\<\"Hr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           
+           RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\
+\\)\"\>", 
+            " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>", " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}], " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               TemplateBox[{"D","\"\[Mu]\""},
+                "Superscript"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \
+\\(\\), \\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}]}], ",", 
+           
+           RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\
+\\)\"\>", 
+            " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \
+\\(\\), \\(j\\)]\\)\"\>"}],
+              HoldForm], ")"}], " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               TemplateBox[{"D","\"\[Mu]\""},
+                "Superscript"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \
+\\(\\), \\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}]}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hr\"\>", "4"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nk\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\nj_\\nl\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hr\"\>", "3"], " ", "\<\"Hr\[Dagger]\"\>"}], 
+       "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nk\\)]\\)\"\>", " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}], " ", 
+           RowBox[{"(", 
+            TagBox[
+             RowBox[{
+              TemplateBox[{"D","\"\[Mu]\""},
+               "Superscript"], 
+              " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+             HoldForm], ")"}]}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"D\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hr\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hr\[Dagger]\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           
+           RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+            " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \
+\\(\\), \\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}], " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               TemplateBox[{"D","\"\[Mu]\""},
+                "Superscript"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \
+\\(\\), \\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}]}], ",", 
+           
+           RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+            " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}], " ", 
+            RowBox[{"(", 
+             TagBox[
+              RowBox[{
+               TemplateBox[{"D","\"\[Mu]\""},
+                "Superscript"], 
+               " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \
+\\(\\), \\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+              HoldForm], ")"}]}]}], "}"}]}], "\[RightAssociation]"}]}]}], 
+     "\[RightAssociation]"}]}], ",", 
+   RowBox[{
+    RowBox[{
+     SuperscriptBox["\[Phi]", "3"], " ", 
+     SuperscriptBox["\[Psi]", "2"]}], "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", "\[RightAssociation]"}]}], ",", 
+   RowBox[{
+    SuperscriptBox["\[Phi]", "6"], "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"Hl\"\>", "3"], " ", 
+        SuperscriptBox["\<\"Hl\[Dagger]\"\>", "3"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\
+\"\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(k\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(m\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(n\\)]\\)\"\>"}], "}"}]}], "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"Hl\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hl\[Dagger]\"\>", "2"], " ", "\<\"Hr\"\>", 
+        " ", "\<\"Hr\[Dagger]\"\>"}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\
+\"\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(k\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}], "}"}]}], 
+        "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{"\<\"Hl\"\>", " ", "\<\"Hl\[Dagger]\"\>", " ", 
+        SuperscriptBox["\<\"Hr\"\>", "2"], " ", 
+        SuperscriptBox["\<\"Hr\[Dagger]\"\>", "2"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}], "}"}]}], 
+        "\[RightAssociation]"}]}], ",", 
+      RowBox[{
+       RowBox[{
+        SuperscriptBox["\<\"Hr\"\>", "3"], " ", 
+        SuperscriptBox["\<\"Hr\[Dagger]\"\>", "3"]}], "\[Rule]", 
+       RowBox[{"\[LeftAssociation]", 
+        RowBox[{
+         RowBox[{"{", "}"}], "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(m\\), \\(_\\)]\\)\\)]\\)\"\>", 
+           " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(n\\), \\(_\\)]\\)\\)]\\)\"\>"}], "}"}]}], 
+        "\[RightAssociation]"}]}]}], "\[RightAssociation]"}]}]}], 
+  "\[RightAssociation]"}]], "Output",
+ CellChangeTimes->{3.809393604334176*^9},
+ CellLabel->"Out[14]=",ExpressionUUID->"adfd7ea4-18e4-457a-acb9-36307b923b3c"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Present", "[", "%", "]"}]], "Input",
+ CellChangeTimes->{{3.809393639845812*^9, 3.8093936437158947`*^9}},
+ CellLabel->"In[15]:=",ExpressionUUID->"df78559b-076f-4218-850b-4e4731dd9b05"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\n---------------------\\n\"\>", "\[InvisibleSpace]", 
+   SuperscriptBox["FL", "3"], "\[InvisibleSpace]", "\<\": \"\>", 
+   "\[InvisibleSpace]", "2", "\[InvisibleSpace]", "\<\" type(s)\"\>"}],
+  SequenceForm[
+  "\n---------------------\n", AmplitudeBasis`FL^3, ": ", 2, " type(s)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644436103*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"0206af77-edc7-40ba-a2d8-58b246a2a255"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   SuperscriptBox["\<\"UL\"\>", "3"], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm["  ---------\n  ", 1, ". [", "UL"^3, "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936444381*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"01ad4065-c22c-466c-a97f-5723175dbc3d"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", 
+   "\[InvisibleSpace]", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\
+\\), \\(IJK\\)]\\)\"\>", " ", 
+   SubscriptBox[
+    SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \
+\\(I\\)]\\)\"\>", "\<\"\[Mu]\"\>"], "\<\"\[Nu]\"\>"], " ", 
+   SubscriptBox[
+    TemplateBox[{
+     "\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \\(J\\)]\\)\"",
+      "\"\[Mu]\""},
+     "Superscript"], "\<\"\[Lambda]\"\>"], " ", 
+   TemplateBox[{
+    TemplateBox[{
+      "\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \\(K\\)]\\)\"", 
+       "\"\[Nu]\""}, "Superscript", SyntaxForm -> SuperscriptBox],
+     "\"\[Lambda]\""},
+    "Superscript"]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(IJK\)]\)" 
+   Subscript[
+     Subscript["\!\(\*SubsuperscriptBox[\(UL\), \(\), \(I\)]\)", "\[Mu]"], 
+     "\[Nu]"] Subscript[
+     Superscript["\!\(\*SubsuperscriptBox[\(UL\), \(\), \(J\)]\)", "\[Mu]"], 
+     "\[Lambda]"] Superscript[
+     Superscript["\!\(\*SubsuperscriptBox[\(UL\), \(\), \(K\)]\)", "\[Nu]"], 
+     "\[Lambda]"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644441455*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"98600570-02b5-4035-9e21-2e5f16a8641d"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   SuperscriptBox["\<\"VL\"\>", "3"], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm["  ---------\n  ", 2, ". [", "VL"^3, "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644444438*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"99b14191-dd33-40bc-8460-e3f7ebc76c48"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", 
+   "\[InvisibleSpace]", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\
+\\), \\(_\\nI_\\nJ_\\nK\\)]\\)\"\>", " ", 
+   SubscriptBox[
+    SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(I\\), \\(_\\)]\\)\\)]\\)\"\>", "\<\"\[Mu]\"\>"], \
+"\<\"\[Nu]\"\>"], " ", 
+   SubscriptBox[
+    TemplateBox[{
+     "\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(J\\), \\(_\\)]\\)\\)]\\)\"","\"\[Mu]\""},
+     "Superscript"], "\<\"\[Lambda]\"\>"], " ", 
+   TemplateBox[{
+    TemplateBox[{
+      "\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(K\\), \\(_\\)]\\)\\)]\\)\"", "\"\[Nu]\""}, 
+      "Superscript", SyntaxForm -> SuperscriptBox],"\"\[Lambda]\""},
+    "Superscript"]}],
+  SequenceForm[
+  "         ", 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\nI_\nJ_\nK\)]\)" 
+   Subscript[
+     Subscript[
+     "\!\(\*SubsuperscriptBox[\(VL\), \(\), \(\!\(\*OverscriptBox[\(I\), \
+\(_\)]\)\)]\)", "\[Mu]"], "\[Nu]"] Subscript[
+     Superscript[
+     "\!\(\*SubsuperscriptBox[\(VL\), \(\), \(\!\(\*OverscriptBox[\(J\), \
+\(_\)]\)\)]\)", "\[Mu]"], "\[Lambda]"] Superscript[
+     Superscript[
+     "\!\(\*SubsuperscriptBox[\(VL\), \(\), \(\!\(\*OverscriptBox[\(K\), \
+\(_\)]\)\)]\)", "\[Nu]"], "\[Lambda]"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644446142*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"a1e69c01-57f8-4dd8-984d-403a8f0d583e"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\n---------------------\\n\"\>", "\[InvisibleSpace]", 
+   SuperscriptBox["\[Psi]", "4"], "\[InvisibleSpace]", "\<\": \"\>", 
+   "\[InvisibleSpace]", "3", "\[InvisibleSpace]", "\<\" type(s)\"\>"}],
+  SequenceForm[
+  "\n---------------------\n", AmplitudeBasis`\[Psi]^4, ": ", 3, " type(s)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936444492493`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"cb6790e0-7fbf-451f-8033-607c73e93540"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   SuperscriptBox["\<\"ql\"\>", "4"], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm["  ---------\n  ", 1, ". [", "ql"^4, "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644450542*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"c8e345df-f4e8-4701-8284-e965b5364249"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ik\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(jl\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(k\\)]\\)\"\
+\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(l\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(ik\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(jl\)]\)" 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(ql\), \(\), \(j\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(k\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(ql\), \(\), \(l\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644452018*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"bcef5ce0-4951-404e-be2a-f95e983877b6"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"ql\"\>", "2"], " ", 
+    SuperscriptBox["\<\"qr\"\>", "2"]}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 2, ". [", "ql"^2 "qr"^2, "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936444543457`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"a767b3f4-e580-499e-8fc4-fa8969503892"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nj\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ij\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(j\\)]\\)\"\
+\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\ni_\nj\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(ij\)]\)" 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(qr\), \(\), \(\!\(\*OverscriptBox[\(i\), \
+\(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(j\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(qr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644455978*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"868d814f-76fa-477e-aab5-93b50c573525"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "3", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   SuperscriptBox["\<\"qr\"\>", "4"], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm["  ---------\n  ", 3, ". [", "qr"^4, "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644458304*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"64827442-0c83-4c54-95ff-171d1689d1da"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nk\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\nj_\\nl\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>", 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\ni_\nk\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\nj_\nl\)]\)" 
+   HoldForm["\!\(\*SubsuperscriptBox[\(qr\), \(\), \
+\(\!\(\*OverscriptBox[\(i\), \(_\)]\)\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(qr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(qr\), \(\), \
+\(\!\(\*OverscriptBox[\(k\), \(_\)]\)\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(qr\), \(\), \(\!\(\*OverscriptBox[\(l\), \
+\(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936444597178`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"2b1f86a4-614f-4314-84ac-0036472300a8"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\n---------------------\\n\"\>", "\[InvisibleSpace]", 
+   RowBox[{"FL", " ", "\[Phi]", " ", 
+    SuperscriptBox["\[Psi]", "2"]}], "\[InvisibleSpace]", "\<\": \"\>", 
+   "\[InvisibleSpace]", "0", "\[InvisibleSpace]", "\<\" type(s)\"\>"}],
+  SequenceForm[
+  "\n---------------------\n", AmplitudeBasis`FL AmplitudeBasis`\[Phi] 
+   AmplitudeBasis`\[Psi]^2, ": ", 0, " type(s)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644462143*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"ac3759c0-a896-44a5-be52-988525b507c0"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\n---------------------\\n\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["FL", "2"], " ", 
+    SuperscriptBox["\[Phi]", "2"]}], "\[InvisibleSpace]", "\<\": \"\>", 
+   "\[InvisibleSpace]", "4", "\[InvisibleSpace]", "\<\" type(s)\"\>"}],
+  SequenceForm[
+  "\n---------------------\n", AmplitudeBasis`FL^2 AmplitudeBasis`\[Phi]^2, 
+   ": ", 4, " type(s)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644463457*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"2f8f0cad-db0f-4b44-8c97-e8c838d69467"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"Hl\"\>", " ", "\<\"Hl\[Dagger]\"\>", " ", 
+    SuperscriptBox["\<\"UL\"\>", "2"]}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 1, ". [", "Hl" "Hl\[Dagger]" "UL"^2, "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936444647617`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"8e302d84-3c83-4171-bdee-c0d4b794bd99"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", 
+   "\[InvisibleSpace]", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+   " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>", " ", 
+   SubscriptBox[
+    SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \
+\\(I\\)]\\)\"\>", "\<\"\[Mu]\"\>"], "\<\"\[Nu]\"\>"], " ", 
+   TemplateBox[{
+    TemplateBox[{
+      "\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \\(J\\)]\\)\"", 
+       "\"\[Mu]\""}, "Superscript", SyntaxForm -> SuperscriptBox],"\"\[Nu]\""},
+    "Superscript"]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(j\)]\)" Subscript[
+     Subscript["\!\(\*SubsuperscriptBox[\(UL\), \(\), \(I\)]\)", "\[Mu]"], 
+     "\[Nu]"] Superscript[
+     Superscript["\!\(\*SubsuperscriptBox[\(UL\), \(\), \(J\)]\)", "\[Mu]"], 
+     "\[Nu]"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644466324*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"b2d95bbe-ada8-4da8-8797-faf6a9f35d91"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"Hr\"\>", " ", "\<\"Hr\[Dagger]\"\>", " ", 
+    SuperscriptBox["\<\"UL\"\>", "2"]}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 2, ". [", "Hr" "Hr\[Dagger]" "UL"^2, "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.80939364446869*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"7b656df3-f162-4112-835b-48a74574884b"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", 
+   "\[InvisibleSpace]", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \\(\
+\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+   " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+   SubscriptBox[
+    SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \
+\\(I\\)]\\)\"\>", "\<\"\[Mu]\"\>"], "\<\"\[Nu]\"\>"], " ", 
+   TemplateBox[{
+    TemplateBox[{
+      "\"\\!\\(\\*SubsuperscriptBox[\\(UL\\), \\(\\), \\(J\\)]\\)\"", 
+       "\"\[Mu]\""}, "Superscript", SyntaxForm -> SuperscriptBox],"\"\[Nu]\""},
+    "Superscript"]}],
+  SequenceForm[
+  "         ", 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)" Subscript[
+     Subscript["\!\(\*SubsuperscriptBox[\(UL\), \(\), \(I\)]\)", "\[Mu]"], 
+     "\[Nu]"] Superscript[
+     Superscript["\!\(\*SubsuperscriptBox[\(UL\), \(\), \(J\)]\)", "\[Mu]"], 
+     "\[Nu]"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644470119*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"4a7ec095-057b-4844-88d0-56c48d5fc4ce"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "3", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"Hl\"\>", " ", "\<\"Hl\[Dagger]\"\>", " ", 
+    SuperscriptBox["\<\"VL\"\>", "2"]}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 3, ". [", "Hl" "Hl\[Dagger]" "VL"^2, "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644472574*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"2f089708-53b5-4d8b-8cf7-4d0144af3d60"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", 
+   "\[InvisibleSpace]", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(i\\)]\\)\"\>", 
+   " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>", " ", 
+   SubscriptBox[
+    SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(I\\), \\(_\\)]\\)\\)]\\)\"\>", "\<\"\[Mu]\"\>"], \
+"\<\"\[Nu]\"\>"], " ", 
+   TemplateBox[{
+    TemplateBox[{
+      "\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(J\\), \\(_\\)]\\)\\)]\\)\"", "\"\[Mu]\""}, 
+      "Superscript", SyntaxForm -> SuperscriptBox],"\"\[Nu]\""},
+    "Superscript"]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(j\)]\)" Subscript[
+     Subscript[
+     "\!\(\*SubsuperscriptBox[\(VL\), \(\), \(\!\(\*OverscriptBox[\(I\), \
+\(_\)]\)\)]\)", "\[Mu]"], "\[Nu]"] Superscript[
+     Superscript[
+     "\!\(\*SubsuperscriptBox[\(VL\), \(\), \(\!\(\*OverscriptBox[\(J\), \
+\(_\)]\)\)]\)", "\[Mu]"], "\[Nu]"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644474021*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"593b0e63-a936-49d9-a066-2e2489ce00d0"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "4", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"Hr\"\>", " ", "\<\"Hr\[Dagger]\"\>", " ", 
+    SuperscriptBox["\<\"VL\"\>", "2"]}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 4, ". [", "Hr" "Hr\[Dagger]" "VL"^2, "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936444765863`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"acd215c1-3e24-40c7-8d6d-6bd1b6ca5383"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", 
+   "\[InvisibleSpace]", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \\(\
+\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+   " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+   SubscriptBox[
+    SubscriptBox["\<\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(I\\), \\(_\\)]\\)\\)]\\)\"\>", "\<\"\[Mu]\"\>"], \
+"\<\"\[Nu]\"\>"], " ", 
+   TemplateBox[{
+    TemplateBox[{
+      "\"\\!\\(\\*SubsuperscriptBox[\\(VL\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(J\\), \\(_\\)]\\)\\)]\\)\"", "\"\[Mu]\""}, 
+      "Superscript", SyntaxForm -> SuperscriptBox],"\"\[Nu]\""},
+    "Superscript"]}],
+  SequenceForm[
+  "         ", 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)" Subscript[
+     Subscript[
+     "\!\(\*SubsuperscriptBox[\(VL\), \(\), \(\!\(\*OverscriptBox[\(I\), \
+\(_\)]\)\)]\)", "\[Mu]"], "\[Nu]"] Superscript[
+     Superscript[
+     "\!\(\*SubsuperscriptBox[\(VL\), \(\), \(\!\(\*OverscriptBox[\(J\), \
+\(_\)]\)\)]\)", "\[Mu]"], "\[Nu]"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644478159*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"73b6875b-d27a-4b08-ad2d-782b57ed5d35"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\n---------------------\\n\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\[Psi]", "2"], " ", 
+    SuperscriptBox[
+     OverscriptBox["\[Psi]", "_"], "2"]}], "\[InvisibleSpace]", "\<\": \"\>", 
+   "\[InvisibleSpace]", "3", "\[InvisibleSpace]", "\<\" type(s)\"\>"}],
+  SequenceForm[
+  "\n---------------------\n", AmplitudeBasis`\[Psi]^2 
+   OverBar[AmplitudeBasis`\[Psi]]^2, ": ", 3, " type(s)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644480955*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"0c160ca9-8f53-43ed-a477-142ba1020b7b"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"ql\"\>", "2"], " ", 
+    SuperscriptBox["\<\"ql\[Dagger]\"\>", "2"]}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 1, ". [", "ql"^2 "ql\[Dagger]"^2, "] ", 1, " term(s)\n"],
+  
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644482451*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"6697c9de-3ede-4b7f-bc6e-03ae4127266c"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \\(k\
+\\)]\\)\"\>", 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(ql\), \(\), \(j\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\[Dagger]\), \(\), \(k\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(ql\[Dagger]\), \(\), \(l\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644483882*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"c7a2a67f-b133-4a22-a3b1-53c636ea752c"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"ql\"\>", " ", "\<\"ql\[Dagger]\"\>", " ", "\<\"qr\"\>", 
+    " ", "\<\"qr\[Dagger]\"\>"}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 2, ". [", "ql" "ql\[Dagger]" "qr" "qr\[Dagger]", "] ", 1,
+    " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.80939364448573*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"45c07471-477a-4658-8aaf-c97c350236c1"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \\(j\
+\\)]\\)\"\>", 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(qr\), \(\), \(\!\(\*OverscriptBox[\(i\), \
+\(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\[Dagger]\), \(\), \(j\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644487186*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"be233200-df34-48b4-bb41-d4c9f010fee9"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "3", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"qr\"\>", "2"], " ", 
+    SuperscriptBox["\<\"qr\[Dagger]\"\>", "2"]}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 3, ". [", "qr"^2 "qr\[Dagger]"^2, "] ", 1, " term(s)\n"],
+  
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644489131*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"421fc366-83ed-443f-b6c0-382a46191e05"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>", 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", 
+   HoldForm["\!\(\*SubsuperscriptBox[\(qr\), \(\), \
+\(\!\(\*OverscriptBox[\(i\), \(_\)]\)\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(qr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(k\), \(_\)]\)\)]\)" 1 
+     "\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(l\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.80939364449056*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"ecb682f2-eb90-427f-9d04-ee245bf5f87e"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\n---------------------\\n\"\>", "\[InvisibleSpace]", 
+   RowBox[{"D", " ", 
+    SuperscriptBox["\[Phi]", "2"], " ", "\[Psi]", " ", 
+    OverscriptBox["\[Psi]", "_"]}], "\[InvisibleSpace]", "\<\": \"\>", 
+   "\[InvisibleSpace]", "12", "\[InvisibleSpace]", "\<\" type(s)\"\>"}],
+  SequenceForm[
+  "\n---------------------\n", D AmplitudeBasis`\[Phi]^2 
+   AmplitudeBasis`\[Psi] OverBar[AmplitudeBasis`\[Psi]], ": ", 12, " type(s)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644492765*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"52bf05b3-cc3b-4877-98cc-908b8cc8d91f"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", 
+    SuperscriptBox["\<\"Hl\"\>", "2"], " ", "\<\"ql\"\>", 
+    " ", "\<\"ql\[Dagger]\"\>"}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 1, ". [", "D" "Hl"^2 "ql" "ql\[Dagger]", "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644494191*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"fc57184a-0b42-4bd4-892a-bff54772f6cc"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    RowBox[{"-", "\[ImaginaryI]"}], 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ik\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(k\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, -1] 
+   "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(ik\)]\)" 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(k\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(ql\[Dagger]\), \(\), \(l\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644496345*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"6f7a082e-ae56-4888-8bfb-80204346ed3b"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", "\<\"Hl\"\>", " ", "\<\"Hl\[Dagger]\"\>", 
+    " ", "\<\"ql\"\>", " ", "\<\"ql\[Dagger]\"\>"}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 2, ". [", "D" "Hl" "Hl\[Dagger]" "ql" "ql\[Dagger]", 
+   "] ", 2, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936444993877`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"4cc0d8d0-38f3-45f7-8fed-0333c3809e70"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+   "\[ImaginaryI]", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\"\>", 
+    " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(k\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, 1] "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)" 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(k\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(ql\[Dagger]\), \(\), \(l\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644501039*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"e3a59792-ccc4-4cad-8f29-e014e5364ed0"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+   "\[ImaginaryI]", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\"\>", 
+    " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(k\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, 1] "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)" 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(k\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(ql\[Dagger]\), \(\), \(l\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644503273*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"217c95f3-ffd9-4014-8780-2ae7508f1bc8"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "3", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", "\<\"Hl\"\>", " ", "\<\"Hr\"\>", 
+    " ", "\<\"ql\"\>", " ", "\<\"qr\[Dagger]\"\>"}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 3, ". [", "D" "Hl" "Hr" "ql" "qr\[Dagger]", "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644505549*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"aa401bbc-cb47-4bff-8860-35632b4da25c"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    RowBox[{"-", "\[ImaginaryI]"}], 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ij\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, -1] 
+   "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(ij\)]\)" 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \
+\(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644507141*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"e65be88c-1d38-440c-96ff-e222c23aec09"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "4", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", "\<\"Hl\"\>", " ", "\<\"Hr\[Dagger]\"\>", 
+    " ", "\<\"ql\"\>", " ", "\<\"qr\[Dagger]\"\>"}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 4, ". [", "D" "Hl" "Hr\[Dagger]" "ql" "qr\[Dagger]", 
+   "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644509508*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"730ec87b-eaa7-482d-b4ca-4f960a70769d"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", "0"}],
+  SequenceForm["         ", 0],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644510947*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"a3009deb-fb6d-42dd-9573-212bde23fb7a"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "5", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", "\<\"Hl\[Dagger]\"\>", " ", "\<\"Hr\"\>", 
+    " ", "\<\"ql\"\>", " ", "\<\"qr\[Dagger]\"\>"}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 5, ". [", "D" "Hl\[Dagger]" "Hr" "ql" "qr\[Dagger]", 
+   "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644512302*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"47544104-4829-4a6a-b863-89a50876c82d"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+   "\[ImaginaryI]", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, 1] 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(j\)]\)" 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \
+\(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445138693`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"4c9edcd5-72e9-4a04-b06d-4fef75768afd"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "6", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", "\<\"Hl\[Dagger]\"\>", 
+    " ", "\<\"Hr\[Dagger]\"\>", " ", "\<\"ql\"\>", 
+    " ", "\<\"qr\[Dagger]\"\>"}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 6, ". [", "D" "Hl\[Dagger]" "Hr\[Dagger]" "ql" 
+   "qr\[Dagger]", "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.80939364451648*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"1e72d620-41c6-42e1-9191-5cfa7b3b3e3e"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+   "\[ImaginaryI]", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(k_\\ni\\), \
+\\(\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, 1] 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(j\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(k_\ni\), \(\)]\)" 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(i\), \(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445181503`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"d6983f45-2a74-4eb8-8658-df2dab004acb"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "7", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", 
+    SuperscriptBox["\<\"Hr\"\>", "2"], " ", "\<\"ql\"\>", 
+    " ", "\<\"ql\[Dagger]\"\>"}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 7, ". [", "D" "Hr"^2 "ql" "ql\[Dagger]", "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644520567*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"f25d7969-a7b9-495e-aa4f-7fe01c6694c1"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+   "\[ImaginaryI]", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nj\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, 1] 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\ni_\nj\)]\)" 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(ql\[Dagger]\), \(\), \(j\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644522153*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"a4481ccb-8cc5-4b25-8dbb-4eaf83715e16"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "8", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", "\<\"Hr\"\>", " ", "\<\"Hr\[Dagger]\"\>", 
+    " ", "\<\"ql\"\>", " ", "\<\"ql\[Dagger]\"\>"}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 8, ". [", "D" "Hr" "Hr\[Dagger]" "ql" "ql\[Dagger]", 
+   "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.80939364452495*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"536a4b83-1fc1-4c72-9bef-6767605ce27a"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+   "\[ImaginaryI]", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\\), \\(\\), \\(i\\)]\\)\"\
+\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(ql\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, 1] 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" HoldForm[
+    Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(ql\), \(\), \(i\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(ql\[Dagger]\), \(\), \(j\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644526573*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"d51ebc42-884f-4d60-b90b-c4b5ca3a3487"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "9", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", 
+    SuperscriptBox["\<\"Hl\"\>", "2"], " ", "\<\"qr\"\>", 
+    " ", "\<\"qr\[Dagger]\"\>"}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 9, ". [", "D" "Hl"^2 "qr" "qr\[Dagger]", "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445288467`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"5fdded5b-b0ce-47b5-9935-60401274b4d8"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+   "\[ImaginaryI]", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ij\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, 1] "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(ij\)]\)" 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(qr\), \(\), \
+\(\!\(\*OverscriptBox[\(i\), \(_\)]\)\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445304337`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"4cacd98a-8b47-4332-a025-d545e7010af9"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "10", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", "\<\"Hl\"\>", " ", "\<\"Hl\[Dagger]\"\>", 
+    " ", "\<\"qr\"\>", " ", "\<\"qr\[Dagger]\"\>"}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 10, ". [", "D" "Hl" "Hl\[Dagger]" "qr" "qr\[Dagger]", 
+   "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644532782*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"53f33752-fda5-4dbc-962c-22db7f9a679c"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+   "\[ImaginaryI]", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>", 
+    " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, 1] "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(j\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(qr\), \(\), \
+\(\!\(\*OverscriptBox[\(i\), \(_\)]\)\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445343657`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"77e97e4a-8a5d-4cd3-8714-6ed85193441d"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "11", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", 
+    SuperscriptBox["\<\"Hr\"\>", "2"], " ", "\<\"qr\"\>", 
+    " ", "\<\"qr\[Dagger]\"\>"}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 11, ". [", "D" "Hr"^2 "qr" "qr\[Dagger]", "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644536672*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"982997fc-6cf0-445e-939e-49f63d844184"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    RowBox[{"-", "\[ImaginaryI]"}], 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nk\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, -1] 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\ni_\nk\)]\)" 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(k\), \
+\(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(qr\), \(\), \
+\(\!\(\*OverscriptBox[\(i\), \(_\)]\)\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(l\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644538289*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"4748376d-62e6-4c1c-bb5e-54b4c9c3abeb"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "12", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"D\"\>", " ", "\<\"Hr\"\>", " ", "\<\"Hr\[Dagger]\"\>", 
+    " ", "\<\"qr\"\>", " ", "\<\"qr\[Dagger]\"\>"}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 12, ". [", "D" "Hr" "Hr\[Dagger]" "qr" "qr\[Dagger]", 
+   "] ", 2, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644540783*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"ff603125-6911-467a-9579-571945e21853"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+   "\[ImaginaryI]", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, 1] 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \(_\)]\
+\)\)]\)" HoldForm[
+    Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(k\), \(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(qr\), \(\), \
+\(\!\(\*OverscriptBox[\(i\), \(_\)]\)\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(l\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644542427*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"f0ea170a-1cc6-46c4-9978-41e0406d9fb8"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{
+   "\[ImaginaryI]", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+       SubscriptBox["\[Sigma]", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(qr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", Complex[0, 1] 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \(_\)]\
+\)\)]\)" HoldForm[
+    Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(k\), \(_\)]\)\)]\)"] 
+   HoldForm["\!\(\*SubsuperscriptBox[\(qr\), \(\), \
+\(\!\(\*OverscriptBox[\(i\), \(_\)]\)\)]\)" 
+     Subscript[AmplitudeBasis`\[Sigma], "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(qr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(l\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445451593`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"10cd77ae-cdc1-451b-987f-8e0d52c38dfd"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\n---------------------\\n\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["D", "2"], " ", 
+    SuperscriptBox["\[Phi]", "4"]}], "\[InvisibleSpace]", "\<\": \"\>", 
+   "\[InvisibleSpace]", "11", "\[InvisibleSpace]", "\<\" type(s)\"\>"}],
+  SequenceForm[
+  "\n---------------------\n", D^2 AmplitudeBasis`\[Phi]^4, ": ", 11, 
+   " type(s)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644547483*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"3f531b15-5302-49f7-8e0a-461db31f9641"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hl\"\>", "4"]}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 1, ". [", "D"^2 "Hl"^4, "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644548861*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"ffa6e669-8cda-439a-a9ea-bde2038d8c6b"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ik\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(jl\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(k\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(ik\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(jl\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(k\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(l\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644550519*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"c2d2712d-5498-4e03-890b-752170290049"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hl\"\>", "3"], " ", "\<\"Hl\[Dagger]\"\>"}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 2, ". [", "D"^2 "Hl"^3 "Hl\[Dagger]", "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644553417*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"3a9d9bc1-5c51-424e-83ca-05daf4035fa8"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ik\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(k\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(ik\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(k\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(l\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644555224*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"e3e98806-b0a2-4038-b232-21e8690f0e6f"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "3", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hl\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hl\[Dagger]\"\>", "2"]}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 3, ". [", "D"^2 "Hl"^2 "Hl\[Dagger]"^2, "] ", 2, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644558111*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"2e242812-1b46-4108-9067-3fad1b7cbb19"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\"\>", 
+    " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(k\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(k\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(l\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644559862*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"fd62fc9f-ab73-487e-a3d6-a180ff40375d"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \\(k\\)]\
+\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(k\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(l\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445621643`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"10ce0591-7d09-4b3f-ab8e-9fc6c1570254"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "4", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hl\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hr\"\>", "2"]}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 4, ". [", "D"^2 "Hl"^2 "Hr"^2, "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644564324*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"659485da-df6a-45ed-82c6-9b73d3f7241a"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nj\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ij\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\ni_\nj\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(ij\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644565921*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"c7fb0796-9cf4-4e2e-9bb8-7051f1e8ee5f"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "5", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hl\"\>", "2"], " ", "\<\"Hr\"\>", 
+    " ", "\<\"Hr\[Dagger]\"\>"}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 5, ". [", "D"^2 "Hl"^2 "Hr" "Hr\[Dagger]", "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644568428*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"2a80f5d8-88a3-4335-a154-f0c9dba3fed0"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(ij\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(ij\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644569998*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"ba02e4b2-3aa8-4c14-87da-dd68470264e5"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "6", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hl\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hr\[Dagger]\"\>", "2"]}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 6, ". [", "D"^2 "Hl"^2 "Hr\[Dagger]"^2, "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644572362*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"37586f58-32b9-4146-8bfb-5dd8bee78f9f"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", "0"}],
+  SequenceForm["         ", 0],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644573812*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"08071bdf-05fe-4280-9f45-76c5a7ba774c"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "7", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", "\<\"Hl\"\>", 
+    " ", "\<\"Hl\[Dagger]\"\>", " ", 
+    SuperscriptBox["\<\"Hr\"\>", "2"]}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 7, ". [", "D"^2 "Hl" "Hl\[Dagger]" "Hr"^2, "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644575336*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"44a96b38-2f01-418a-a073-591a3ad4f69d"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nj\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\ni_\nj\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(j\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445769444`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"40725c75-a0b4-449d-8fca-5d6c45d64709"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "8", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", "\<\"Hl\"\>", 
+    " ", "\<\"Hl\[Dagger]\"\>", " ", "\<\"Hr\"\>", 
+    " ", "\<\"Hr\[Dagger]\"\>"}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "2", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 8, ". [", "D"^2 "Hl" "Hl\[Dagger]" "Hr" "Hr\[Dagger]", 
+   "] ", 2, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644579363*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"d6411f6d-25f5-4af7-b1c5-a0ae14a1a630"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \\(j\\)]\
+\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(j\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \
+\(_\)]\)\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445809393`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"3760db02-be6f-4c96-b5a6-45c3dfcc46be"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(j\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" HoldForm[
+    Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(j\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644583205*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"dc251be1-7a55-4c42-bb8d-b8193948b8ba"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "9", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hr\"\>", "4"]}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 9, ". [", "D"^2 "Hr"^4, "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445854263`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"70aaddad-1b85-459d-8293-df579b20dbb9"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nk\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\nj_\\nl\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\ni_\nk\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\nj_\nl\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(k\), \
+\(_\)]\)\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(l\), \
+\(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644586982*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"e65efe19-4328-4ef9-9c90-2068d26aad35"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "10", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hr\"\>", "3"], " ", "\<\"Hr\[Dagger]\"\>"}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 10, ". [", "D"^2 "Hr"^3 "Hr\[Dagger]", "] ", 1, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445896063`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"bb28cc60-bad8-4546-bb3f-5148e3fc0964"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(\[Epsilon]\\), \\(\\), \
+\\(_\\ni_\\nk\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(\[Epsilon]\), \(\), \(_\ni_\nk\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(k\), \
+\(_\)]\)\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(l\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644591208*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"075584e6-1048-4ede-99c8-4cfd68d83bcd"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "11", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"D\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hr\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hr\[Dagger]\"\>", "2"]}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 11, ". [", "D"^2 "Hr"^2 "Hr\[Dagger]"^2, "] ", 2, 
+   " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644593864*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"bfc025d1-9e62-4344-97f4-2e1f682e7f34"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(k\), \(_\)]\)\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(l\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445954437`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"21e4c43b-1c03-419e-a7ff-21958a3a1784"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>", " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       SubscriptBox["D", "\<\"\[Mu]\"\>"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}], " ", 
+    RowBox[{"(", 
+     TagBox[
+      RowBox[{
+       TemplateBox[{"D","\"\[Mu]\""},
+        "Superscript"], 
+       " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\
+\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}],
+      HoldForm], ")"}]}]}],
+  SequenceForm[
+  "         ", 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(k\), \(_\)]\)\)]\)" 
+   HoldForm[Subscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)"] 
+   HoldForm[Superscript[D, "\[Mu]"] 
+     "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(l\), \(_\)]\)\)]\)"]],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.8093936445979137`*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"ddc3e835-f547-4b02-9517-e48e1ab5e8c2"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\n---------------------\\n\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\[Phi]", "3"], " ", 
+    SuperscriptBox["\[Psi]", "2"]}], "\[InvisibleSpace]", "\<\": \"\>", 
+   "\[InvisibleSpace]", "0", "\[InvisibleSpace]", "\<\" type(s)\"\>"}],
+  SequenceForm[
+  "\n---------------------\n", AmplitudeBasis`\[Phi]^3 
+   AmplitudeBasis`\[Psi]^2, ": ", 0, " type(s)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644600231*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"50a613b3-2eb5-464f-bdde-54df037babc8"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\n---------------------\\n\"\>", "\[InvisibleSpace]", 
+   SuperscriptBox["\[Phi]", "6"], "\[InvisibleSpace]", "\<\": \"\>", 
+   "\[InvisibleSpace]", "4", "\[InvisibleSpace]", "\<\" type(s)\"\>"}],
+  SequenceForm[
+  "\n---------------------\n", AmplitudeBasis`\[Phi]^6, ": ", 4, " type(s)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644601625*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"30b96eed-9fbe-47ea-bfe1-67db16ee4c59"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"Hl\"\>", "3"], " ", 
+    SuperscriptBox["\<\"Hl\[Dagger]\"\>", "3"]}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 1, ". [", "Hl"^3 "Hl\[Dagger]"^3, "] ", 1, " term(s)\n"],
+  
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644603003*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"71470229-5b22-423a-b8c7-5ae24436048a"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(k\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(m\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(n\\)]\\)\"\>"}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(k\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(l\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(m\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(n\)]\)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644604521*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"0e7833fb-f006-4905-a9ae-a56d6721d44e"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"Hl\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hl\[Dagger]\"\>", "2"], " ", "\<\"Hr\"\>", 
+    " ", "\<\"Hr\[Dagger]\"\>"}], "\[InvisibleSpace]", "\<\"] \"\>", 
+   "\[InvisibleSpace]", "1", "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 2, ". [", "Hl"^2 "Hl\[Dagger]"^2 "Hr" "Hr\[Dagger]", 
+   "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644606853*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"c4b75cbb-0264-4cf0-b61f-6dffab1a8905"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(j\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(k\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \
+\\(l\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>"}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(j\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(k\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(l\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(j\), \(_\)]\)\)]\)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644608633*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"e7551ede-72d0-4795-a079-ab7e58966905"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "3", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"Hl\"\>", " ", "\<\"Hl\[Dagger]\"\>", " ", 
+    SuperscriptBox["\<\"Hr\"\>", "2"], " ", 
+    SuperscriptBox["\<\"Hr\[Dagger]\"\>", "2"]}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 3, ". [", "Hl" "Hl\[Dagger]" "Hr"^2 "Hr\[Dagger]"^2, 
+   "] ", 1, " term(s)\n"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644610948*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"55143bd8-a698-4a01-b48f-63aecc6b6bab"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\\), \\(\\), \\(i\\)]\\)\"\>",
+     " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hl\[Dagger]\\), \\(\\), \\(j\\)]\
+\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>"}]}],
+  SequenceForm[
+  "         ", "\!\(\*SubsuperscriptBox[\(Hl\), \(\), \(i\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hl\[Dagger]\), \(\), \(j\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(k\), \(_\)]\)\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(l\), \(_\)]\)\)]\)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644612475*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"37b78514-6a60-41a0-895f-2ef2edda1b3a"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"  ---------\\n  \"\>", "\[InvisibleSpace]", "4", 
+   "\[InvisibleSpace]", "\<\". [\"\>", "\[InvisibleSpace]", 
+   RowBox[{
+    SuperscriptBox["\<\"Hr\"\>", "3"], " ", 
+    SuperscriptBox["\<\"Hr\[Dagger]\"\>", "3"]}], 
+   "\[InvisibleSpace]", "\<\"] \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" term(s)\\n\"\>"}],
+  SequenceForm[
+  "  ---------\n  ", 4, ". [", "Hr"^3 "Hr\[Dagger]"^3, "] ", 1, " term(s)\n"],
+  
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644614812*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"207bfd45-febb-47f6-bd9d-0f7ab1c84f3f"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"         \"\>", "\[InvisibleSpace]", 
+   RowBox[{"\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(i\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(j\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\\), \\(\\), \
+\\(\\!\\(\\*OverscriptBox[\\(k\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(m\\), \\(_\\)]\\)\\)]\\)\"\>", 
+    " ", "\<\"\\!\\(\\*SubsuperscriptBox[\\(Hr\[Dagger]\\), \\(\\), \\(\\!\\(\
+\\*OverscriptBox[\\(n\\), \\(_\\)]\\)\\)]\\)\"\>"}]}],
+  SequenceForm[
+  "         ", 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(i\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(j\), \
+\(_\)]\)\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\), \(\), \(\!\(\*OverscriptBox[\(k\), \(_\)]\
+\)\)]\)" "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(l\), \(_\)]\)\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(m\), \(_\)]\)\)]\)" 
+   "\!\(\*SubsuperscriptBox[\(Hr\[Dagger]\), \(\), \
+\(\!\(\*OverscriptBox[\(n\), \(_\)]\)\)]\)"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.809393644616341*^9},
+ CellLabel->
+  "During evaluation of \
+In[15]:=",ExpressionUUID->"f2880422-0391-4bd7-ba14-8bbfa67a92e3"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "Null", ",", "Null", ",", "Null", ",", "Null", ",", "Null", ",", "Null", 
+   ",", "Null", ",", "Null", ",", "Null"}], "}"}]], "Output",
+ CellChangeTimes->{3.809393644618746*^9},
+ CellLabel->"Out[15]=",ExpressionUUID->"767f1165-4eb3-4c89-99ae-94d3a094053f"]
+}, Open  ]]
+}, Open  ]]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -3233,7 +7030,7 @@ Cell[BoxData[
 WindowSize->{1278, 1348},
 WindowMargins->{{Automatic, -7}, {Automatic, 0}},
 Magnification:>1.25 Inherited,
-FrontEndVersion->"11.3 for Microsoft Windows (64-bit) (March 6, 2018)",
+FrontEndVersion->"12.0 for Mac OS X x86 (64-bit) (April 8, 2019)",
 StyleDefinitions->"Default.nb"
 ]
 (* End of Notebook Content *)
@@ -3247,57 +7044,173 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 177, 2, 35, "Input",ExpressionUUID->"86f0e2bb-59f3-4843-ac31-0ba346eb986c"],
+Cell[558, 20, 177, 2, 37, "Input",ExpressionUUID->"86f0e2bb-59f3-4843-ac31-0ba346eb986c"],
 Cell[CellGroupData[{
-Cell[760, 26, 421, 7, 35, "Input",ExpressionUUID->"df6cc513-5992-4b56-802f-1e63bfb91837"],
-Cell[1184, 35, 3607, 51, 40, "Output",ExpressionUUID->"64bbd6e0-5d97-47c9-b37c-f7ced467aa30"]
+Cell[760, 26, 421, 7, 37, "Input",ExpressionUUID->"df6cc513-5992-4b56-802f-1e63bfb91837"],
+Cell[1184, 35, 3651, 50, 42, "Output",ExpressionUUID->"9e0d51de-9b73-41d1-8715-e8dca23b16fa"]
 }, Open  ]],
-Cell[4806, 89, 424, 6, 35, "Input",ExpressionUUID->"f037cf41-30df-4f3e-af02-cab08be4528f"],
+Cell[4850, 88, 424, 6, 37, "Input",ExpressionUUID->"f037cf41-30df-4f3e-af02-cab08be4528f"],
 Cell[CellGroupData[{
-Cell[5255, 99, 84, 0, 67, "Subsection",ExpressionUUID->"eb721b37-d0a8-4122-b8cb-c729b286f84c"],
-Cell[5342, 101, 161, 3, 35, "Input",ExpressionUUID->"2ec136b8-f578-45bc-9da5-4840fec6d62b"],
+Cell[5299, 98, 84, 0, 67, "Subsection",ExpressionUUID->"eb721b37-d0a8-4122-b8cb-c729b286f84c"],
 Cell[CellGroupData[{
-Cell[5528, 108, 1145, 32, 84, "Input",ExpressionUUID->"9674c9e9-6b66-432e-8a73-3f0cf2c17923"],
-Cell[6676, 142, 2884, 81, 99, "Output",ExpressionUUID->"662b3749-c419-4e95-ad72-285c73d80046"],
-Cell[9563, 225, 385, 5, 40, "Output",ExpressionUUID->"a04deb5e-e1b0-4daa-ac7d-33926a9653c4"]
+Cell[5408, 102, 158, 3, 56, "Subsubsection",ExpressionUUID->"65388917-30e9-422d-827d-880610291599"],
+Cell[5569, 107, 161, 3, 37, "Input",ExpressionUUID->"2ec136b8-f578-45bc-9da5-4840fec6d62b"],
+Cell[CellGroupData[{
+Cell[5755, 114, 1145, 32, 90, "Input",ExpressionUUID->"9674c9e9-6b66-432e-8a73-3f0cf2c17923"],
+Cell[6903, 148, 2884, 81, 109, "Output",ExpressionUUID->"662b3749-c419-4e95-ad72-285c73d80046"],
+Cell[9790, 231, 385, 5, 42, "Output",ExpressionUUID->"a04deb5e-e1b0-4daa-ac7d-33926a9653c4"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[9985, 235, 405, 7, 35, "Input",ExpressionUUID->"6594c76f-8c7b-4ac2-8f39-5e96b2ecc448"],
+Cell[10212, 241, 405, 7, 37, "Input",ExpressionUUID->"6594c76f-8c7b-4ac2-8f39-5e96b2ecc448"],
 Cell[CellGroupData[{
-Cell[10415, 246, 617, 10, 28, "Print",ExpressionUUID->"51c339f3-20f8-4062-ac04-a5ef17edcbff"],
-Cell[11035, 258, 795, 15, 28, "Print",ExpressionUUID->"b0aad653-7d89-448b-8587-19c5dbd4b8c6"],
-Cell[11833, 275, 848, 16, 28, "Print",ExpressionUUID->"034013b0-ec1e-4f40-840e-110b7d2e5a95"],
-Cell[12684, 293, 742, 14, 28, "Print",ExpressionUUID->"a53aab2f-046a-41e1-b51d-da814d506e1a"],
-Cell[13429, 309, 746, 14, 28, "Print",ExpressionUUID->"696173d7-a175-4d61-8e08-2abf20d548ce"],
-Cell[14178, 325, 754, 14, 28, "Print",ExpressionUUID->"d9191f90-36ff-45c2-9d54-c3bd544b15e8"],
-Cell[14935, 341, 766, 15, 28, "Print",ExpressionUUID->"e508620e-5bb8-41fd-adae-de505ce97850"]
+Cell[10642, 252, 617, 10, 29, "Print",ExpressionUUID->"51c339f3-20f8-4062-ac04-a5ef17edcbff"],
+Cell[11262, 264, 795, 15, 29, "Print",ExpressionUUID->"b0aad653-7d89-448b-8587-19c5dbd4b8c6"],
+Cell[12060, 281, 848, 16, 29, "Print",ExpressionUUID->"034013b0-ec1e-4f40-840e-110b7d2e5a95"],
+Cell[12911, 299, 742, 14, 29, "Print",ExpressionUUID->"a53aab2f-046a-41e1-b51d-da814d506e1a"],
+Cell[13656, 315, 746, 14, 29, "Print",ExpressionUUID->"696173d7-a175-4d61-8e08-2abf20d548ce"],
+Cell[14405, 331, 754, 14, 29, "Print",ExpressionUUID->"d9191f90-36ff-45c2-9d54-c3bd544b15e8"],
+Cell[15162, 347, 766, 15, 29, "Print",ExpressionUUID->"e508620e-5bb8-41fd-adae-de505ce97850"]
 }, Open  ]]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[15750, 362, 495, 10, 35, "Input",ExpressionUUID->"d5b00248-6116-4a0f-b024-4e3d1771b8e4"],
+Cell[15977, 368, 495, 10, 37, "Input",ExpressionUUID->"d5b00248-6116-4a0f-b024-4e3d1771b8e4"],
 Cell[CellGroupData[{
-Cell[16270, 376, 407, 7, 28, "Print",ExpressionUUID->"e1bb186b-cc90-4f52-9f7d-2cb919a8a969"],
-Cell[16680, 385, 974, 19, 28, "Print",ExpressionUUID->"5563e91f-eb52-45e1-8eb4-d68816a5f31c"],
-Cell[17657, 406, 558, 12, 28, "Print",ExpressionUUID->"e9c7ee34-8234-4bd9-8eaf-3c39b00f6c5d"]
+Cell[16497, 382, 407, 7, 29, "Print",ExpressionUUID->"e1bb186b-cc90-4f52-9f7d-2cb919a8a969"],
+Cell[16907, 391, 976, 19, 29, "Print",ExpressionUUID->"5563e91f-eb52-45e1-8eb4-d68816a5f31c"],
+Cell[17886, 412, 558, 12, 29, "Print",ExpressionUUID->"e9c7ee34-8234-4bd9-8eaf-3c39b00f6c5d"]
 }, Open  ]],
-Cell[18230, 421, 84904, 1957, 1205, "Output",ExpressionUUID->"b5284c49-88d5-4efe-944a-96e3abb10909"]
+Cell[18459, 427, 85370, 1989, 1313, "Output",ExpressionUUID->"b5284c49-88d5-4efe-944a-96e3abb10909"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[103171, 2383, 410, 9, 35, "Input",ExpressionUUID->"0cbb259e-a34a-4d90-9884-9f86a9d17878"],
+Cell[103866, 2421, 410, 9, 37, "Input",ExpressionUUID->"0cbb259e-a34a-4d90-9884-9f86a9d17878"],
 Cell[CellGroupData[{
-Cell[103606, 2396, 433, 8, 28, "Print",ExpressionUUID->"fd455ea5-06e0-4ef7-9ab9-d24bc5bb7c60"],
-Cell[104042, 2406, 999, 20, 28, "Print",ExpressionUUID->"14e92bf2-ca9b-41cf-ba1d-1f44afd6e676"],
-Cell[105044, 2428, 584, 13, 28, "Print",ExpressionUUID->"ee283e01-ecf9-4a3b-ad29-c5bb07ec767f"]
+Cell[104301, 2434, 433, 8, 29, "Print",ExpressionUUID->"fd455ea5-06e0-4ef7-9ab9-d24bc5bb7c60"],
+Cell[104737, 2444, 999, 20, 29, "Print",ExpressionUUID->"14e92bf2-ca9b-41cf-ba1d-1f44afd6e676"],
+Cell[105739, 2466, 584, 13, 29, "Print",ExpressionUUID->"ee283e01-ecf9-4a3b-ad29-c5bb07ec767f"]
 }, Open  ]],
-Cell[105643, 2444, 26435, 669, 674, "Output",ExpressionUUID->"e61ff662-18b2-4b24-a128-34a77060ab07"]
+Cell[106338, 2482, 26435, 669, 882, "Output",ExpressionUUID->"e61ff662-18b2-4b24-a128-34a77060ab07"]
+}, Open  ]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[132822, 3157, 162, 3, 45, "Subsubsection",ExpressionUUID->"747425ed-ad4d-4b87-a1c8-d1751815b654"],
+Cell[132987, 3162, 1265, 32, 121, "Input",ExpressionUUID->"7ff7aa61-825a-49fd-ac8e-ecc1622efcdb"],
+Cell[134255, 3196, 4141, 109, 324, "Input",ExpressionUUID->"90f79b1e-fd7d-405b-8625-18ae2296d99a"],
+Cell[138399, 3307, 228, 4, 37, "Input",ExpressionUUID->"90736950-4baf-4b8a-a0f7-bff5f5a3c8ea"],
+Cell[CellGroupData[{
+Cell[138652, 3315, 246, 4, 37, "Input",ExpressionUUID->"55435aaf-01c1-46ad-8f7c-507870f540df"],
+Cell[CellGroupData[{
+Cell[138923, 3323, 213, 4, 29, "Print",ExpressionUUID->"c748dc7b-1e3c-49dd-89ff-1187025f3ffd"],
+Cell[139139, 3329, 777, 16, 31, "Print",ExpressionUUID->"b6326031-f28a-4dc2-a3cd-a8d1f9a7eee5"],
+Cell[139919, 3347, 363, 9, 29, "Print",ExpressionUUID->"43be3843-9bd7-4093-8840-8fc04d714b96"]
+}, Open  ]],
+Cell[140297, 3359, 49385, 1198, 1010, "Output",ExpressionUUID->"adfd7ea4-18e4-457a-acb9-36307b923b3c"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[189719, 4562, 207, 3, 37, "Input",ExpressionUUID->"df78559b-076f-4218-850b-4e4731dd9b05"],
+Cell[CellGroupData[{
+Cell[189951, 4569, 509, 11, 78, "Print",ExpressionUUID->"0206af77-edc7-40ba-a2d8-58b246a2a255"],
+Cell[190463, 4582, 559, 11, 78, "Print",ExpressionUUID->"01ad4065-c22c-466c-a97f-5723175dbc3d"],
+Cell[191025, 4595, 1302, 32, 32, "Print",ExpressionUUID->"98600570-02b5-4035-9e21-2e5f16a8641d"],
+Cell[192330, 4629, 561, 11, 78, "Print",ExpressionUUID->"99b14191-dd33-40bc-8460-e3f7ebc76c48"],
+Cell[192894, 4642, 1553, 37, 37, "Print",ExpressionUUID->"a1e69c01-57f8-4dd8-984d-403a8f0d583e"],
+Cell[194450, 4681, 519, 11, 78, "Print",ExpressionUUID->"cb6790e0-7fbf-451f-8033-607c73e93540"],
+Cell[194972, 4694, 561, 11, 78, "Print",ExpressionUUID->"c8e345df-f4e8-4701-8284-e965b5364249"],
+Cell[195536, 4707, 1279, 28, 34, "Print",ExpressionUUID->"bcef5ce0-4951-404e-be2a-f95e983877b6"],
+Cell[196818, 4737, 633, 14, 78, "Print",ExpressionUUID->"a767b3f4-e580-499e-8fc4-fa8969503892"],
+Cell[197454, 4753, 1457, 33, 45, "Print",ExpressionUUID->"868d814f-76fa-477e-aab5-93b50c573525"],
+Cell[198914, 4788, 561, 11, 78, "Print",ExpressionUUID->"64827442-0c83-4c54-95ff-171d1689d1da"],
+Cell[199478, 4801, 1645, 37, 45, "Print",ExpressionUUID->"2b1f86a4-614f-4314-84ac-0036472300a8"],
+Cell[201126, 4840, 602, 13, 78, "Print",ExpressionUUID->"ac3759c0-a896-44a5-be52-988525b507c0"],
+Cell[201731, 4855, 593, 14, 78, "Print",ExpressionUUID->"2f8f0cad-db0f-4b44-8c97-e8c838d69467"],
+Cell[202327, 4871, 651, 14, 78, "Print",ExpressionUUID->"8e302d84-3c83-4171-bdee-c0d4b794bd99"],
+Cell[202981, 4887, 1134, 26, 32, "Print",ExpressionUUID->"b2d95bbe-ada8-4da8-8797-faf6a9f35d91"],
+Cell[204118, 4915, 648, 14, 78, "Print",ExpressionUUID->"7b656df3-f162-4112-835b-48a74574884b"],
+Cell[204769, 4931, 1290, 28, 37, "Print",ExpressionUUID->"4a7ec095-057b-4844-88d0-56c48d5fc4ce"],
+Cell[206062, 4961, 649, 14, 78, "Print",ExpressionUUID->"2f089708-53b5-4d8b-8cf7-4d0144af3d60"],
+Cell[206714, 4977, 1293, 30, 37, "Print",ExpressionUUID->"593b0e63-a936-49d9-a066-2e2489ce00d0"],
+Cell[208010, 5009, 651, 14, 78, "Print",ExpressionUUID->"acd215c1-3e24-40c7-8d6d-6bd1b6ca5383"],
+Cell[208664, 5025, 1449, 32, 37, "Print",ExpressionUUID->"73b6875b-d27a-4b08-ad2d-782b57ed5d35"],
+Cell[210116, 5059, 636, 15, 78, "Print",ExpressionUUID->"0c160ca9-8f53-43ed-a477-142ba1020b7b"],
+Cell[210755, 5076, 656, 16, 78, "Print",ExpressionUUID->"6697c9de-3ede-4b7f-bc6e-03ae4127266c"],
+Cell[211414, 5094, 1032, 26, 34, "Print",ExpressionUUID->"c7a2a67f-b133-4a22-a3b1-53c636ea752c"],
+Cell[212449, 5122, 667, 14, 78, "Print",ExpressionUUID->"45c07471-477a-4658-8aaf-c97c350236c1"],
+Cell[213119, 5138, 1190, 29, 45, "Print",ExpressionUUID->"be233200-df34-48b4-bb41-d4c9f010fee9"],
+Cell[214312, 5169, 656, 16, 78, "Print",ExpressionUUID->"421fc366-83ed-443f-b6c0-382a46191e05"],
+Cell[214971, 5187, 1353, 32, 45, "Print",ExpressionUUID->"ecb682f2-eb90-427f-9d04-ee245bf5f87e"],
+Cell[216327, 5221, 658, 14, 78, "Print",ExpressionUUID->"52bf05b3-cc3b-4877-98cc-908b8cc8d91f"],
+Cell[216988, 5237, 676, 15, 78, "Print",ExpressionUUID->"fc57184a-0b42-4bd4-892a-bff54772f6cc"],
+Cell[217667, 5254, 1433, 37, 34, "Print",ExpressionUUID->"6f7a082e-ae56-4888-8bfb-80204346ed3b"],
+Cell[219103, 5293, 696, 15, 78, "Print",ExpressionUUID->"4cc0d8d0-38f3-45f7-8fed-0333c3809e70"],
+Cell[219802, 5310, 1284, 34, 34, "Print",ExpressionUUID->"e3a59792-ccc4-4cad-8f29-e014e5364ed0"],
+Cell[221089, 5346, 1284, 34, 34, "Print",ExpressionUUID->"217c95f3-ffd9-4014-8780-2ae7508f1bc8"],
+Cell[222376, 5382, 676, 15, 78, "Print",ExpressionUUID->"aa401bbc-cb47-4bff-8860-35632b4da25c"],
+Cell[223055, 5399, 1589, 39, 45, "Print",ExpressionUUID->"e65be88c-1d38-440c-96ff-e222c23aec09"],
+Cell[224647, 5440, 694, 15, 78, "Print",ExpressionUUID->"730ec87b-eaa7-482d-b4ca-4f960a70769d"],
+Cell[225344, 5457, 301, 8, 29, "Print",ExpressionUUID->"a3009deb-fb6d-42dd-9573-212bde23fb7a"],
+Cell[225648, 5467, 694, 15, 78, "Print",ExpressionUUID->"47544104-4829-4a6a-b863-89a50876c82d"],
+Cell[226345, 5484, 1443, 37, 45, "Print",ExpressionUUID->"4c9edcd5-72e9-4a04-b06d-4fef75768afd"],
+Cell[227791, 5523, 712, 15, 78, "Print",ExpressionUUID->"1e72d620-41c6-42e1-9191-5cfa7b3b3e3e"],
+Cell[228506, 5540, 1619, 40, 45, "Print",ExpressionUUID->"d6983f45-2a74-4eb8-8658-df2dab004acb"],
+Cell[230128, 5582, 676, 15, 78, "Print",ExpressionUUID->"f25d7969-a7b9-495e-aa4f-7fe01c6694c1"],
+Cell[230807, 5599, 1584, 39, 45, "Print",ExpressionUUID->"a4481ccb-8cc5-4b25-8dbb-4eaf83715e16"],
+Cell[232394, 5640, 693, 15, 78, "Print",ExpressionUUID->"536a4b83-1fc1-4c72-9bef-6767605ce27a"],
+Cell[233090, 5657, 1442, 37, 45, "Print",ExpressionUUID->"d51ebc42-884f-4d60-b90b-c4b5ca3a3487"],
+Cell[234535, 5696, 678, 15, 78, "Print",ExpressionUUID->"5fdded5b-b0ce-47b5-9935-60401274b4d8"],
+Cell[235216, 5713, 1570, 38, 45, "Print",ExpressionUUID->"4cacd98a-8b47-4332-a025-d545e7010af9"],
+Cell[236789, 5753, 696, 15, 78, "Print",ExpressionUUID->"53f33752-fda5-4dbc-962c-22db7f9a679c"],
+Cell[237488, 5770, 1442, 36, 45, "Print",ExpressionUUID->"77e97e4a-8a5d-4cd3-8714-6ed85193441d"],
+Cell[238933, 5808, 678, 15, 78, "Print",ExpressionUUID->"982997fc-6cf0-445e-939e-49f63d844184"],
+Cell[239614, 5825, 1757, 41, 45, "Print",ExpressionUUID->"4748376d-62e6-4c1c-bb5e-54b4c9c3abeb"],
+Cell[241374, 5868, 696, 15, 78, "Print",ExpressionUUID->"ff603125-6911-467a-9579-571945e21853"],
+Cell[242073, 5885, 1598, 39, 45, "Print",ExpressionUUID->"f0ea170a-1cc6-46c4-9978-41e0406d9fb8"],
+Cell[243674, 5926, 1600, 39, 45, "Print",ExpressionUUID->"10cd77ae-cdc1-451b-987f-8e0d52c38dfd"],
+Cell[245277, 5967, 578, 14, 78, "Print",ExpressionUUID->"3f531b15-5302-49f7-8e0a-461db31f9641"],
+Cell[245858, 5983, 629, 14, 78, "Print",ExpressionUUID->"ffa6e669-8cda-439a-a9ea-bde2038d8c6b"],
+Cell[246490, 5999, 1472, 37, 34, "Print",ExpressionUUID->"c2d2712d-5498-4e03-890b-752170290049"],
+Cell[247965, 6038, 679, 16, 78, "Print",ExpressionUUID->"3a9d9bc1-5c51-424e-83ca-05daf4035fa8"],
+Cell[248647, 6056, 1339, 34, 34, "Print",ExpressionUUID->"e3e98806-b0a2-4038-b232-21e8690f0e6f"],
+Cell[249989, 6092, 707, 17, 78, "Print",ExpressionUUID->"2e242812-1b46-4108-9067-3fad1b7cbb19"],
+Cell[250699, 6111, 1211, 32, 34, "Print",ExpressionUUID->"fd62fc9f-ab73-487e-a3d6-a180ff40375d"],
+Cell[251913, 6145, 1210, 32, 34, "Print",ExpressionUUID->"10ce0591-7d09-4b3f-ab8e-9fc6c1570254"],
+Cell[253126, 6179, 681, 15, 78, "Print",ExpressionUUID->"659485da-df6a-45ed-82c6-9b73d3f7241a"],
+Cell[253810, 6196, 1640, 39, 45, "Print",ExpressionUUID->"c7fb0796-9cf4-4e2e-9bb8-7051f1e8ee5f"],
+Cell[255453, 6237, 704, 16, 78, "Print",ExpressionUUID->"2a80f5d8-88a3-4335-a154-f0c9dba3fed0"],
+Cell[256160, 6255, 1493, 36, 45, "Print",ExpressionUUID->"ba02e4b2-3aa8-4c14-87da-dd68470264e5"],
+Cell[257656, 6293, 707, 17, 78, "Print",ExpressionUUID->"37586f58-32b9-4146-8bfb-5dd8bee78f9f"],
+Cell[258366, 6312, 301, 8, 29, "Print",ExpressionUUID->"08071bdf-05fe-4280-9f45-76c5a7ba774c"],
+Cell[258670, 6322, 704, 16, 78, "Print",ExpressionUUID->"44a96b38-2f01-418a-a073-591a3ad4f69d"],
+Cell[259377, 6340, 1509, 36, 45, "Print",ExpressionUUID->"40725c75-a0b4-449d-8fca-5d6c45d64709"],
+Cell[260889, 6378, 723, 16, 78, "Print",ExpressionUUID->"d6411f6d-25f5-4af7-b1c5-a0ae14a1a630"],
+Cell[261615, 6396, 1366, 34, 45, "Print",ExpressionUUID->"3760db02-be6f-4c96-b5a6-45c3dfcc46be"],
+Cell[262984, 6432, 1365, 34, 45, "Print",ExpressionUUID->"dc251be1-7a55-4c42-bb8d-b8193948b8ba"],
+Cell[264352, 6468, 631, 14, 78, "Print",ExpressionUUID->"70aaddad-1b85-459d-8293-df579b20dbb9"],
+Cell[264986, 6484, 1816, 43, 45, "Print",ExpressionUUID->"e65efe19-4328-4ef9-9c90-2068d26aad35"],
+Cell[266805, 6529, 683, 16, 78, "Print",ExpressionUUID->"bb28cc60-bad8-4546-bb3f-5148e3fc0964"],
+Cell[267491, 6547, 1669, 40, 45, "Print",ExpressionUUID->"075584e6-1048-4ede-99c8-4cfd68d83bcd"],
+Cell[269163, 6589, 709, 17, 78, "Print",ExpressionUUID->"bfc025d1-9e62-4344-97f4-2e1f682e7f34"],
+Cell[269875, 6608, 1524, 37, 45, "Print",ExpressionUUID->"21e4c43b-1c03-419e-a7ff-21958a3a1784"],
+Cell[271402, 6647, 1524, 37, 45, "Print",ExpressionUUID->"ddc3e835-f547-4b02-9517-e48e1ab5e8c2"],
+Cell[272929, 6686, 601, 14, 78, "Print",ExpressionUUID->"50a613b3-2eb5-464f-bdde-54df037babc8"],
+Cell[273533, 6702, 517, 11, 78, "Print",ExpressionUUID->"30b96eed-9fbe-47ea-bfe1-67db16ee4c59"],
+Cell[274053, 6715, 656, 16, 78, "Print",ExpressionUUID->"71470229-5b22-423a-b8c7-5ae24436048a"],
+Cell[274712, 6733, 1143, 23, 32, "Print",ExpressionUUID->"0e7833fb-f006-4905-a9ae-a56d6721d44e"],
+Cell[275858, 6758, 724, 16, 78, "Print",ExpressionUUID->"c4b75cbb-0264-4cf0-b61f-6dffab1a8905"],
+Cell[276585, 6776, 1297, 25, 37, "Print",ExpressionUUID->"e7551ede-72d0-4795-a079-ab7e58966905"],
+Cell[277885, 6803, 723, 16, 78, "Print",ExpressionUUID->"55143bd8-a698-4a01-b48f-63aecc6b6bab"],
+Cell[278611, 6821, 1455, 28, 37, "Print",ExpressionUUID->"37b78514-6a60-41a0-895f-2ef2edda1b3a"],
+Cell[280069, 6851, 656, 16, 78, "Print",ExpressionUUID->"207bfd45-febb-47f6-bd9d-0f7ab1c84f3f"],
+Cell[280728, 6869, 1613, 31, 37, "Print",ExpressionUUID->"f2880422-0391-4bd7-ba14-8bbfa67a92e3"]
+}, Open  ]],
+Cell[282356, 6903, 298, 6, 42, "Output",ExpressionUUID->"767f1165-4eb3-4c89-99ae-94d3a094053f"]
+}, Open  ]]
 }, Open  ]]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[132127, 3119, 170, 3, 67, "Subsection",ExpressionUUID->"1ee3cd8a-698d-459d-88d2-ef590a0be6e7"],
-Cell[132300, 3124, 761, 16, 84, "Input",ExpressionUUID->"3beca555-f7a9-45f2-b74a-48509a970f73"],
+Cell[282715, 6916, 170, 3, 67, "Subsection",ExpressionUUID->"1ee3cd8a-698d-459d-88d2-ef590a0be6e7"],
+Cell[282888, 6921, 761, 16, 90, "Input",ExpressionUUID->"3beca555-f7a9-45f2-b74a-48509a970f73"],
 Cell[CellGroupData[{
-Cell[133086, 3144, 3240, 63, 396, "Input",ExpressionUUID->"05e185c9-6e8f-4c11-b5ed-069e034ce0f1"],
-Cell[136329, 3209, 1261, 19, 161, "Output",ExpressionUUID->"b0e42ba8-8d1d-476b-82e9-f16821868b8b"]
+Cell[283674, 6941, 3240, 63, 480, "Input",ExpressionUUID->"05e185c9-6e8f-4c11-b5ed-069e034ce0f1"],
+Cell[286917, 7006, 1261, 19, 199, "Output",ExpressionUUID->"b0e42ba8-8d1d-476b-82e9-f16821868b8b"]
 }, Open  ]]
 }, Open  ]]
 }
