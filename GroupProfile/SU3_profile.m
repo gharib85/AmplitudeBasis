@@ -19,33 +19,33 @@ If[!AssociationQ[tSimp],tSimp=<||>];
 (* Define invariant tensors *)
 AppendTo[tAssumptions,del3\[Element]Arrays[{3,3},Reals]];
 tRep[del3]={{1,0},{0,1}};
-tOut[del3]=PrintTensor[<|"tensor"->"\[Delta]","upind"->ToString[#2],"downind"->ToString[#1]|>]&;
+tOut[del3]=PrintTensor[<|"tensor"->"\[Delta]","upind"->#2,"downind"->#1|>]&;
 
 AppendTo[tAssumptions,eps3a\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
 tRep[eps3a]={{0,1},{0,1},{0,1}};
-tOut[eps3a]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->StringJoin@@ToString/@{#1,#2,#3},"downind"->""|>]&;
+tOut[eps3a]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->StringJoin[#1,#2,#3],"downind"->""|>]&;
 
 AppendTo[tAssumptions,eps3f\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
 tRep[eps3f]={{1,0},{1,0},{1,0}};
-tOut[eps3f]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->"","downind"->StringJoin@@ToString/@{#1,#2,#3}|>]&;
+tOut[eps3f]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->"","downind"->StringJoin[#1,#2,#3]|>]&;
 
 AppendTo[tAssumptions,\[Lambda]\[Element]Arrays[{8,3,3},Reals]];
 tRep[\[Lambda]]={{1,1},{1,0},{0,1}};
-tOut[\[Lambda]]=PrintTensor[<|"tensor"-> PrintTensor[<|"tensor"->"\[Lambda]","upind"->ToString[#1],"downind"->""|>],"upind"->ToString[#3],"downind"->ToString[#2]|>]&;
+tOut[\[Lambda]]=PrintTensor[<|"tensor"-> PrintTensor[<|"tensor"->"\[Lambda]","upind"->#1,"downind"->""|>],"upind"->#3,"downind"->#2|>]&;
 \[Lambda]G=GellMann[3];
 
 AppendTo[tAssumptions,del8n\[Element]Arrays[{8,8},Reals,Symmetric[{1,2}]]];
 tRep[del8n]={{1,1},{1,1}};
-tOut[del8n]=PrintTensor[<|"tensor"->"\[Delta]","upind"->StringJoin@@ToString/@{#1,#2},"downind"->""|>]&;
+tOut[del8n]=PrintTensor[<|"tensor"->"\[Delta]","upind"->StringJoin[#1,#2],"downind"->""|>]&;
 
 AppendTo[tAssumptions,fabc\[Element]Arrays[{8,8,8},Reals,Antisymmetric[{1,2,3}]]];
 tRep[fabc]={{1,1},{1,1},{1,1}};
-tOut[fabc]=PrintTensor[<|"tensor"->"f","upind"->StringJoin@@ToString/@{#1,#2,#3},"downind"->""|>]&;
+tOut[fabc]=PrintTensor[<|"tensor"->"f","upind"->StringJoin[#1,#2,#3],"downind"->""|>]&;
 fG=SymmetrizedArray[-(I/4)Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]-\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]];
 
 AppendTo[tAssumptions,dabc\[Element]Arrays[{8,8,8},Reals,Symmetric[{1,2,3}]]];
 tRep[dabc]={{1,1},{1,1},{1,1}};
-tOut[dabc]=PrintTensor[<|"tensor"->"d","upind"->StringJoin@@ToString/@{#1,#2,#3},"downind"->""|>]&;
+tOut[dabc]=PrintTensor[<|"tensor"->"d","upind"->StringJoin[#1,#2,#3],"downind"->""|>]&;
 dG=SymmetrizedArray[1/4 Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]+\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]];
 
 
