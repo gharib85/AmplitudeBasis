@@ -852,7 +852,7 @@ operbasis=OperPoly[#,num,Dcontract->False]&/@spinorbasis;operbasis=Flatten[operb
 (*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Littlewood-Richardson related*)
 
 
@@ -977,6 +977,20 @@ LRTableaux[fytl,ydlist,#,n]&/@ll;
 fytl
 ]
 
+GenerateTYT2[numIP_,baserep_,fnamenum_,index_,group_]:=GenerateTYT2[numIP,baserep,fnamenum,index,group]=Module[{tindex=index,n=Length[group]+1,standardyt,partbaserep=Dynk2Yng[baserep],ydlist,ll,fytl={}},
+If[Total[baserep]==0,Return[{{}}]];
+(*added following two lines to adapt the GenerateSU3 and GenerateSU3*)
+If[!MatchQ[baserep,{1,0...}],tindex=StringJoin@@ConstantArray[ToString[index],2]];
+If[Length[StringCases[fnamenum,"\[Dagger]"]]!=0&&baserep=={1},tindex=StringJoin@@ConstantArray[ToString[index],2]];
+partbaserep=partbaserep/.{0->Nothing};
+standardyt=MapThread[Range,{Accumulate[partbaserep]-partbaserep+1,Accumulate[partbaserep]}];
+(*the lables of the indices is in the following form: index[i,j,k],
+  i labels the i-th group of the repeated fields,
+  j labels the j-th field in this group of repeated fields,
+  k labels the k-th fundamental indices of this particular field*)
+ydlist=Table[Map[tindex<>"[ToString["<>ToString[fnamenum]<>"],"<>ToString[i]<>","<>ToString[#]<>"]"&,standardyt,{2}],{i,numIP}]
+]
+
 
 (* ::Input::Initialization:: *)
 (********************* Littlewood-Richardson *****************)
@@ -1013,6 +1027,22 @@ basereplist=replist[[All,3]];
 tyt1=Distribute[GenerateTYT@@@(Join[#,{index,group}]&/@replist),List];
 pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindSingletPath[group,irreplist];
 Do[LRTableaux[result,tyt1[[j]],pathlists[[i]],Length[group]+1],{i,1,Length[pathlists]},{j,1,Length[tyt1]}];
+result
+]
+
+GenerateLRT2[groupname_,replist_]:=
+(*replist is a list of elements in the following form: {__,__,__}, 
+the first slot is the number of repeated fields that construct the representation in the first slot,
+the second slot is the representation of the repeated fields,
+the last slot is the name of the repeated field*)
+Module[{group=CheckGroup[groupname],indmap=rep2ind[groupname],nlist,irreplist,basereplist,index,tyt1,pathlists={},result={}},
+index=ToString@indmap@Fund[group];
+irreplist=Flatten[ConstantArray[#[[2]],#[[1]]]&/@replist,1];
+nlist=(Total[Dynk2Yng[#]])&/@irreplist;
+(*Generate tensor Young Tableaux*)
+tyt1=Flatten[GenerateTYT2@@@(Join[#,{index,group}]&/@replist),1];
+pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindSingletPath[group,irreplist];
+Do[LRTableaux[result,tyt1,pathlists[[i]],Length[group]+1],{i,1,Length[pathlists]}];
 result
 ]
 
@@ -1176,7 +1206,7 @@ result
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Integrated Functions*)
 
 
@@ -1211,10 +1241,9 @@ Product[Times@@Map[If[MatchQ[#,1|_dummyIndex],#,Fold[Prepend,#,{i,fname}]]&,Prod
 SNirrepAuX[input_]:={#[[All,1]],input[[3]]*Times@@#[[All,2]]}&/@Distribute[input[[2]],List]
 (* SNirrepAux[{SUNrepeatrep,SNreps,multi}] = {{SNrep_comb,total_multiplicity},...} *)
 
-GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=CheckGroup[groupname],
+GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=ToExpression@StringDrop[groupname,-1],
 SUNreplist,repeatlist,nonsinglets,repeatnonsinglets,repeatsinglets,
-displacements,indexlist,Irreplist,SNCollections,nonSingletSN,
-fieldcombs,convertfactor,ruleLRRP,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,
+displacements,indexlist,Irreplist,SNCollections,nonSingletSN,convertfactor,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,
 qr,tdims,coords},
 SUNreplist={#[[2]],model[#[[1]]][groupname],#[[1]]}&/@flist; (* {repeat_num, SUNrep, fieldname} *)
 repeatlist=Select[SUNreplist,#[[1]]>1&];
@@ -1226,13 +1255,11 @@ displacements=AssociationThread[nonsinglets[[All,3]]->Most@Prepend[Accumulate[no
 indexlist=GenerateFieldIndex[model,groupname,flist];(*Pick out the relevant SU3 indices in order*)
 Irreplist=Transpose@FindIrrepCombination[group,SUNreplist[[All,{2,1}]],Singlet[group]]; (* {SUNrepeatrep,SNreps,multi} *)
 SNCollections=Normal@Merge[Thread[SUNreplist[[All,3]]->#[[1]]]->#[[2]]&/@SNirrepAuX[#]&/@Irreplist,Total];(*get different SN syms and the corresponding multiplicity*)
-SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];
+SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];(*retain only repeated fields*)
 nonSingletSN=MapAt[Select[#,model[#[[1]]][groupname]!=Singlet[group]&]&,SNCollections,{All,1}];(*Select out SN syms of nonsinglet repeated fields *)
-
-fieldcombs=Join@@(GenerateLRInput/@nonsinglets);
 convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);
-ruleLRRP=Join@@(GenerateLRRP[groupname,#]&/@nonsinglets);(*Select out nonsinglet fields for constructing singlet*)
-YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@Map[ToExpression,GenerateLRT[groupname,fieldcombs],{2}]/.ruleLRRP)]*convertfactor];
+(*Select out nonsinglet fields for constructing singlet*)
+YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@Map[ToExpression,GenerateLRT2[groupname,nonsinglets],{2}])]*convertfactor];
 MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,groupname,flist]];
 tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;
 vMbasisAll=Flatten/@tMbasisAll;
