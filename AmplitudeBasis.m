@@ -21,8 +21,28 @@ End[];
 
 
 (* ::Input::Initialization:: *)
+Protect[helicity,Gauge,nfl,stat];
+
+
+(* ::Input::Initialization:: *)
+(* Presented Indices *)
+SU3ADJ=ToUpperCase/@Alphabet[][[1;;8]];
+SU3FUND=Alphabet[];
+SU2ADJ=ToUpperCase/@DeleteCases[Alphabet[][[9;;-1]],"l"];
+SU2FUND=Alphabet[][[9;;-1]];
+Flavor={"p"}\[Union]Alphabet[][[18;;-1]];
+
+
+(* ::Input::Initialization:: *)
+(* Mode Parameters *)
+maxhelicity=1.0;
 permutationBasis="left"; (* or "right" *)
 reduceTry=20;
+
+
+(* ::Input::Initialization:: *)
+(* messages *)
+err::unknown="`1` -- unrecognized mode/parameter";
 
 
 (* ::Subsection:: *)
@@ -94,7 +114,7 @@ GellMann[n_]:=GellMann[n]=
 Flatten[Table[(*Symmetric case*)SparseArray[{{j,k}->1,{k,j}->1},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Flatten[Table[(*Antisymmetric case*)SparseArray[{{j,k}->-I,{k,j}->+I},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Table[(*Diagonal case*)Sqrt[2/l/(l+1)] SparseArray[Table[{j,j}->1,{j,1,l}]~Join~{{l+1,l+1}->-l},{n,n}],{l,1,n-1}];
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Permutation Group*)
 
 
@@ -283,18 +303,17 @@ ClearAll[kmin,yngShape,YDzero,SSYTfilling,SSYT, LorentzList];
 kmin[input_,mode_:"hlist"]:=Module[{state,hp,hn},
 Switch[mode,
 "hlist",state=input,
-"Nh",state=Join@@MapThread[ConstantArray,{{-1,-1/2,0,1/2,1},input}]
+"Nh",state=Join@@MapThread[ConstantArray,{{-1,-1/2,0,1/2,1},input}],
+_,Message[err::unknown,"kmin"]
 ];
 hp=Total@Select[state,Positive];
 hn=Total@Select[state,Negative];
 Return[Max[{Mod[2hp,2],4Max[state]-2hp,2hn-4Min[state]}]];
 ]
-yngShape::wrongk="wrong number of derivatives/momenta";
-yngShape::wrongh="wrong helicity in state `1`";
-yngShape::wrongf="wrong fermion number in state `1`";
+yngShape::wrongk="[yngShape] Wrong Number of Derivative!";
 yngShape[state_,k_]:=Module[{},
-If[!SubsetQ[{1,1/2,0,-1/2,-1},DeleteDuplicates[state]],Message[yngShape::wrongh,state]];
-If[!IntegerQ[Total[state]],Message[yngShape::wrongf,state]];
+If[!SubsetQ[{1,1/2,0,-1/2,-1},DeleteDuplicates[state]],Message[err::unknown,"helicity"]];
+If[!IntegerQ[Total[state]],Message[err::unknown,"state"]];
 If[OddQ[k-kmin[state]]\[Or]k-kmin[state]<0,Message[yngShape::wrongk];Abort[]];
 {Total@Select[state,Positive]+k/2,-Total@Select[state,Negative]+k/2}
 ]
@@ -402,8 +421,7 @@ Plus@@F
 ]
 reduce[Num_]:=reduce[#,Num]&
 
-(* List All Lorentz Structure at given dimension *)
-LorentzList[dim_,mode_:"complex"]:=Module[{n,k,Nh,Nhlist={},result},
+(* List All Lorentz Structure at given dimension *)LorentzList[dim_,mode_:"complex"]:=Module[{n,k,Nh,Nhlist={},result},
 Do[n=dim-N-nt;
 For[k=0,k<=2 nt,k++,
 Do[Nh={i,2 n-k-2 i,3N+2k-2dim+i+j,2 nt-k-2 j,j};If[Nh[[3]]<0||kmin[Nh,"Nh"]>k,Continue[],AppendTo[Nhlist,{Nh,k}]],{i,0,Floor[n-k/2]},{j,0,Floor[nt-k/2]}];
@@ -411,7 +429,8 @@ If[n+nt+3==dim,Break[]]
 ],{N,3,dim},{nt,0,Floor[(dim-N)/2]}];
 Switch[mode,
 "complex",result=DeleteDuplicates[Nhlist,#1==MapAt[Reverse,#2,1]&],
-"real",result=Nhlist\[Union](MapAt[Reverse,#1,1]&)/@Nhlist];
+"real",result=Nhlist\[Union](MapAt[Reverse,#1,1]&)/@Nhlist,
+_,Message[err::unknown,"LorentzList"]];
 MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
 ]
 
@@ -449,9 +468,10 @@ SingletQ[group_,{rep__?NumericQ}]:=Plus[rep]==0 (* for Abelian groups *)
 (* get conjugate rep of a given rep *)
 RepConj[rep_List]:=Reverse[rep] (* for non-Abelian reps *)
 RepConj[charge_?NumericQ]:=-charge (* for Abelian charges *)
-Conj[realOp_String]:=realOp (* operator names associate to conjugate operators -- themselves by default *)
+Conj[field_String]:=If[StringTake[field,-1]=="\[Dagger]",StringDrop[field,-1],field<>"\[Dagger]"]
+Conj["D"]="D"
 realQ[type_]:=Module[{flist=Prod2List[type]},TrueQ[flist==Sort[Conj/@flist]]]
-nonAbelian[groupname_]:=Length[CheckGroup[groupname]]>0 (* judge if a group is non-Abelian *)
+nonAbelian[groupin_]:=Length[ToExpression[StringDrop[groupin,-1]]]>0 (* judge if a group is non-Abelian *)
 Singlet[group_]:=Replace[group,_List->0,{Depth[group]-2}]
 Fund[group_]:=ReplacePart[Singlet[group],1->1]
 AFund[group_]:=ReplacePart[Singlet[group],-1->1]
@@ -471,10 +491,8 @@ CheckGroup[groupname_String]:=Module[{group=ToExpression@StringDrop[groupname,-1
 CheckGroup::ndef="Group `1` not defined.";
 
 (* Names for Abstract Fields *)
-h2f=<|-1->FL,-1/2->\[Psi],0->\[Phi],1/2->OverBar[\[Psi]],1->FR|>;
-state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
+h2f=<|-1->FL,-1/2->\[Psi]L,0->\[Phi],1/2->\[Psi]R,1->FR|>;state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
 
-Fields[model_]:=Keys@Select[model,MatchQ[#,_Association]&]
 SetSimplificationRule[model_]:=Module[{group},Unprotect[Times];Clear[Times];
 Do[group=CheckGroup[model,groupname];Check[tSimp[group]//ReleaseHold,"simplification rule for "<>ToString[groupname]<>" not found"],{groupname,model[Gauge]}];
 Protect[Times]
@@ -484,52 +502,50 @@ Protect[Times]
 (* ::Input::Initialization:: *)
 SetAttributes[{AddGroup,AddField},HoldFirst];
 (* Adding new Gauge Group to a Model *)
-AddGroup[model_,groupname_String,field_String,Globalreps_List,ind_Association]:=Module[{profile,group,Freps},
-(* read group info from profile *)
-profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile",StringDrop[groupname,-1]<>"_profile.m"}];
-If[FileExistsQ[profile],Get[profile];group=CheckGroup[groupname],
-Message[AddGroup::profile,StringDrop[groupname,-1]];Abort[]];
-If[!MatchQ[group,_List],Message[AddGroup::groupnotlist,group];Abort[]]; (* check if group is valid *)
-
-model=Merge[{model,<|Gauge->{groupname}|>},Apply[Join]]; (* add gauge group to the model *)
-AssociateTo[model[#],groupname->Singlet[group]]&/@Fields[model]; (* pre-existing fields set to singlet by default *)
-Freps=MapAt[Adjoint,MapAt[Singlet,CheckGroup/@model[Gauge],{;;-2}],-1]; (* gauge boson representations under all groups *)
-AddField[model,field<>"L",-1,Freps,Globalreps,Hermitian->True];
-AddField[model,field<>"R",1,Freps,Globalreps,Hermitian->True]; (* add gauge bosons *)
+AddGroup[model_,groupin_String,field_String,Globalreps_List,ind_]:=Module[{group=ToExpression[StringDrop[groupin,-1]],profile,groups,Freps},
+If[!MatchQ[group,_List],Message[AddGroup::groupnotlist,group];Abort[]];
+profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile",StringDrop[groupin,-1]<>"_profile.m"}];
+If[FileExistsQ[profile],Get[profile],Message[AddGroup::profile,StringDrop[groupin,-1]];Abort[]];
+model=Merge[{model,<|Gauge->{groupin}|>},Apply[Join]];
+groups=ToExpression[StringDrop[#,-1]]&/@model[Gauge];
+AssociateTo[model[#],groupin->Singlet[group]]&/@Fields[model];
+Freps=MapAt[Adjoint,MapAt[Singlet,groups,{;;-2}],-1];
+AddField[model,field<>"L",-1,Freps,Globalreps,1,False];
+AddField[model,field<>"R",1,Freps,Globalreps,1,False];
 Conj[field<>"L"]=field<>"R";
-Conj[field<>"R"]=field<>"L"; (* define special conjugation relation (not denoted by \[Dagger]) for gauge boson names *)
-SetSimplificationRule[model]; (* define simplification rules for all gauge groups *)
-AssociateTo[rep2ind,groupname->First/@ind]; (* define abstract working index names for all reps of the new group *)
-AssociateTo[rep2indOut,groupname->Last/@ind] (* define list of specific indices for all reps of the new group *)
+Conj[field<>"R"]=field<>"L";
+SetSimplificationRule[model];
+AssociateTo[rep2ind,groupin->First/@ind];
+AssociateTo[rep2indOut,groupin->Last/@ind];
 ]
 AddGroup::groupnotlist=" Unrecognized gauge group `1`. ";
 AddGroup::profile="Profile for group `1` not found.";
 
 (* Adding New Field to a Model *)
-AddField::overh="helicity of `1` is neither integer nor half-integer.";
-Options[AddField]={Flavor->{1},Hermitian->False};
-AddField[model_,field_String,hel_,Greps_List,Globalreps_List,OptionsPattern[]]:=Module[{attribute=<||>,flavor=OptionValue[Flavor],NAgroups,shape},
-If[IntegerQ[2hel],AppendTo[attribute,helicity->hel],Message[AddField::overh,field]];
+AddFields::overh="helicity of `1` is larger than maxhelicity.";
+AddField[model_,field_String,hel_,Greps_List,Globalreps_List,nflavor_,complexQ_?BooleanQ]:=Module[{attribute=<||>,NAgroups,shape},
+If[Abs[hel]>maxhelicity,Message[AddFields::overh,field],AppendTo[attribute,helicity->hel]];
 AssociateTo[attribute,Thread[model[Gauge]->Greps]];
 AssociateTo[attribute,Thread[model[Global]->Globalreps]];
-If[flavor=={1},AppendTo[attribute,nfl->1],AssociateTo[attribute,{nfl->flavor[[1]],indfl->flavor[[2]]}]];
+AppendTo[attribute,nfl->nflavor];
 AppendTo[attribute,stat->If[IntegerQ[hel],"boson","fermion"]];
 AppendTo[model,field->attribute];
 
-NAgroups=Select[model[Gauge],nonAbelian];
-shape=MapThread[DimR[#1,#2]&,{CheckGroup/@NAgroups,Cases[Greps,_List]}];
+NAgroups=Select[model[Gauge],nonAbelian];(*Cases[ToExpression@StringDrop[#,-1]&/@model[Gauge],Except[U1]];*)
+shape=MapThread[DimR[#1,#2]&,{ToExpression@StringDrop[#,-1]&/@NAgroups,Cases[Greps,_List]}];
 AppendTo[tAssumptions,ToExpression["t"<>field<>ToString[NAgroups[[#]]]]\[Element]Arrays[{shape[[#]]}]]&/@Range[1,Length[shape]];
 
-If[!OptionValue[Hermitian]&&Last@Characters[field]!="\[Dagger]",AddField[model,field<>"\[Dagger]",-hel,RepConj/@Greps,RepConj/@Globalreps,Flavor->OptionValue[Flavor]];
+If[complexQ&&Last@Characters[field]!="\[Dagger]",AddField[model,field<>"\[Dagger]",-hel,RepConj/@Greps,RepConj/@Globalreps,nflavor,True];
 Conj[field]=field<>"\[Dagger]";
 Conj[field<>"\[Dagger]"]=field;
 ];
 ]
+Fields[model_]:=Keys@Select[model,MatchQ[#,_Association]&]
 
 
 (* ::Input::Initialization:: *)
 (* for a given helicity state, find (more than) all field combinations in a model that match the helicities and form singlets for all groups *)
-state2type[model_,state_,k_]:=Module[{comblist,groups=CheckGroup/@model[Gauge],singletposition},
+state2type[model_,state_,k_]:=Module[{comblist,groups=ToExpression@StringDrop[#,-1]&/@model[Gauge],singletposition},
 (* state: list of helicities for particles in a scattering 
 k: number of extra momenta/derivatives
 *)
@@ -849,7 +865,7 @@ operbasis=OperPoly[#,num,Dcontract->False]&/@spinorbasis;operbasis=Flatten[operb
 (*GroupMath -- DimR, SnIrrepDim, PlethysmsN*)
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Littlewood-Richardson related*)
 
 
@@ -975,6 +991,21 @@ fytl
 ]
 
 
+GenerateTYT2[numIP_,baserep_,fnamenum_,index_,group_]:=GenerateTYT2[numIP,baserep,fnamenum,index,group]=Module[{tindex=index,n=Length[group]+1,standardyt,partbaserep=Dynk2Yng[baserep],ydlist,ll,fytl={}},
+If[Total[baserep]==0,Return[{{}}]];
+(*added following two lines to adapt the GenerateSU3 and GenerateSU3*)
+If[!MatchQ[baserep,{1,0...}],tindex=StringJoin@@ConstantArray[ToString[index],2]];
+If[Length[StringCases[fnamenum,"\[Dagger]"]]!=0&&baserep=={1},tindex=StringJoin@@ConstantArray[ToString[index],2]];
+partbaserep=partbaserep/.{0->Nothing};
+standardyt=MapThread[Range,{Accumulate[partbaserep]-partbaserep+1,Accumulate[partbaserep]}];
+(*the lables of the indices is in the following form: index[i,j,k],
+  i labels the i-th group of the repeated fields,
+  j labels the j-th field in this group of repeated fields,
+  k labels the k-th fundamental indices of this particular field*)
+ydlist=Table[Map[tindex<>"[ToString["<>ToString[fnamenum]<>"],"<>ToString[i]<>","<>ToString[#]<>"]"&,standardyt,{2}],{i,numIP}]
+]
+
+
 (* ::Input::Initialization:: *)
 (********************* Littlewood-Richardson *****************)
 
@@ -1008,13 +1039,33 @@ nlist=(#[[2]]*Total[Dynk2Yng[#[[3]]]])&/@replist;
 basereplist=replist[[All,3]];
 (*Generate tensor Young Tableaux*)
 tyt1=Distribute[GenerateTYT@@@(Join[#,{index,group}]&/@replist),List];
+Print[tyt1];
 pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindSingletPath[group,irreplist];
+Print[pathlists];
 Do[LRTableaux[result,tyt1[[j]],pathlists[[i]],Length[group]+1],{i,1,Length[pathlists]},{j,1,Length[tyt1]}];
 result
 ]
 
 
-(* ::Subsubsection::Closed:: *)
+GenerateLRT2[groupname_,replist_]:=
+(*replist is a list of elements in the following form: {__,__,__}, 
+the first slot is the DykinCoefficient of the constructed representation,
+the second slot is the number of repeated fields that construct the representation in the first slot,
+the third slot is the representation of the repeated fields,
+the last slot is the name of the repeated field*)
+Module[{group=CheckGroup[groupname],indmap=rep2ind[groupname],nlist,irreplist,basereplist,index,tyt1,pathlists={},result={}},
+index=ToString@indmap@Fund[group];
+irreplist=Flatten[ConstantArray[#[[2]],#[[1]]]&/@replist,1];
+nlist=(Total[Dynk2Yng[#]])&/@irreplist;
+(*Generate tensor Young Tableaux*)
+tyt1=Flatten[GenerateTYT2@@@(Join[#,{index,group}]&/@replist),1];
+pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindSingletPath[group,irreplist];
+Do[LRTableaux[result,tyt1,pathlists[[i]],Length[group]+1],{i,1,Length[pathlists]}];
+result
+]
+
+
+(* ::Subsubsection:: *)
 (*Tensor Reduction related*)
 
 
@@ -1048,9 +1099,9 @@ Transpose[tensorp,FindPermutation[arglist,inarglist]]
 
 (* ::Input::Initialization:: *)
 (*label the field name concerning repeated fields*)
-GenerateFieldName[model_,groupname_,fs_]:=Module[{dim,result},
-dim=DimR[CheckGroup[groupname],model[fs[[1]]][groupname]];
-result=ToExpression["t"<>fs[[1]]<>groupname<>ToString[#]]&/@Range[fs[[2]]];
+GenerateFieldName[model_,group_,fs_]:=Module[{dim,result},
+dim=DimR[ToExpression@StringDrop[group,-1],model[fs[[1]]][group]];
+result=ToExpression["t"<>fs[[1]]<>group<>ToString[#]]&/@Range[fs[[2]]];
 If[Cases[tAssumptions,#,Infinity]=={},AppendTo[tAssumptions,#\[Element]Arrays[{dim}]]]&/@result;
 result]
 
@@ -1126,7 +1177,7 @@ unflatten[result,tdim]
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Symmetrization related*)
 
 
@@ -1173,14 +1224,14 @@ result
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Integrated Functions*)
 
 
 (* ::Input::Initialization:: *)
-CountGroupFactor[model_,groupname_,type_]:=Module[{flist=CheckType[model,type],group=CheckGroup[groupname],repfs,relist,sym},
+CountGroupFactor[model_,groupin_,type_]:=Module[{flist=CheckType[model,type],group=ToExpression[StringDrop[groupin,-1]],repfs,relist,sym},
 repfs=Cases[flist,{name_String,x_/;x>1}:>name];
-relist=FindIrrepCombination[group,MapAt[model[#][groupname]&,#,1]&/@flist,ConstantArray[0,Length[group]]];(* apply FindIrrepCombination *)
+relist=FindIrrepCombination[group,MapAt[model[#][groupin]&,#,1]&/@flist,ConstantArray[0,Length[group]]];(* apply FindIrrepCombination *)
 sym={DeleteCases[#[[All,1]],{1}],Times@@#[[All,2]]}&/@Distribute[#,List]&/@relist[[2]]; (* collect multiplicity for SUN combinations respectively *)
 sym=Join@@MapThread[MapAt[Function[x,#2 x],#1,{All,2}]&,{sym,relist[[3]]}]; 
 sym=Merge[Rule@@@sym,Apply[Plus]];(* combine multiplicity from SUM combinations *)
@@ -1208,10 +1259,9 @@ Product[Times@@Map[If[MatchQ[#,1|_dummyIndex],#,Fold[Prepend,#,{i,fname}]]&,Prod
 SNirrepAuX[input_]:={#[[All,1]],input[[3]]*Times@@#[[All,2]]}&/@Distribute[input[[2]],List]
 (* SNirrepAux[{SUNrepeatrep,SNreps,multi}] = {{SNrep_comb,total_multiplicity},...} *)
 
-GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=CheckGroup[groupname],
+GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=ToExpression@StringDrop[groupname,-1],
 SUNreplist,repeatlist,nonsinglets,repeatnonsinglets,repeatsinglets,
-displacements,indexlist,Irreplist,SNCollections,nonSingletSN,
-fieldcombs,convertfactor,ruleLRRP,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,
+displacements,indexlist,Irreplist,SNCollections,nonSingletSN,convertfactor,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,
 qr,tdims,coords},
 SUNreplist={#[[2]],model[#[[1]]][groupname],#[[1]]}&/@flist; (* {repeat_num, SUNrep, fieldname} *)
 repeatlist=Select[SUNreplist,#[[1]]>1&];
@@ -1223,13 +1273,11 @@ displacements=AssociationThread[nonsinglets[[All,3]]->Most@Prepend[Accumulate[no
 indexlist=GenerateFieldIndex[model,groupname,flist];(*Pick out the relevant SU3 indices in order*)
 Irreplist=Transpose@FindIrrepCombination[group,SUNreplist[[All,{2,1}]],Singlet[group]]; (* {SUNrepeatrep,SNreps,multi} *)
 SNCollections=Normal@Merge[Thread[SUNreplist[[All,3]]->#[[1]]]->#[[2]]&/@SNirrepAuX[#]&/@Irreplist,Total];(*get different SN syms and the corresponding multiplicity*)
-SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];
+SNCollections=MapAt[DeleteCases[#,_->{1}]&,SNCollections,{All,1}];(*retain only repeated fields*)
 nonSingletSN=MapAt[Select[#,model[#[[1]]][groupname]!=Singlet[group]&]&,SNCollections,{All,1}];(*Select out SN syms of nonsinglet repeated fields *)
-
-fieldcombs=Join@@(GenerateLRInput/@nonsinglets);
 convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);
-ruleLRRP=Join@@(GenerateLRRP[groupname,#]&/@nonsinglets);(*Select out nonsinglet fields for constructing singlet*)
-YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@Map[ToExpression,GenerateLRT[groupname,fieldcombs],{2}]/.ruleLRRP)]*convertfactor];
+(*Select out nonsinglet fields for constructing singlet*)
+YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@Map[ToExpression,GenerateLRT2[groupname,nonsinglets],{2}])]*convertfactor];
 MbasisAll=SimpGFV2[TRefineTensor[YDbasis,model,groupname,flist]];
 tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;
 vMbasisAll=Flatten/@tMbasisAll;
@@ -1257,7 +1305,7 @@ Options[GetGroupFactor]={OutputMode->"indexed"};
 (*Formating & Output*)
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Formating*)
 
 
@@ -1305,67 +1353,84 @@ Return[Thread[listind->Flatten@listgen]~Join~listdummy];
 
 (* ::Input::Initialization:: *)
 (* Operator formating *)
-SetAttributes[SetIndex,HoldAll]; 
-Options[SetIndex]={FieldRename->{}};
-Options[groupindex]={FieldRename->{}};
-SetIndex[model_, field_, label_,indexct_,flavorct_,OptionsPattern[]] :=
-Module[{hel=model[field][helicity],su2antiflag = False,irrep,group,indexList,index,tensorform}, 
-tensorform=<|"tensor"->Replace[field,OptionValue[FieldRename]],"upind"->"","downind"->""|>;
-If[model[field][nfl]>1, tensorform["downind"]= model[field][indfl][[++flavorct]];
-tensorform["tensor"]=PrintTensor@tensorform;
-tensorform["downind"]=""];
-If[StringTake[field,-1] == "\[Dagger]", su2antiflag = True];
-Do[irrep=model[field][groupname];
-group=CheckGroup[model,groupname];
-indexList=rep2indOut[groupname][irrep];
-If[indexList=={},Continue[]]; (* singlet *)
-index=IndexIterator[indexList,indexct];
-If[Fund[group]==irrep,If[group==SU2&&su2antiflag,tensorform["upind"]=tensorform["upind"]<>index,tensorform["upind"]=tensorform["upind"]<>index],
-tensorform["upind"]=tensorform["upind"]<>index],
-{groupname,Select[model[Gauge],nonAbelian]}];
-Subscript[h2f[hel], label] -> PrintTensor@tensorform
-]
-groupindex[model_, flistexpand_,OptionsPattern[]] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
-indexct=AssociationThread[Union@Catenate[rep2indOut]->0];
-MapThread[SetIndex[model, #1, #2,indexct,flavorct,FieldRename->OptionValue[FieldRename]] & , {flistexpand,Range[n]}]
-]
-(*groupindex4com[model_, flistexpand_] := Module[{indexct,flcount = 0, n=Length[flistexpand]},
-indexct=AssociationThread[Union@Catenate[rep2indOut]->0];
-MapThread[SetIndex[model, #1, #2, indexct, flcount]& , {flistexpand, Range[n]}]
-] 
-*)
-bilinear2com={ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]],
-ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],
-ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),1,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],1,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),1,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],1,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],
-ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(~\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(~\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(_\)]\)]],
-ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)],ch\[Psi][\!\(\*OverscriptBox[\(f1_\), \(_\)]\),q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]],ch\[Psi][ch[p1__,\!\(\*OverscriptBox[\(f1_\), \(_\)]\)],q_,ch[p2__,\!\(\*OverscriptBox[\(f2_\), \(~\)]\)]]};
-bilinear4com={ch\[Psi][f1_,"C",q,f2_],ch\[Psi][ch[p1__,f1_],"C",q_,f2_],ch\[Psi][f1_,"C",q_,ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],"C",q_,ch[p2__,f2_]],
-ch\[Psi][f1_,q_,"C",f2_],ch\[Psi][ch[p1__,f1_],q_,"C",f2_],ch\[Psi][f1_,q_,"C",ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],q,"C",ch[p2__,f2_]],
-ch\[Psi][f2_,1,f1_],ch\[Psi][f2_,1,ch[p1__,f1_]],ch\[Psi][ch[p2__,f2_],1,f1_],ch\[Psi][ch[p2__,f2_],1,ch[p1__,f1_]],
-ch\[Psi][f2_,q_,f1_],ch\[Psi][f2_,q_,ch[p1__,f1_]],ch\[Psi][ch[p2__,f2_],q_,f1_],ch\[Psi][ch[p2__,f2_],q_,ch[p1__,f1_]],
-ch\[Psi][f1_,q_,f2_],ch\[Psi][ch[p1__,f1_],q_,f2_],ch\[Psi][f1_,q_,ch[p2__,f2_]],ch\[Psi][ch[p1__,f1_],q_,ch[p2__,f2_]]};
-bilinearSign={1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,-1,1,1,1,1};
-spinor2to4=MapThread[RuleDelayed,{bilinear2com,bilinearSign*bilinear4com/.x_Pattern:>x[[1]]}];
-spinor4to2=MapThread[RuleDelayed,{bilinear4com,bilinearSign*bilinear2com/.x_Pattern:>x[[1]]}];
+SetAttributes[{indexmap, indexmap4com}, HoldAll]; 
+indexmap[model_, field_, label_, su2fcount_, su2acount_, su3fcount_, su3acount_, flcount_] := 
+   Module[{su2antiflag = False, fund = 1, antifund = 1, adj = 1, fla}, 
+    If[StringSplit[field, ""][[-1]] == "\[Dagger]", su2antiflag = True]; 
+     Switch[model[field]["SU2w"], {1}, If[su2antiflag, antifund *= SU2FUND[[++su2fcount]], 
+       fund *= SU2FUND[[++su2fcount]]], {2}, adj *= SU2ADJ[[++su2acount]]]; 
+     Switch[model[field]["SU3c"], {0, 1}, antifund *= SU3FUND[[++su3fcount]], {1, 0}, 
+      fund *= SU3FUND[[++su3fcount]], {1, 1}, adj *= SU3ADJ[[++su3acount]]]; 
+     If[model[field][nfl] != 1, fla = Flavor[[++flcount]], fla = 1]; 
+     {Subscript[FL, label] | Subscript[FR, label] | Subscript[\[Psi], label] | 
+        Subscript[OverBar[\[Psi]], label] | Subscript[\[Phi], label] -> 
+       (Superscript[Subscript[Subscript[field, fla], fund], antifund*adj] //. 
+        {Superscript[f_, 1] :> f, Subscript[f_, 1] :> f})}]; 
+groupindex[model_, flistexpand_] := Module[{su2fcount = 0, su2acount = 0, su3fcount = 0, 
+     su3acount = 0, flavor = 0, n, index}, n = Length[flistexpand]; 
+     Flatten[MapThread[indexmap[model, #1, #2, su2fcount, su2acount, su3fcount, su3acount, 
+         flavor] & , {flistexpand, Array[#1 & , n]}]]]; 
+indexmap4com[model_, field_, label_, su2fcount_, su2acount_, su3fcount_, su3acount_, 
+    flcount_] := Module[{su2antiflag = False, fund = 1, antifund = 1, adj = 1, fla, 
+     field4com, fieldtran, head}, If[StringSplit[field, ""][[-1]] == "\[Dagger]", 
+      su2antiflag = True]; Switch[model[field]["SU2w"], {1}, 
+      If[su2antiflag, antifund *= SU2FUND[[++su2fcount]], fund *= SU2FUND[[++su2fcount]]], 
+      {2}, adj *= SU2ADJ[[++su2acount]]]; Switch[model[field]["SU3c"], {0, 1}, 
+      antifund *= SU3FUND[[++su3fcount]], {1, 0}, fund *= SU3FUND[[++su3fcount]], {1, 1}, 
+      adj *= SU3ADJ[[++su3acount]]]; If[model[field][nfl] != 1, fla = Flavor[[++flcount]], 
+      fla = 1]; field4com = StringDelete[field, "c\[Dagger]"] //. {"Q\[Dagger]" -> OverBar["q"], 
+        "Q" -> "q", "uc" -> OverBar["u"], "dc" -> OverBar["d"], "ec" -> OverBar["e"], 
+        "L\[Dagger]" -> OverBar["l"], "L" -> "l"}; fieldtran = 
+      {Subscript[FL, label] | Subscript[FR, label] | Subscript[\[Psi], label] | 
+         Subscript[OverBar[\[Psi]], label] | Subscript[\[Phi], label] -> 
+        (head[Superscript[Subscript[Subscript[field4com, fla], fund], antifund*adj]] //. 
+         {Superscript[f_, 1] :> f, Subscript[f_, 1] :> f})}; If[Head[field4com] === OverBar, 
+      head = OverBar, If[Abs[model[field][helicity]] === 1/2, head = OverTilde, 
+       head = Times]]; fieldtran]; 
+groupindex4com[model_, flistexpand_] := Module[{su2fcount = 0, su2acount = 0, su3fcount = 0, 
+     su3acount = 0, flcount = 0, n, index}, n = Length[flistexpand]; 
+     Flatten[Append[MapThread[indexmap4com[model, #1, #2, su2fcount, su2acount, su3fcount, 
+          su3acount, flcount] & , {flistexpand, Array[#1 & , n]}], 
+       Flatten[{MapThread[ch\[Psi][#1, q_, #2] :> ch\[Psi][#3, "C", q, #4] & , 
+          {{OverTilde[f1_], ch[p1__, OverTilde[f1_]], OverTilde[f1_], 
+            ch[p1__, OverTilde[f1_]]}, {OverTilde[f2_], OverTilde[f2_], 
+            ch[p2__, OverTilde[f2_]], ch[p2__, OverTilde[f2_]]}, {f1, ch[p1, f1], f1, 
+            ch[p1, f1]}, {f2, f2, ch[p2, f2], ch[p2, f2]}}], 
+         MapThread[ch\[Psi][#1, q_, #2] :> ch\[Psi][#3, q, "C", #4] & , 
+          {{OverBar[f1_], ch[p1__, OverBar[f1_]], OverBar[f1_], ch[p1__, OverBar[f1_]]}, 
+           {OverBar[f2_], OverBar[f2_], ch[p2__, OverBar[f2_]], ch[p2__, OverBar[f2_]]}, 
+           {f1, ch[p1, f1], f1, ch[p1, f1]}, {f2, f2, ch[p2, f2], ch[p2, f2]}}], 
+         MapThread[ch\[Psi][#1, 1, #2] :> ch\[Psi][#3, 1, #4] & , 
+          {{OverTilde[f1_], ch[p1__, OverTilde[f1_]], OverTilde[f1_], 
+            ch[p1__, OverTilde[f1_]]}, {OverBar[f2_], OverBar[f2_], ch[p2__, OverBar[f2_]], 
+            ch[p2__, OverBar[f2_]]}, {f2, f2, ch[p2, f2], ch[p2, f2]}, 
+           {f1, ch[p1, f1], f1, ch[p1, f1]}}], MapThread[
+          ch\[Psi][#1, q_, #2] :> -ch\[Psi][#3, q, #4] & , {{OverTilde[f1_], 
+            ch[p1__, OverTilde[f1_]], OverTilde[f1_], ch[p1__, OverTilde[f1_]]}, 
+           {OverBar[f2_], OverBar[f2_], ch[p2__, OverBar[f2_]], ch[p2__, OverBar[f2_]]}, 
+           {f2, f2, ch[p2, f2], ch[p2, f2]}, {f1, ch[p1, f1], f1, ch[p1, f1]}}], 
+         MapThread[ch\[Psi][#1, q_, #2] :> ch\[Psi][#3, q, #4] & , 
+          {{OverBar[f1_], ch[p1__, OverBar[f1_]], OverBar[f1_], ch[p1__, OverBar[f1_]]}, 
+           {OverTilde[f2_], OverTilde[f2_], ch[p2__, OverTilde[f2_]], 
+            ch[p2__, OverTilde[f2_]]}, {f1, ch[p1, f1], f1, ch[p1, f1]}, 
+           {f2, f2, ch[p2, f2], ch[p2, f2]}}]}]]]]; 
 
-transform[ope_, OptionsPattern[]] := Module[{Dcon, l2t, model, type, fer, fieldlist, result=ope,fieldrename=<||>},
+transform[ope_, OptionsPattern[]] := Module[{Dcon, l2t, fieldlist, model, type, fer},
 If[OptionValue[Dcontract], Dcon = Flatten[{Dcontract1, Dcontract2}], Dcon = {}];
 If[OptionValue[final], l2t = listtotime, l2t = {}];
-If[OptionValue[ReplaceField] === {}, Return[ope //. Dcon //. l2t]];
+If[OptionValue[ReplaceField] === {}, Return[ope //. Dcon //. l2t],
 {model, type, fer} = OptionValue[ReplaceField];
-fieldlist = CheckType[model,type,Counting->False];
-If[fer==4,AssociateTo[fieldrename,Weyl2Dirac]; (* assign fermion renaming dictionary *)
-result=result//.{\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[\[Sigma] |  OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]}//. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]} (* change \[Sigma] matrices to \[Gamma] matrices *)
-];
-result//.Dcon//.groupindex[model,fieldlist,FieldRename->fieldrename]//.l2t
-]
-(*Switch[fer,
+fieldlist = CheckType[model,type,Counting->False]; 
+Switch[fer,
 4,(* four-component fermions *)
-ope //. {\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[\[Sigma] |  OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]}//. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}
-//. Dcon //. groupindex[model, fieldlist,FieldRename->Weyl2Dirac] /.spinor2to4//. l2t,
+ope = ope //. {\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,
+Subscript[\[Sigma], a_] |  Subscript[OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], 
+Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]};
+ope = ope //. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}; 
+ope //. Dcon //. groupindex4com[model, fieldlist] //. l2t,
 2,(* two-component fermions *)
 ope //. Dcon //. groupindex[model, fieldlist] //. l2t]]
-*)
+]
 Options[transform] = {final -> True, Dcontract -> True, ReplaceField -> {}}; 
 
 Oper[A_, n_, OptionsPattern[]] := transform[OperPoly[A, n, LorForm -> OptionValue[LorForm]],
@@ -1653,63 +1718,19 @@ n1*n2
 
 
 (* ::Input::Initialization:: *)
-(* Presented Indices *)
-SU3ADJ=ToUpperCase/@Alphabet[][[1;;8]];
-SU3FUND=Alphabet[];
-SU2ADJ=ToUpperCase/@DeleteCases[Alphabet[][[9;;-1]],"l"];
-SU2FUND=Alphabet[][[9;;-1]];
-FLAVOR={"p"}\[Union]Alphabet[][[18;;-1]];
-
-
-(* ::Input::Initialization:: *)
-Weyl2Dirac=<|"Q"->"q","Q\[Dagger]"->\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(q\\), \\(_\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\),"uc"->\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(u\\), \\(_\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\),"uc\[Dagger]"->"u","dc"->\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(d\\), \\(_\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\),"dc\[Dagger]"->"d","ec"->\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(e\\), \\(_\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\),"ec\[Dagger]"->"e","L"->"l","L\[Dagger]"->\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*OverscriptBox[\\(l\\), \\(_\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\)|>;
-
-
-(* ::Input::Initialization:: *)
-(* Define SMEFT *)
 SetAttributes[DefSMEFT,HoldFirst];
 DefSMEFT[model_,nf_:3]:=Module[{},
 model=<|Global->{"Baryon","Lepton"}|>;rep2ind=<||>;rep2indOut=<||>;
 AddGroup[model,"SU3c","G",{0,0},<|{0,0}->{Function[x,Nothing],{}},{1,0}->{b,SU3FUND},{0,1}->{b,SU3FUND},{1,1}->{B,SU3ADJ}|>];
 AddGroup[model,"SU2w","W",{0,0},<|{0}->{Function[x,Nothing],{}},{1}->{a,SU2FUND},{2}->{A,SU2ADJ}|>];
 AddGroup[model,"U1y","B",{0,0},<||>];
-AddField[model,"Q",-1/2,{{1,0},{1},1/6},{1/3,0},Flavor->{nf,FLAVOR}];
-AddField[model,"uc",-1/2,{{0,1},{0},-2/3},{-1/3,0},Flavor->{nf,FLAVOR}];
-AddField[model,"dc",-1/2,{{0,1},{0},1/3},{-1/3,0},Flavor->{nf,FLAVOR}];
-AddField[model,"L",-1/2,{{0,0},{1},-1/2},{0,1},Flavor->{nf,FLAVOR}];
-AddField[model,"ec",-1/2,{{0,0},{0},1},{0,-1},Flavor->{nf,FLAVOR}];
-AddField[model,"H",0,{{0,0},{1},1/2},{0,0}]
-]
+AddField[model,"Q",-1/2,{{1,0},{1},1/6},{1/3,0},nf,True];
+AddField[model,"uc",-1/2,{{0,1},{0},-2/3},{-1/3,0},nf,True];
+AddField[model,"dc",-1/2,{{0,1},{0},1/3},{-1/3,0},nf,True];
+AddField[model,"L",-1/2,{{0,0},{1},-1/2},{0,1},nf,True];
+AddField[model,"ec",-1/2,{{0,0},{0},1},{0,-1},nf,True];
+AddField[model,"H",0,{{0,0},{1},1/2},{0,0},1,True]
+](* Define SMEFT *)
 
 
 (* ::Input::Initialization:: *)
