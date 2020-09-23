@@ -3,11 +3,10 @@
 (* ::Input::Initialization:: *)
 $AmplitudeBasisDir = FileNameDrop[$InputFileName,-1];
 BeginPackage["AmplitudeBasis`"]
-$GroupMathPackages={FileNameJoin[{Global`$AmplitudeBasisDir,"Code","GroupMathSelected.m"}]};(*{FileNameJoin[{Global`$AmplitudeBasisDir,"GroupMath","GenericTools.m"}],FileNameJoin[{Global`$AmplitudeBasisDir,"GroupMath","LieAlgebras.m"}],FileNameJoin[{Global`$AmplitudeBasisDir,"GroupMath","PermutationGroup.m"}]}
-*)
+$GroupMathPackages={FileNameJoin[{Global`$AmplitudeBasisDir,"Code","GroupMathSelected.m"}]};
 
 (* General *)
-{tAssumptions,tRep,tOut,tVal,tYDcol,tSimp,dummyIndexCount,GellMann,ab,sb,reduce};
+{tAssumptions,tRep,tOut,tVal,tYDcol,tSimp,dummyIndexCount,GellMann,ab,sb,SSYT,reduce};
 
 (* Model Input *)
 {AddGroup,AddField,AllTypesR,AllTypesC,GetTypes,CheckType,CheckGroup};
