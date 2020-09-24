@@ -44,7 +44,9 @@ tOut[eps3n]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->StringJoin[#1,#2,#3],"
 tSimp[SU2]=Hold[Block[{},
 eps2a[x_,y_] eps2f[z_,y_]:=del2[x,z];
 eps2a[x_,y_] eps2f[y_,z_]:=-del2[x,z];
-eps2a[x_,y_] eps2f[w_,z_]:=del2[x,w] del2[y,z]-del2[x,z] del2[y,w]/;Intersection@@(First/@Position[INDEXSET,#]&/@{x,y,w,z})!={};
+eps2a[x_String,y_String] eps2f[w_String,z_String]:=del2[x,w] del2[y,z]-del2[x,z] del2[y,w]/;Intersection@@(First/@Position[INDEXSET,#]&/@{x,y,w,z})!={};
+eps2a[x:Except[_String],y_] eps2f[w_,z_]:=del2[x,w] del2[y,z]-del2[x,z] del2[y,w]/;Equal@@Head/@{x,y,w,z};
+
 del2[i_,j_]del2[j_,k_]:=del2[i,k];
 del2[i_,i_]:=2;
 del3n[i_,i_]:=3;
@@ -52,7 +54,8 @@ del2[a_,c_]\[Tau][J_,a_,b_]:=\[Tau][J,c,b];
 del2[c_,a_]\[Tau][J_,b_,a_]:=\[Tau][J,b,c];
 \[Tau][i_,j_,j_]:=0;
 \[Tau][i_,j_,k_]\[Tau][l_,k_,m_]:=Module[{},dummyIndexCount++;I eps3n[i,l,dummyIndex[dummyIndexCount]]\[Tau][dummyIndex[dummyIndexCount],j,m]+del3n[i,l]del2[m,j]];
-eps3n[i_,j_,k_]eps3n[l_,m_,n_]=Det@Map[Apply[del3n], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}];
+eps3n[i_String,j_String,k_String]eps3n[l_String,m_String,n_String]:=Det@Map[Apply[del3n], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Intersection@@(First/@Position[INDEXSET,#]&/@{i,j,k,l,m,n})!={};
+eps3n[i:Except[_String],j_,k_]eps3n[l_,m_,n_]:=Det@Map[Apply[del3n], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Equal@@Head/@{i,j,k,l,m,n};
 del3n[a_,d_]eps3n[a_,b_,c_]:=eps3n[d,b,c];
 del3n[a_,d_]eps3n[b_,a_,c_]:=eps3n[b,d,c];
 del3n[a_,d_]eps3n[c_,b_,a_]:=eps3n[c,b,d];
