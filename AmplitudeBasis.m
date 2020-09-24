@@ -21,7 +21,7 @@ BeginPackage["AmplitudeBasis`"]
 {CountGroupFactor,GetGroupFactor,ConvertToFundamental};
 
 (* Formating *)
-{PrintTensor,transform,Present};
+{PrintTensor,Ampform,transform,Present};
 
 (* j-basis *)
 {W2,W2Diagonalize,Mandelstam};
@@ -347,7 +347,7 @@ list=Join[list,SSYTfilling[ReplacePart[A,#->f&/@p],filling,n+1]], (* fill in f i
 Return[list] (* send list of results back to the previous recursions *)
 ]
 
-Options[SSYT]={OutMode->"amplitude"};
+Options[SSYT]={OutMode->"amplitude output"};
 SSYT[state_,k_,OptionsPattern[]]:=SSYT[state,k]=Module[{nt,n,Num=Length[state],array,ytabs},
 {nt,n}=yngShape[state,k];
 If[nt==0&&n==0,Return[{1}]];
@@ -355,7 +355,8 @@ array=Tally@Flatten@Table[ConstantArray[i,nt-2state[[i]]],{i,Num}];
 ytabs=TransposeTableau/@SSYTfilling[YDzero[Num,nt,n],array];
 Switch[OptionValue[OutMode],
 "young tab",ytabs,
-"amplitude",amp[#,nt]&/@ytabs]
+"amplitude",amp[#,nt]&/@ytabs,
+"amplitude output",Ampform[amp[#,nt]&/@ytabs]]
 ] (* Output only SSYT for a given number array X *)
 
 (* Spinor Brackets: Basic Variables for Amplitudes *)
@@ -689,14 +690,14 @@ RepFields=Select[PositionIndex[particles],Length[#]>1&];
 state=model[#]["helicity"]&/@particles;
 Num=Length[state];
 
-Mlist=SSYT[state,k];
+Mlist=SSYT[state,k,OutMode->"amplitude"];
 (* generate initial amplitude basis from SSYT *)
 resultCor=KeyMap[Thread@Rule[Keys[RepFields],#]&,PermBasis[Mlist,Values@RepFields,Num,Coord->True]];
 
 Switch[OptionValue[OutputFormat],
 (* Output amplitude basis *)
 "amplitude",If[OptionValue[Coord],
-<|"basis"->Mlist,"coord"->resultCor|>,
+<|"basis"->Ampform/@Mlist,"coord"->resultCor|>,
 Map[#.Mlist&,resultCor,{2+Length[RepFields]}]],  
 (* Output operator basis *)
 "operator",amp2op=MonoLorentzBasis[Mlist,Num,finalform->False];
@@ -728,7 +729,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 (* ::Input::Initialization:: *)
 (* find monomial Lorentz basis *)
 Options[MonoLorentzBasis]={finalform->True};
-MonoLorentzBasis[input_List,OptionsPattern[]]:=MonoLorentzBasis[SSYT@@input,Length[input[[1]]],OptionValue] (* input = {state,k} *)
+MonoLorentzBasis[state_,k_,OptionsPattern[]]:=MonoLorentzBasis[SSYT[state,k,OutMode->"amplitude"],Length[state],OptionValue] (* input = {state,k} *)
 MonoLorentzBasis[spinorbasis_List,num_Integer,OptionsPattern[]]:=Module[{operbasis,coefbasis,basispos,transfer,basis},
 operbasis=OperPoly[#,num,Dcontract->False]&/@spinorbasis;operbasis=Flatten[operbasis//.{Plus->List}]//.{Times[_Integer,p__]:>Times[p],Times[_Rational,p__]:>Times[p],Times[_Complex,p__]:>Times[I,p]};coefbasis=FindCor[reduce[#,num],spinorbasis]&/@(Amp[#]&/@operbasis);basispos=Subsets[coefbasis,{Length[spinorbasis]}];Do[If[MatrixRank[basispos[[ii]]]===Length[spinorbasis],transfer=basispos[[ii]];Break[]],{ii,Length[basispos]}];basispos=Flatten[Position[coefbasis,#][[1]]&/@transfer];
 basis=transform[operbasis[[basispos]],OpenFchain->OptionValue[finalform],ActivatePrintTensor->OptionValue[finalform]];
@@ -1745,13 +1746,20 @@ Options[GetGroupFactor]={OutputMode->"indexed"};
 
 (* getting printable form *)
 (*PrintTensor="\!\(\*SubsuperscriptBox[\("<>#tensor<>"\), \("<>#downind<>"\), \("<>#upind<>"\)]\)"&;*)
-PrintTensor[tensor_Association]:=StringReplace[\!\(\*
+PrintTensor[tensor_Association]:=Module[{srule={}},
+Check[AppendTo[srule,"tensorname"->tensor["tensor"]],Message[PrintTensor::noname];Abort[]];
+If[KeyExistsQ[tensor,"upind"],AppendTo[srule,"upind"->tensor["upind"]],AppendTo[srule,"upind"->""]];
+If[KeyExistsQ[tensor,"downind"],AppendTo[srule,"downind"->tensor["downind"]],AppendTo[srule,"downind"->""]];
+StringReplace[\!\(\*
 TagBox[
 StyleBox["\"\<\\!\\(\\*SubsuperscriptBox[\\(tensorname\\), \\(downind\\), \\(upind\\)]\\)\>\"",
 ShowSpecialCharacters->False,
 ShowStringCharacters->True,
 NumberMarks->True],
-FullForm]\),{"tensorname"->tensor["tensor"],"downind"->tensor["downind"],"upind"->tensor["upind"]}]
+FullForm]\),srule]
+]
+PrintTensor[x_:Except[_Association]]:=x
+
 Sortarg[asTlist_]:= #[y__] :> Signature[#[y]]Sort[#[y]]& /@ asTlist 
 RefineReplace[x_]:=Module[{asTlist=Select[Keys@tOut,MatchQ[tSymmetry[#],_Antisymmetric]&]},
 x/.Sortarg[asTlist]/.tOut]
@@ -1776,7 +1784,29 @@ Return[Thread[listind->Flatten@listgen]~Join~listdummy];
 ]
 
 
+(* ::Input::Initialization:: *)
 (* Amplitude Formating *)
+
+changebracket[b_ab]:=<|"tensor"->"<"<>StringJoin@@ToString/@b<>">"|>
+changebracket[b_sb]:=<|"tensor"->"["<>StringJoin@@ToString/@b<>"]"|>
+changebracket[s_sMand]:=<|"tensor"->"s","downind"-> StringJoin@@ToString/@s|>
+changebracket[p_Power]:=Switch[p[[1]],
+_ab|_sb|_sMand,Merge[{changebracket[p[[1]]],<|"upind"->ToString[p[[2]]]|>},StringJoin],
+_,p]
+changebracket[x_]:=x
+
+Options[Ampform]={sVariable->True};
+Ampform[amp_,OptionsPattern[]]:=Module[{lor=Expand[amp],coef},
+If[OptionValue[sVariable],lor=lor//.{
+ab[i_,j_]sb[i_,j_]:>-sMand[i,j],
+ab[i_,j_]^n_ sb[i_,j_]:>-sMand[i,j] ab[i,j]^(n-1),
+ab[i_,j_]sb[i_,j_]^n_:>-sMand[i,j] sb[i,j]^(n-1),
+ab[i_,j_]^n_ sb[i_,j_]^m_:>-sMand[i,j] ab[i,j]^(n-1) sb[i,j]^(m-1)}];
+Switch[Head[lor],
+Times,PrintTensor[changebracket[#]]&/@lor,
+Plus,Ampform/@lor,
+_,PrintTensor[changebracket[lor]]]
+]
 
 
 (* Lorentz Structure formating *)
@@ -1985,7 +2015,7 @@ Return[prefactor(Mandelstam[Ind] (sf*(Times@@sblist)+(Times@@ablist)*sg)+ sfg)//
 
 (* ::Input::Initialization:: *)
 W2Diagonalize[state_,k_,Ind_]:=
-Module[{Num=Length[state],iniBasis=SSYT[state,k],stBasis=SSYT[state,k+2],
+Module[{Num=Length[state],iniBasis=SSYT[state,k,OutMode->"amplitude"],stBasis=SSYT[state,k+2,OutMode->"amplitude"],
 W2Basis,W2result,eigensys},
 W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));
 eigensys=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result]//Eigensystem;
