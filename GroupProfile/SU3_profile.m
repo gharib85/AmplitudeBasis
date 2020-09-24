@@ -59,7 +59,7 @@ del3n[a_,d_]eps3n[b_,a_,c_]:=eps3n[b,d,c];
 del3n[a_,d_]eps3n[c_,b_,a_]:=eps3n[c,b,d];
 del3n[a_,c_]del3n[a_,b_]:=del3n[c,b];
 SetAttributes[del8n,Orderless];
-eps3a[i_,j_,k_]eps3f[l_,m_,n_]=Det@Map[del3@@#&, Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}];
+eps3a[i_,j_,k_]eps3f[l_,m_,n_]:=Det@Map[del3@@#&, Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Intersection@@(First/@Position[INDEXSET,#]&/@{i,j,k,l,m,n})!={};
 del3[a_,c_]\[Lambda][J_,a_,b_]:=\[Lambda][J,c,b];
 del3[c_,a_]\[Lambda][J_,b_,a_]:=\[Lambda][J,b,c];
 \[Lambda][i_,j_,j_]:=0;

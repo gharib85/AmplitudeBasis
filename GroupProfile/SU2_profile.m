@@ -44,7 +44,7 @@ tOut[eps3n]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->StringJoin[#1,#2,#3],"
 tSimp[SU2]=Hold[Block[{},
 eps2a[x_,y_] eps2f[z_,y_]:=del2[x,z];
 eps2a[x_,y_] eps2f[y_,z_]:=-del2[x,z];
-eps2a[x_,y_] eps2f[w_,z_]:=del2[x,w] del2[y,z]-del2[x,z] del2[y,w];
+eps2a[x_,y_] eps2f[w_,z_]:=del2[x,w] del2[y,z]-del2[x,z] del2[y,w]/;Intersection@@(First/@Position[INDEXSET,#]&/@{x,y,w,z})!={};
 del2[i_,j_]del2[j_,k_]:=del2[i,k];
 del2[i_,i_]:=2;
 del3n[i_,i_]:=3;
@@ -57,38 +57,11 @@ del3n[a_,d_]eps3n[a_,b_,c_]:=eps3n[d,b,c];
 del3n[a_,d_]eps3n[b_,a_,c_]:=eps3n[b,d,c];
 del3n[a_,d_]eps3n[c_,b_,a_]:=eps3n[c,b,d];
 del3n[a_,c_]del3n[a_,b_]:=del3n[c,b];
-eps2f[i_,j_]del[2][i_,k_]:=eps2f[k,j];
-eps2f[i_,j_]del[2][j_,k_]:=eps2f[i,k];
-eps2a[i_,j_]del[2][k_,i_]:=eps2a[k,j];
-eps2a[i_,j_]del[2][k_,j_]:=eps2a[i,k];
+eps2f[i_,j_]del2[i_,k_]:=eps2f[k,j];
+eps2f[i_,j_]del2[j_,k_]:=eps2f[i,k];
+eps2a[i_,j_]del2[k_,i_]:=eps2a[k,j];
+eps2a[i_,j_]del2[k_,j_]:=eps2a[i,k];
 ]]
-
-
-(* ::Input:: *)
-(*(* invariant tensor simplification *)*)
-(*Unprotect[Times];*)
-(*Clear[Times];*)
-(*dummyIndexCount=0;*)
-(*eps2a[x_,y_] eps2f[z_,y_]:=del2[x,z];*)
-(*eps2a[x_,y_] eps2f[y_,z_]:=-del2[x,z];*)
-(*eps2a[x_,y_] eps2f[w_,z_]:=del2[x,w] del2[y,z]-del2[x,z] del2[y,w];*)
-(*del2[i_,j_]del2[j_,k_]:=del2[i,k];*)
-(*del2[i_,i_]:=2;*)
-(*del3n[i_,i_]:=3;*)
-(*del2[a_,c_]\[Tau][J_,a_,b_]:=\[Tau][J,c,b];*)
-(*del2[c_,a_]\[Tau][J_,b_,a_]:=\[Tau][J,b,c];*)
-(*\[Tau][i_,j_,j_]:=0;*)
-(*\[Tau][i_,j_,k_]\[Tau][l_,k_,m_]:=Module[{},dummyIndexCount++;I eps3n[i,l,dummyIndex[dummyIndexCount]]\[Tau][dummyIndex[dummyIndexCount],j,m]+del3n[i,l]del2[m,j]];*)
-(*eps3n[i_,j_,k_]eps3n[l_,m_,n_]=Det@Map[Apply[del3n], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}];*)
-(*del3n[a_,d_]eps3n[a_,b_,c_]:=eps3n[d,b,c]*)
-(*del3n[a_,d_]eps3n[b_,a_,c_]:=eps3n[b,d,c]*)
-(*del3n[a_,d_]eps3n[c_,b_,a_]:=eps3n[c,b,d]*)
-(*del3n[a_,c_]del3n[a_,b_]:=del3n[c,b]*)
-(*eps2f[i_,j_]del[2][i_,k_]:=eps2f[k,j];*)
-(*eps2f[i_,j_]del[2][j_,k_]:=eps2f[i,k];*)
-(*eps2a[i_,j_]del[2][k_,i_]:=eps2a[k,j];*)
-(*eps2a[i_,j_]del[2][k_,j_]:=eps2a[i,k];*)
-(*Protect[Times];*)
 
 
 (* ::Input::Initialization:: *)
