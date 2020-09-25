@@ -2,7 +2,6 @@
 
 $AmplitudeBasisDir = FileNameDrop[$InputFileName,-1];
 $CodeFiles=FileNames[__~~".m",FileNameJoin[{$AmplitudeBasisDir,"Code"}]];
-(*{FileNameJoin[{Global`$AmplitudeBasisDir,"Code","GroupMathSelected.m"}]};*)
 
 
 (* ::Input::Initialization:: *)
@@ -32,9 +31,6 @@ BeginPackage["AmplitudeBasis`"]
 (* Useful Lie groups in GroupMath *)
 {U1,SU2,SU3,SU4,SU5,SU6};
 
-(* Useful Functions in GroupMath 
-{DimR,Adjoint,SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN,ReduceRepProductBase1,ReduceRepProductBase2,HookContentFormula}; *)
-
 
 
 (* ::Subsection:: *)
@@ -50,7 +46,7 @@ FLAVOR={"p","r","s","t","u","v","w","x","y","z"};
 
 
 (* ::Input::Initialization:: *)
-(*Begin["`Private`"]*)
+Begin["`Private`"]
 Get/@Global`$CodeFiles;
 
 
@@ -2014,12 +2010,19 @@ Return[prefactor(Mandelstam[Ind] (sf*(Times@@sblist)+(Times@@ablist)*sg)+ sfg)//
 
 
 (* ::Input::Initialization:: *)
-W2Diagonalize[state_,k_,Ind_]:=
+Options[W2Diagonalize]={OutputFormat->"print"};
+W2Diagonalize[state_,k_,Ind_,OptionsPattern[]]:=
 Module[{Num=Length[state],iniBasis=SSYT[state,k,OutMode->"amplitude"],stBasis=SSYT[state,k+2,OutMode->"amplitude"],
-W2Basis,W2result,eigensys},
+W2Basis,W2result,eigensys,result},
 W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));
 eigensys=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result]//Eigensystem;
-<|"j"->eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>
+result=<|"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>;
+
+Switch[OptionValue[OutputFormat],
+"working",result,
+"print",result=MapAt[Ampform,result,{Key["j-basis"],All}];
+result=MapAt[MatrixForm,result,Key["transfer"]]
+]
 ]
 
 
@@ -2175,6 +2178,6 @@ n1*n2
 
 
 (* ::Input::Initialization:: *)
-Begin["`Private`"]
+(*Begin["`Private`"]*)
 End[];
 EndPackage[]
