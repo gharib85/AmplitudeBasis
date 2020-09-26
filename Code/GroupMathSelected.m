@@ -1,5 +1,24 @@
 (* ::Package:: *)
 
+(* ::Input:: *)
+(*(* main dependent functions *)*)
+(*{DimR,Adjoint,SnIrrepDim,GenerateStandardTableaux, DecomposeSnProduct, PlethysmsN,ReduceRepProductBase1,ReduceRepProductBase2,HookContentFormula}*)
+
+
+(* ::Input:: *)
+(*(* other dependent functions *)*)
+(*Union[*)
+(*(* DimR *){DimRBaseMethod,PositiveRoots,FindM,MatrixD,SimpleProduct},*)
+(*(* Adjoin *){AdjointBaseMethod,PositiveRoots,FindM},*)
+(*(* SnIrrepDim *){},*)
+(*(* GenerateStandardTableaux *){TransposePartition,TransposeTableaux,MaxIndex,GenerateStandardTableauxAux},*)
+(*(* DecomposeSnProduct *){SnClassOrder,SnClassCharacter,RimHooks,PartitionSequence,RebuiltPartitionFromSequence},*)
+(*(* PlethysmsN *){Plethysms,SnClassOrder,SnClassCharacter,RimHooks,PartitionSequence,RebuiltPartitionFromSequence,Adams,PositiveRoots,FindM,MatrixD,SimpleProduct,VDecomp,AltDom,LongestWeylWord,ReduceRepPolyProduct,IsSimpleGroupQ,RepName,RepName\[UnderBracket]BaseMethod,RepsUpToDimNNoConjugates,RepsUpToDimN,RepsUpToDimNAuxilarMethod,RepresentationIndex,RepresentationIndex\[UnderBracket]BaseMethod,ConjugacyClass,CMtoFamilyAndSeries,GroupsWithRankN2,CartanMatrix,ConjugateIrrep,ConjugateIrrepBase,GatherWeights},*)
+(*(* ReduceRepProduct *){DominantWeights,PositiveRoots,FindM,MatrixD,DominateConjugate,SpecialMatrixD,ReflectWeight,SimpleProduct,WeylOrbit},*)
+(*(* HookContentFormula *){}*)
+(*]*)
+
+
 (* ::Subsubsection::Closed:: *)
 (*Generic Tool*)
 

@@ -46,7 +46,7 @@ FLAVOR={"p","r","s","t","u","v","w","x","y","z"};
 
 
 (* ::Input::Initialization:: *)
-Begin["`Private`"]
+If[!Global`$DEBUG,Begin["`Private`"]]
 Get/@Global`$CodeFiles;
 
 
@@ -1376,57 +1376,6 @@ FillYD[fdl,fdlstr,tdiag1,tdiag1str,ldiag2[[2;;-1]],ldiag2str[[2;;-1]],fdiag,n];
 SetAttributes[FillYD,HoldAll];
 
 
-(* ::Code:: *)
-(*GenerateTYT[irrep_,numIP_,baserep_,fnamenum_,index_,group_]:=GenerateTYT[irrep,numIP,baserep,fnamenum,index,group]=Module[{tindex=index,n=Length[group]+1,standardyt,partbaserep=Dynk2Yng[baserep],ydlist,ll,fytl={}},*)
-(*If[Total[baserep]==0,Return[{{}}]];*)
-(*(*added following two lines to adapt the GenerateSU3 and GenerateSU3*)*)
-(*If[!MatchQ[baserep,{1,0...}],tindex=StringJoin@@ConstantArray[ToString[index],2]];*)
-(*If[Length[StringCases[fnamenum,"\[Dagger]"]]!=0&&baserep=={1},tindex=StringJoin@@ConstantArray[ToString[index],2]];*)
-(*partbaserep=partbaserep/.{0->Nothing};*)
-(*standardyt=MapThread[Range,{Accumulate[partbaserep]-partbaserep+1,Accumulate[partbaserep]}];*)
-(*ll=ConvertPathtoYD[ConstantArray[Total@partbaserep,numIP],#,n]&/@(FindRepPath[group,irrep,ConstantArray[baserep,numIP]]);*)
-(*(*the lables of the indices is in the following form: index[i,j,k],*)
-(*  i labels the i-th group of the repeated fields,*)
-(*  j labels the j-th field in this group of repeated fields,*)
-(*  k labels the k-th fundamental indices of this particular field*)*)
-(*ydlist=Table[Map[tindex<>"[ToString["<>ToString[fnamenum]<>"],"<>ToString[i]<>","<>ToString[#]<>"]"&,standardyt,{2}],{i,numIP}];*)
-(*LRTableaux[fytl,ydlist,#,n]&/@ll;*)
-(*fytl*)
-(*]*)
-(**)
-(*nonFund2Fund[model_,groupname_,rep_,flag_:False]:=Module[{group=CheckGroup[groupname],indexFund},indexFund=model[rep2ind][groupname][Fund[group]];*)
-(*If[rep!=Fund[group],ToExpression[StringRepeat[ToString[indexFund],2]],*)
-(*If[group==SU2&&flag,ToExpression[StringRepeat[ToString[indexFund],2]],indexFund]]*)
-(*]*)
-(**)
-(*(*Generate the replacement rule for the symbolic tensor indices of the output of the function GenerateLRT*)*)
-(*GenerateLRRP[model_,groupname_,nonsinglets_]:=Module[{nfield=nonsinglets[[1]],SUNirrep=nonsinglets[[2]],fname=nonsinglets[[3]],fnlist,nfund,index},*)
-(*nfund=Total[Dynk2Yng[SUNirrep]];*)
-(*If[nfield==1,{},*)
-(*fnlist=Array[fname<>ToString[#]&,nonsinglets[[1]]];*)
-(*index=nonFund2Fund[model,groupname,SUNirrep,StringTake[fname,-1]=="\[Dagger]"];(* get appropriate index name *)*)
-(*Flatten[Table[MapThread[Rule,{index[fnlist[[i]],1,#]&/@Range[nfund],index[fname,i,#]&/@Range[nfund]}],{i,nfield}]]]*)
-(*]*)
-(**)
-(*GenerateLRT[groupname_,replist_]:=*)
-(*(*replist is a list of elements in the following form: {__,__,__,__}, *)
-(*the first slot is the DykinCoefficient of the constructed representation,*)
-(*the second slot is the number of repeated fields that construct the representation in the first slot,*)
-(*the third slot is the representation of the repeated fields,*)
-(*the last slot is the name of the repeated field*)*)
-(*Module[{group=CheckGroup[groupname],indmap=rep2ind[groupname],nlist,irreplist,basereplist,index,tyt1,pathlists={},result={}},*)
-(*index=ToString@indmap@Fund[group];*)
-(*irreplist=replist[[All,1]];*)
-(*nlist=(#[[2]]*Total[Dynk2Yng[#[[3]]]])&/@replist;*)
-(*basereplist=replist[[All,3]];*)
-(*(*Generate tensor Young Tableaux*)*)
-(*tyt1=Distribute[GenerateTYT@@@(Join[#,{index,group}]&/@replist),List];*)
-(*pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindSingletPath[group,irreplist];*)
-(*Do[LRTableaux[result,tyt1[[j]],pathlists[[i]],Length[group]+1],{i,1,Length[pathlists]},{j,1,Length[tyt1]}];*)
-(*result*)
-(*]*)
-
-
 (* ::Input::Initialization:: *)
 LRrule[yt1_,yt2_,fdiag_,n_]:=Module[{fdl={},fdlstr={},ldiag2=Flatten[Table[i&/@yt2[[i]],{i,1,Length[yt2]}]],ldiag2str=Flatten[yt2]},
 FillYD[fdl,fdlstr,yt1,yt1,ldiag2,ldiag2str,fdiag,n];fdlstr]
@@ -1466,14 +1415,6 @@ ydlist=Table[Map[tindex<>"[ToString["<>ToString[fnamenum]<>"],"<>ToString[i]<>",
 
 
 (* ::Input::Initialization:: *)
-(********************* Littlewood-Richardson *****************)
-
-(*Generate the input for the function GenerateLRT to obtain the y-basis symbolic tensors*)
-GenerateLRInput[nonsinglets_]:=If[nonsinglets[[1]]>1,{nonsinglets[[2]],1,nonsinglets[[2]],nonsinglets[[3]]<>ToString[#]}&/@Range[nonsinglets[[1]]],{{nonsinglets[[2]],1,nonsinglets[[2]],nonsinglets[[3]]}}]
-
-
-
-
 GenerateLRT[model_,groupname_,replist_]:=
 (*replist is a list of elements in the following form: {__,__,__}, 
 the first slot is the number of repeated fields that construct the representation in the first slot,
@@ -1564,7 +1505,7 @@ Switch[pos[[All,1,1]],
 {2,1},tensorlist=ReplacePart[tensorlist,pos[[2]]->xmap[tname[[1]]]],
 {1,1},pairRep=MapThread[tRep[#1][[#2[[1,3]]]]&,{tname,pos}];
 If[RepConj[#1]===#2&@@pairRep,
-tensorlist=ReplacePart[tensorlist,(Join@@pos)->#[++ct[#]]&[indmap[pairRep[[1]]] ] ],
+tensorlist=ReplacePart[tensorlist,(Join@@pos)->#[++ct[#]]&[ indmap[pairRep[[1]]] ] ],
 Message[Contraction2Tensor::mismatch,pair,TC];Abort[]]
 ],
 {pair,TC[[2]]}];
@@ -1591,7 +1532,7 @@ UnfoldContraction[rt,xmap,model["rep2ind"][groupname]]
 SetAttributes[RefineTensor,HoldFirst]
 
 (* Refine gauge group tensors with the symmetry of the invariant tensors *)
-TRefineTensor[x_,model_,groupname_,fts_]:=Module[{trank,tdim,result,len},
+TRefineTensor[x_,model_,groupname_,fts_]:=TRefineTensor[x,model,groupname,fts]=Module[{trank,tdim,result,len},
 trank=tRank[x];
 tdim=tDimensions[x];
 result=Flatten[{x}];
@@ -1705,13 +1646,11 @@ nonSingletSN=MapAt[Select[#,model[#[[1]]][groupname]!=Singlet[group]&]&,SNCollec
 convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);
 (*Select out nonsinglet fields for constructing singlet*)
 YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@Map[ToExpression,GenerateLRT[model,groupname,nonsinglets],{2}])]*convertfactor];
-
 MbasisAll=SimpGFV2[Expand/@TRefineTensor[YDbasis,model,groupname,flist]];
 tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;
 vMbasisAll=Flatten/@tMbasisAll;
 MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
 If[MatrixRank[vMbasis]!=Length[vMbasis],Print["Warning: non-independent basis!!!!!"]];
-
 Mbasis=Switch[OptionValue[OutputMode],
 "working",Mbasis,
 "tensor contract",Mbasis, (* needs implementation *)
@@ -2069,7 +2008,13 @@ Thread[#,Rule]&/@Distribute[Flatten[Thread/@#]&/@decompose,List]
  (* flatten multiplicity of Sn decomposition, and list all combinations of syms for repeated fields *)
 ]
 
-Options[DeSymmetrize]={RecMatrix->False,ColList->True};
+GetRowsForFirstBasis[transfer_List]:=Module[{rows,len=ArrayDepth[transfer[[1]]]-2},
+rows=Prepend[Accumulate/@(Prepend[#,0]&/@Map[Length[Flatten[#,len-1]]&,transfer,{2}]),{1}];
+Do[rows[[i+1]]+=rows[[i,-1]],{i,Length[transfer]}];
+Most/@Rest[rows]
+]
+
+Options[DeSymmetrize]={ColList->True};
 DeSymmetrize[M_,rows_,OptionsPattern[]]:=Module[{len=Length[M],colList,N\[Lambda],iter,col\[Lambda]={},cols={}},
 If[Det[M]==0,Print["[DeSymmetrize] incomplete basis"];Abort[]];
 If[len==1,Return[{{1}}]];
@@ -2079,7 +2024,6 @@ Do[N\[Lambda]=Length[row\[Lambda]];
 If[N\[Lambda]==len,AppendTo[cols,Range[len]];Break[]];
 AppendTo[cols,Complement[Range[len],colList[[len+1-basisReduce[Reverse[M[[Complement[Range[len],row\[Lambda]]]]\[Transpose][[colList]]]]["pos"]]]]],
 {row\[Lambda],rows}];
-If[OptionValue[RecMatrix],Print[MapThread[Inverse[M[[#1,#2]]-M[[#1,Complement[Range[len],#2]]].Inverse[M[[Complement[Range[len],#1],Complement[Range[len],#2]]]].M[[Complement[Range[len],#1],#2]]]&,{rows,cols}]]];
 Return[cols];
 ]
 
@@ -2088,44 +2032,45 @@ SQ[model_]:=Not@TrueQ[model[#1]["nfl"]<Length[#2]]&
 
 
 (* ::Input::Initialization:: *)
-Options[Type2TermsPro]={OutputFormat->"operator",FerCom->2,deSym->True,flavorTensor->True};
-Type2TermsPro[model_,type_,OptionsPattern[]]:=Module[{flist,len,lorentzB,groupB,nFac,basisTotal,SymComb,terms,indexCG,indexFac,pairContraction,rows,cols},
-flist=CheckType[model,type];
-lorentzB=LorentzBasisForType[model,type,OutputFormat->OptionValue[OutputFormat],FerCom->OptionValue[FerCom],Coord->True,OpenFchain->False,ActivatePrintTensor->False];
-len=Length[Keys[lorentzB["coord"]][[1]]];(*num of repeated fields*)
-groupB=GetGroupFactor[model,#,type,OutputMode->"indexed"]&/@Select[model["Gauge"],nonAbelian];
-nFac=Length[groupB]+1;(*number of factors to do Inner Product Decomposition for Sn groups*)
+Options[Type2TermsPro]={OutputFormat->"operator",Basis->"p-basis",FerCom->2,deSym->True,flavorTensor->True,fullform->False,AddFlavor->True};
+Type2TermsPro[model_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],NAgroups=Select[model["Gauge"],nonAbelian],
+len,nFac,lorentzB,groupB,basisTotal,
+SymComb,pCoord,indexCG,indexFac,cols},
+len=Count[flist,{_String,_?(#>1&)}];(*num of repeated fields*)
+nFac=Length[NAgroups]+1;(*number of factors to do Inner Product Decomposition for Sn groups*)
 
+(********* compute m-basis *********)
+lorentzB=LorentzBasisForType[model,type,OutputFormat->OptionValue[OutputFormat],FerCom->OptionValue[FerCom],Coord->True,OpenFchain->False,ActivatePrintTensor->False];
+groupB=GetGroupFactor[model,#,type,OutputMode->"indexed"]&/@NAgroups;
 basisTotal=Flatten[lorentzB["basis"]\[TensorProduct]Through[(TensorProduct@@groupB)["basis"]]];
 If[OptionValue[OutputFormat]=="operator",basisTotal=ContractDelta/@basisTotal];
 basisTotal=RefineReplace/@Map[Activate,basisTotal,\[Infinity]]/.listtotime;
+If[OptionValue[Basis]=="m-basis",Return[basisTotal]];
 If[len==0,Return[<|{}->basisTotal|>]];
 
+(********* compute p-basis *********)
 SymComb=Distribute[Normal/@Prepend[Through[groupB["coord"]],lorentzB["coord"]],List];(*list all syms combinations from factors*)
-terms=Distribute[InnerDecomposeKey[model,#]&@Keys[#]->Distribute[Values[#],List],List]&/@SymComb//Flatten;(*perform IPD and expand multiplicities of basis and IPD*)
-terms=Merge[terms/.{((sym_->CG_)->fac_):>sym->{CG,fac}},Identity];(*merge into association group by Sym*)
-
+pCoord=Distribute[InnerDecomposeKey[model,#]&@Keys[#]->Distribute[Values[#],List],List]&/@SymComb//Flatten;(*perform IPD and expand multiplicities of basis and IPD*)
+pCoord=Merge[pCoord/.{((sym_->CG_)->fac_):>sym->{CG,fac}},Identity];(*merge into association group by Sym*)
 indexCG=Drop[Partition[Range[len (1+nFac)],1+nFac]//Transpose,1]//Flatten;
 indexFac=len (1+nFac)+Drop[Range[nFac (len+1)],{len+1,-1,len+1}];
-pairContraction=Transpose[{indexCG,indexFac}];(*find pairs to contract*)
-terms=Map[Map[Flatten,TensorContract[TensorProduct@@Join@@#,pairContraction],{len}]&,terms,{2}];
+pCoord=Map[Map[Flatten,TensorContract[TensorProduct@@Join@@#,Transpose[{indexCG,indexFac}]],{len}]&,pCoord,{2}];
 
-If[OptionValue[deSym], (* whether to deSymmetrize to simpler form *)
-rows=Prepend[Accumulate/@(Prepend[#,0]&/@Map[Length[Flatten[#,len-1]]&,Values[terms],{2}]),{1}];
-Do[rows[[i+1]]+=rows[[i,-1]],{i,Length[terms]}];
-rows=Drop[#,-1]&/@Drop[rows,1];
-cols=DeSymmetrize[Apply[Join,Values[terms],{0,len}],rows];
-terms=AssociationThread[Keys[terms]->(Part[basisTotal,#]&/@cols)] ,
-(* full form *)
-terms=Map[basisTotal.First[#]&,terms,{len+1}]
+(********* desymmetrize *********)
+If[OptionValue[deSym], 
+cols=DeSymmetrize[Flatten[Values[pCoord],1+len],GetRowsForFirstBasis[Values[pCoord]]];
+pCoord=AssociationThread[Keys[pCoord]->Map[UnitVector[Length[basisTotal],#]&,cols,{2}]],
+
+pCoord=Extract[{All}~Join~ConstantArray[1,len]~Join~{All}]/@pCoord (* Select first basis from Sn irrep *)
 ];
 
 (* impose spin-stat: remove flavor syms not allowed by nflavor *)
-terms=KeySelect[terms,And@@#/.Rule->SQ[model]&];
+pCoord=KeySelect[pCoord,And@@#/.Rule->SQ[model]&];
 (* transform the key format *)
-If[OptionValue[flavorTensor],terms=KeyMap[Select[Join[#,#->{1}&/@Cases[flist,{x_,1}:> x]],model[#[[1]]]["nfl"]!=1&]&,terms]];
+If[OptionValue[flavorTensor],pCoord=KeyMap[Select[Join[#,#->{1}&/@Cases[flist,{x_,1}:> x]],model[#[[1]]]["nfl"]!=1&]&,pCoord]];
 
-Return[terms];
+If[OptionValue[fullform],Return[<|"m-basis"->basisTotal,"coordinate"->pCoord|>],
+Return[#.basisTotal&/@pCoord]]
 ]
 
 SnDecompose[replist_]:=Join@@MapThread[ConstantArray,{IntegerPartitions[Total@First@replist],DecomposeSnProduct[replist]}]
@@ -2178,6 +2123,6 @@ n1*n2
 
 
 (* ::Input::Initialization:: *)
-(*Begin["`Private`"]*)
+If[Global`$DEBUG,Begin["`Private`"]]
 End[];
 EndPackage[]
