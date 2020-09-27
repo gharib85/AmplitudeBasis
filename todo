@@ -1,4 +1,4 @@
-1. Integrate W2 function in Type2TermPro;
+1. Integrate W2 function in Type2TermPro (need j-basis for group factor);
 2. Formatting file system to standard package;
 3. Try SU(5) gauge group, write group profile generator;
 4. Code optimization, variable renaming;

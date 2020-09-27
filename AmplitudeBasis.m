@@ -210,7 +210,9 @@ YO[yng_,pos_:1,otherbasis_:1]:=Generateb[yng][[otherbasis]]/.Cycles[x_]:>Cycles[
 (* ::Input::Initialization:: *)
 (************* inner product (needs data folder SnMat) *******************)
 
-ReadMatrices[matmap_,n_,dir_]:=Module[{nintpart=Length[IntegerPartitions[n]],ge,mat},ge=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n],"List"];Do[mat=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n]<>"_"<>ToString[i]<>".dat","List"];MapThread[Set,{matmap[i][#]&/@ge,mat}];,{i,1,nintpart}]]
+ReadMatrices[matmap_,n_,dir_]:=Module[{nintpart=Length[IntegerPartitions[n]],ge,mat},ge=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n],"List"];Do[mat=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n]<>"_"<>ToString[i]<>".dat","List"];MapThread[Set,{matmap[i][#]&/@ge,mat}],{i,1,nintpart}]
+]
+
 PR[matmap_,ge_,\[Sigma]_,k_,l_,snreplist_,symbollist_,indiceslist_]:=Module[{nG=Length[ge],n\[Sigma],nlist},nlist=Length[(matmap[#][Cycles[{}]])[[1]]]&/@snreplist;
 n\[Sigma]=Length[(matmap[\[Sigma]][Cycles[{}]])[[1]]];
 n\[Sigma]/nG Sum[
@@ -250,14 +252,7 @@ Map[Fold[Partition,#,Reverse[Rest[listdim]]]&,result,{4}]
 
 (* ::Input::Initialization:: *)
 (********************** Young tableau related *******************)
-(* Fill number array X into tableaux p *)
-YngFilling[X_,p_]:=Module[{ac},
-ac=Prepend[Accumulate[p],0];
-Table[Take[X,{ac[[i]]+1,ac[[i+1]]}],{i,Length[p]}]
-]
-
-TransposeTableau[yt_]:=DeleteCases[#,"x"]&/@Transpose[PadRight[#,Length[yt[[1]]],"x"]&/@yt]
-TransposeYng[yng_]:=Length/@TransposeTableau[Range/@yng]
+TransposeYng[yng_]:=Length/@TransposeTableaux[Range/@yng]
 
 Dynk2Yng[rep_]:=Reverse@Accumulate@Reverse[rep]
 Yng2Dynk[group_,yng_]:=-Differences@PadRight[yng,Length[group]+1]
@@ -266,7 +261,8 @@ Yng2Dynk[group_,yng_]:=-Differences@PadRight[yng,Length[group]+1]
 (* ::Input::Initialization:: *)
 (* Modification of the GroupMath MyRepProduct *)
 MyRepProduct[cm_,repsList_,select_:Identity]:=MyRepProduct[cm,repsList,select]=Module[{n,orderedList,result},
-If[cm==U1,Return[{{Plus@@repsList,1}}]];If[Length[repsList]==1,Return[{{repsList[[1]],1}}]];orderedList=Sort[repsList,DimR[cm,#1]<DimR[cm,#2]&];n=Length[orderedList];result=ReduceRepProductBase2[cm,orderedList[[n-1]],orderedList[[n]]];Do[result=ReduceRepProductBase1[cm,orderedList[[n-i]],select@result];,{i,2,n-1}];Return[result];]
+If[cm==U1,Return[{{Plus@@repsList,1}}]];If[Length[repsList]==1,Return[{{repsList[[1]],1}}]];orderedList=Sort[repsList,DimR[cm,#1]<DimR[cm,#2]&];n=Length[orderedList];result=ReduceRepProductBase2[cm,orderedList[[n-1]],orderedList[[n]]];Do[result=ReduceRepProductBase1[cm,orderedList[[n-i]],select@result];,{i,2,n-1}];Return[result]
+]
 
 FindIrrepCombination[group_,IPlist_,rep_]:=FindIrrepCombination[group,IPlist,rep]=
 (*IPlist is a list of {__,__}, where the first slot is the Dykin coefficient of the corresponding representation, the second slot is the number of this representation*)
@@ -348,7 +344,7 @@ SSYT[state_,k_,OptionsPattern[]]:=SSYT[state,k]=Module[{nt,n,Num=Length[state],a
 {nt,n}=yngShape[state,k];
 If[nt==0&&n==0,Return[{1}]];
 array=Tally@Flatten@Table[ConstantArray[i,nt-2state[[i]]],{i,Num}];
-ytabs=TransposeTableau/@SSYTfilling[YDzero[Num,nt,n],array];
+ytabs=TransposeTableaux/@SSYTfilling[YDzero[Num,nt,n],array];
 Switch[OptionValue[OutMode],
 "young tab",ytabs,
 "amplitude",amp[#,nt]&/@ytabs,
@@ -370,7 +366,7 @@ Signature@Join[col,B]sb@@B
 amp::shape="wrong shape!";
 amp[ssyt_,nt_]:=Module[{trp,ncol,ls,la},
 If[ssyt==Null,Return[1]];
-trp=TransposeTableau[ssyt];
+trp=TransposeTableaux[ssyt];
 ncol=Tally[Length/@trp];
 Switch[Length[ncol],
 1,If[ncol[[1,1]]==2,
@@ -715,7 +711,7 @@ grank=If[Num>3,Num-2,Num];
 {nt,n}=yngShape[state,k]; (* young tab info *)
 If[nt==0&&n==0,Return[<|Normal[{Length[#]}&/@RepFields]->1|>]];
 group=ToExpression["SU"<>ToString[grank]];
-rep=Yng2Dynk[group,Length/@(YDzero[Num,nt,n]//TransposeTableau)]; (* target irrep *)
+rep=Yng2Dynk[group,Length/@(YDzero[Num,nt,n]//TransposeTableaux)]; (* target irrep *)
 irrepComb=FindIrrepCombination[group,MapThread[{PadRight[Count[Flatten@Table[ConstantArray[i,nt-2state[[i]]],{i,Num}],#]&/@FirstPosition[particles,#1],grank-1],#2}&,Tally[particles]\[Transpose]],rep][[2;;]]\[Transpose]; (* Main step: apply FindIrrepCombination *)
 AllSym=Flatten[ConstantArray[Distribute[Join@@@Apply[ConstantArray,#1,{2}],List],#2]&@@@irrepComb,2]/.{1}->Nothing; (* list all combinations of syms *)
 KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thread[Keys[RepFields]->#]&/@AllSym]]]  (* counting and form association, taking transposition of young diagrams when #\[Epsilon] is odd *)
@@ -1284,7 +1280,7 @@ Amp[oper_]:=Thread[head[oper],Plus]/.{head->AmpMono};
 
 
 (* ::Item:: *)
-(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableau, Dynk2Yng, FindIrrepCombination, MyRepProduct*)
+(*Permutation Group -- permutationSignature, pp, Generateb, ColistPP, TransposeTableaux, Dynk2Yng, FindIrrepCombination, MyRepProduct*)
 
 
 (* ::Item:: *)
@@ -1293,6 +1289,10 @@ Amp[oper_]:=Thread[head[oper],Plus]/.{head->AmpMono};
 
 (* ::Subsubsection::Closed:: *)
 (*Littlewood-Richardson related*)
+
+
+(* ::Input:: *)
+(*(* GenerateLRT *)*)
 
 
 (* ::Input::Initialization:: *)
@@ -1321,7 +1321,7 @@ FindSingletPath[group_,replist_]:=FindRepPath[group,ConstantArray[0,Length[group
 (*The set of the Littlewood-Richardson rules that needed to check at each step of constructing*)
 IsNormalYoungDiagramQ[diag_]:=If[Length[diag]==1,True,And@@(diag[[#]]>=diag[[#+1]]&/@Range[1,Length[diag]-1])]
 CompYoungDiagramQ[y1_,y2_]:=Module[{y3},y3=PadRight[y1,Length[y2]];And@@MapThread[#1<=#2&,{y3,y2}]];
-ColumnConditionQ[l_]:=And@@(#<=1&)/@(Max[#[[1;;-1,2]]]&/@(Tally/@Select[TransposeTableau[l],Length[#]!=0&]))
+ColumnConditionQ[l_]:=And@@(#<=1&)/@(Max[#[[1;;-1,2]]]&/@(Tally/@Select[TransposeTableaux[l],Length[#]!=0&]))
 RowConditionQ[l_]:=Module[{it,nrow,unique,counter,temp,result=True},
 nrow=Length[l];
 unique=Union[Cases[Flatten[l],_Integer]];
@@ -1436,6 +1436,10 @@ result
 (*Tensor Reduction related*)
 
 
+(* ::Input:: *)
+(*(* Product2ContractV2, GenerateFieldIndex, GenerateFieldTensor, TRefineTensor *)*)
+
+
 (* ::Input::Initialization:: *)
 (* Convert the product of the symbolic tensors to the tensor product in the Mathematica format*)
 Product2Contract[x_]:=Module[{expr,tensorlist,numberlist,headlist,arglist,uniquelist,listrepeat,tensorp},
@@ -1548,11 +1552,11 @@ unflatten[result,tdim]
 (*Symmetrization related*)
 
 
-(* ::Input::Initialization:: *)
-(*symmetrize the group factor numerically with certain group algebra elements*)
-SymBasis[basis_,perms_]:=
-Plus@@(MapThread[(Transpose[basis,#1]*#2)&,Transpose[(ColistPP[perms])]])
+(* ::Input:: *)
+(*(* FindIndependentMbasis, SimpGFV2, GetSymBasis *)*)
 
+
+(* ::Input::Initialization:: *)
 (*find the independent m-basis tensors and store them into the symbolic forms, numerical tensor forms and numerical vector forms*)
 FindIndependentMbasis[Mbasis_,tMbasis_,vMbasis_]:=Module[{result,tempI},
 result=Part[#,basisReduce[vMbasis]["pos"]]&/@{Mbasis,tMbasis,vMbasis};
@@ -1561,6 +1565,13 @@ tempI*#&/@result
 ]
 (*Delete duplicated list of tensors that are propotional to each other*)
 SimpGFV2[x_]:=If[Length[x]>=1,DeleteDuplicates[Replace[#,{_Rational->1,_Integer->1,_Complex->1},{1}]&/@(Flatten@(x/.Plus->List))],x]
+
+
+
+(* ::Input::Initialization:: *)
+(*symmetrize the group factor numerically with certain group algebra elements*)
+SymBasis[basis_,perms_]:=
+Plus@@(MapThread[(Transpose[basis,#1]*#2)&,Transpose[(ColistPP[perms])]])
 
 (*Get the coordinnate of arbitrary group factor tensor in terms of the m-basis*)
 GetCoord[qr_,v_]:=qr[[1]].v.Transpose[Inverse[qr[[2]]]]
