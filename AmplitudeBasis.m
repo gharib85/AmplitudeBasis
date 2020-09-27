@@ -63,13 +63,17 @@ Sum2List[x_Plus]:=List@@x
 Sum2List[x:Except[Plus]]:=List@x
 Prod2List[x_]:=Flatten[{x}/.{Power->ConstantArray,Times->List}]
 
+FactorSplit[exp_,crit_]:=Times@@@GroupBy[Prod2List[exp],crit]
+
 (* Separate numerical factors and symbolic factors of a monomial expression *)
-normalize[monoAmp_]:=Module[{F,result},
+(*normalize[monoAmp_]:=Module[{F,result},
 F=Switch[monoAmp,_Times,List@@monoAmp,_,{monoAmp}];
 result=Times@@@GatherBy[F,NumericQ];
 If[Length[result]==1,PrependTo[result,1]];
 If[MatchQ[result[[1]],_Complex],Return[{-I,I} result],Return[result]];
-]
+]*)
+
+normalize[monoAmp_]:=Merge[{FactorSplit[monoAmp,NumericQ],<|True->1|>},Apply[Times]]/@{True,False}
 
 (* Find the coefficient list of an expression (e.g. an amplitude) in STANDARD FORM. *)
 FindCor::basis="non-standard expression `2` or incomplete basis `1`";
@@ -280,165 +284,6 @@ SNirrep=Table[Cases[PlethysmsNlist[[i]],{IrrepListAmongNIP[[#]][[i]],x_,y_}:>{x,
 ]
 
 
-(* ::Subsubsection::Closed:: *)
-(*Amplitude*)
-
-
-(* ::Item:: *)
-(*Macro Parameter -- reduceTry*)
-
-
-(* ::Input::Initialization:: *)
-(* permute arguments of function A *)
-Pm[A_,Y_Cycles,head__]:=Permute[A,InversePermutation@Y]/;MemberQ[{head},Head[A]]
-Pm[A_Plus,Y_,head__]:=Pm[#,Y,head]&/@A
-Pm[A_Times,Y_,head__]:=Times@@MapAt[Pm[#,Y,head]&,normalize[A],2]
-Pm[A_Power,Y_,head__]:=MapAt[Pm[#,Y,head]&,A,1]
-Pm[A_,Y_Times,head__]:=Times@@MapAt[Pm[A,#,head]&,normalize[Y],2]
-Pm[A_,Y_Plus,head__]:=Pm[A,#,head]&/@Y
-
-
-(* ::Input::Initialization:: *)
-ClearAll[kmin,yngShape,YDzero,SSYTfilling,SSYT, LorentzList];
-(* Generating Independent Amplitude Basis using Harmonic Function Method *)
-kmin[input_,mode_:"hlist"]:=Module[{state,hp,hn},
-Switch[mode,
-"hlist",state=input,
-"Nh",state=Join@@MapThread[ConstantArray,{{-1,-1/2,0,1/2,1},input}]
-];
-hp=Total@Select[state,Positive];
-hn=Total@Select[state,Negative];
-Return[Max[{Mod[2hp,2],4Max[state]-2hp,2hn-4Min[state]}]];
-]
-yngShape::wrongk="wrong number of derivatives/momenta";
-yngShape::wrongh="wrong helicity in state `1`";
-yngShape::wrongf="wrong fermion number in state `1`";
-yngShape[state_,k_]:=Module[{},
-If[!SubsetQ[{1,1/2,0,-1/2,-1},DeleteDuplicates[state]],Message[yngShape::wrongh,state]];
-If[!IntegerQ[Total[state]],Message[yngShape::wrongf,state]];
-If[OddQ[k-kmin[state]]\[Or]k-kmin[state]<0,Message[yngShape::wrongk];Abort[]];
-{Total@Select[state,Positive]+k/2,-Total@Select[state,Negative]+k/2}
-]
-
-(* initialize young tab A as the input of SSYTfilling *)
-(* the amplitude young tab is A\[Transpose], not A *)
-YDzero[Num_,nt_,n_]:=Join[ConstantArray[ConstantArray[0,Num-2],nt],ConstantArray[{0,0},n]]
-SSYTfilling[A_,filling_,n_:1]:=Module[{f,num,pos,tal,partitions,poslist,list={}},
-If[n>Length[filling],Return[{A}]]; (* if all labels are filled in, return the young tableau A *)
-{f,num}=filling[[n]]; (* num of f to be filled in *)
-pos=DeleteCases[{Range@Length[A],FirstPosition[#,0]&/@A//Flatten}//Transpose,{_,_Missing}]; (* available positions in the Young Diagram *)
-If[!OrderedQ@Reverse[pos[[All,2]]],Print[A," is not a standard Young Diagram."];Abort[]]; (* available rows are in descending order *)
-tal=Tally[pos[[All,2]]]; (* distribution of pos among rows *)
-partitions=Select[Join@@Permutations/@(PadRight[#,Length[tal]]&/@IntegerPartitions[num,Length[tal]]),And@@Thread[#<=tal[[All,2]]]&]; (* ways to partition num of f in different rows *)
-poslist=Join@@MapThread[Function[{row,part},Take[Select[pos,#[[2]]==row&],part]],{tal[[All,1]],#}]&/@partitions; (* sublist of positions in pos that we can fill in f *)
-
-Do[
-list=Join[list,SSYTfilling[ReplacePart[A,#->f&/@p],filling,n+1]], (* fill in f in various sublist of positions and move forward to the next recursion, join list of results from different branches *)
-{p,poslist}];
-
-Return[list] (* send list of results back to the previous recursions *)
-]
-
-Options[SSYT]={OutMode->"amplitude output"};
-SSYT[state_,k_,OptionsPattern[]]:=SSYT[state,k]=Module[{nt,n,Num=Length[state],array,ytabs},
-{nt,n}=yngShape[state,k];
-If[nt==0&&n==0,Return[{1}]];
-array=Tally@Flatten@Table[ConstantArray[i,nt-2state[[i]]],{i,Num}];
-ytabs=TransposeTableaux/@SSYTfilling[YDzero[Num,nt,n],array];
-Switch[OptionValue[OutMode],
-"young tab",ytabs,
-"amplitude",amp[#,nt]&/@ytabs,
-"amplitude output",Ampform[amp[#,nt]&/@ytabs]]
-] (* Output only SSYT for a given number array X *)
-
-(* Spinor Brackets: Basic Variables for Amplitudes *)
-ab[i_,j_]:=0/;i==j;
-ab[i_,j_]:=-ab[j,i]/;j<i;
-sb[i_,j_]:=0/;i==j;
-sb[i_,j_]:=-sb[j,i]/;j<i;
-s[i_,j_]:=ab[i,j]sb[j,i];
-
-(* Generate amplitudes from reduced SSYT *)
-SB[col_]:=Module[{B},
-B=Complement[Range[Length[col]+2],col];
-Signature@Join[col,B]sb@@B
-]
-amp::shape="wrong shape!";
-amp[ssyt_,nt_]:=Module[{trp,ncol,ls,la},
-If[ssyt==Null,Return[1]];
-trp=TransposeTableaux[ssyt];
-ncol=Tally[Length/@trp];
-Switch[Length[ncol],
-1,If[ncol[[1,1]]==2,
-ls=nt;la=ncol[[1,2]]-nt,
-Message[amp::shape];Abort[]],
-2,If[ncol[[1,1]]>2&&ncol[[2,1]]==2,
-ls=ncol[[1,2]];la=ncol[[2,2]],
-Message[amp::shape];Abort[]],
-_,Message[amp::shape];Abort[]
-];
-
-Times@@(SB/@trp[[;;ls]])~Join~Apply[ab,trp[[-la;;]],1]
-]
-
-(* Rules for Reduction of Amplitudes into Standard From *)
-ruleP1[Num_]:={sb[1,i_]ab[1,j_]:> Table[-sb[k,i]ab[k,j],{k,2,Num}],
-sb[1,i_]^m_ ab[1,j_]:> Table[-sb[1,i]^(m-1)sb[k,i]ab[k,j],{k,2,Num}],
-sb[1,i_]ab[1,j_]^n_:> Table[-ab[1,j]^(n-1)sb[k,i]ab[k,j],{k,2,Num}],
-sb[1,i_]^m_ ab[1,j_]^n_:> Table[-sb[1,i]^(m-1) ab[1,j]^(n-1) sb[k,i]ab[k,j],{k,2,Num}]};
-ruleP2[Num_]:={sb[1,2]ab[2,i_/;i>2]:> Table[-sb[1,k]ab[k,i],{k,3,Num}],
-sb[1,2]^m_ ab[2,i_/;i>2]:> Table[-sb[1,2]^(m-1)sb[1,k]ab[k,i],{k,3,Num}],
-sb[1,2]ab[2,i_/;i>2]^n_:> Table[-ab[2,i]^(n-1)sb[1,k]ab[k,i],{k,3,Num}],
-sb[1,2]^m_ ab[2,i_/;i>2]^n_:> Table[-sb[1,2]^(m-1) ab[2,i]^(n-1) sb[1,k]ab[k,i],{k,3,Num}],
-sb[2,i_/;i>2]ab[1,2]:> Table[-sb[k,i]ab[1,k],{k,3,Num}],
-sb[2,i_/;i>2]^m_ ab[1,2]:> Table[-sb[2,i]^(m-1)sb[k,i]ab[1,k],{k,3,Num}],
-sb[2,i_/;i>2]ab[1,2]^n_:>Table[-ab[1,2]^(n-1)sb[k,i]ab[1,k],{k,3,Num}],
-sb[2,i_/;i>2]^m_ ab[1,2]^n_:> Table[-sb[2,i]^(m-1) ab[1,2]^(n-1) sb[k,i]ab[1,k],{k,3,Num}],sb[1,3]ab[2,3]:> Table[-sb[1,i]ab[2,i],{i,4,Num}],
-sb[1,3]^m_ ab[2,3]:> Table[-sb[1,3]^(m-1)sb[1,i]ab[2,i],{i,4,Num}],
-sb[1,3]ab[2,3]^n_:> Table[-ab[2,3]^(n-1)sb[1,i]ab[2,i],{i,4,Num}],
-sb[1,3]^m_ ab[2,3]^n_:> Table[-sb[1,3]^(m-1) ab[2,3]^(n-1) sb[1,i]ab[2,i],{i,4,Num}],
-sb[2,3]ab[1,3]:> Table[-sb[2,i]ab[1,i],{i,4,Num}],
-sb[2,3]^m_ ab[1,3]:> Table[-sb[2,3]^(m-1)sb[2,i]ab[1,i],{i,4,Num}],
-sb[2,3]ab[1,3]^n_:> Table[-ab[1,3]^(n-1)sb[2,i]ab[1,i],{i,4,Num}],
-sb[2,3]^m_ ab[1,3]^n_:> Table[-sb[2,3]^(m-1) ab[1,3]^(n-1) sb[2,i]ab[1,i],{i,4,Num}]
-};
-ruleP3[Num_]:={sb[2,3]ab[2,3]:> Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}],
-sb[2,3]^m_ ab[2,3]:> sb[2,3]^(m-1) Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}],
-sb[2,3]ab[2,3]^n_:> ab[2,3]^(n-1) Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}],
-sb[2,3]^m_ ab[2,3]^n_:>sb[2,3]^(m-1) ab[2,3]^(n-1) Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}]};
-ruleSchA={ab[i_,l_]ab[j_,k_]/;i<j<k<l:>{-ab[i,j]ab[k,l],ab[i,k]ab[j,l]},
-ab[i_,l_]^m_ ab[j_,k_]/;i<j<k<l:>ab[i,l]^(m-1) {-ab[i,j]ab[k,l],ab[i,k]ab[j,l]},
-ab[i_,l_]ab[j_,k_]^n_/;i<j<k<l:>ab[j,k]^(n-1) {-ab[i,j]ab[k,l],ab[i,k]ab[j,l]},
-ab[i_,l_]^m_ ab[j_,k_]^n_/;i<j<k<l:>ab[i,l]^(m-1) ab[j,k]^(n-1) {-ab[i,j]ab[k,l],ab[i,k]ab[j,l]}};
-ruleSchS=ruleSchA/.ab->sb;
-rule[Num_]:=Join[ruleP1[Num],ruleP2[Num],ruleP3[Num],ruleSchA,ruleSchS];
-
-reduce::overflow="time of reductions exceeds 20, please increase the reduceTry parameter!";
-Options[reduce]={MaxTry->20};
-reduce[Amp_,Num_,OptionsPattern[]]:=reduce[Amp,Num]=Module[{F=Sum2List@Expand[Amp],F1,iter=1},
-While[True,
-F1=Sum2List[Plus@@Flatten[F/.rule[Num]]]; (* replace and combine *)
-If[F1===F,Break[],F=F1];
-If[iter>=OptionValue[MaxTry],Message[reduce::overflow];Abort[],iter++]
-];
-Plus@@F
-]
-reduce[Num_]:=reduce[#,Num]&
-
-(* List All Lorentz Structure at given dimension *)
-LorentzList[dim_,mode_:"complex"]:=Module[{n,k,Nh,Nhlist={},result},
-Do[n=dim-N-nt;
-For[k=0,k<=2 nt,k++,
-Do[Nh={i,2 n-k-2 i,3N+2k-2dim+i+j,2 nt-k-2 j,j};If[Nh[[3]]<0||kmin[Nh,"Nh"]>k,Continue[],AppendTo[Nhlist,{Nh,k}]],{i,0,Floor[n-k/2]},{j,0,Floor[nt-k/2]}];
-If[n+nt+3==dim,Break[]]
-],{N,3,dim},{nt,0,Floor[(dim-N)/2]}];
-Switch[mode,
-"complex",result=DeleteDuplicates[Nhlist,#1==MapAt[Reverse,#2,1]&],
-"real",result=Nhlist\[Union](MapAt[Reverse,#1,1]&)/@Nhlist];
-MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
-]
-
-
 (* ::Subsection:: *)
 (*Model Input*)
 
@@ -620,31 +465,12 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 (*Amp to Op -- transform, MonoLorentzBasis*)
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Functions*)
 
 
 (* ::Input::Initialization:: *)
-(* symmetrize particles in amplitude *)
-YPermute[Mlist_,permutation_,num_]:=Module[{var,Flist,A,outlist,permA,result},
-(* Mlist: the list of amplitudes,
-permutation: element of symmetric group algebra,
-num: the total number of particles in the amplitudes. *)
-var=ToExpression/@("variable"<>#&/@ToString/@Range[num]);
-
-(* def abstract functions for amplitudes Mlist *)
-Flist=Function[Evaluate[var],
-Evaluate[#/.{ab[i_,j_]:>ab[var[[i]],var[[j]]],sb[i_,j_]:>sb[var[[i]],var[[j]]]}]
-]&/@Mlist; 
-(* permute an abstract function A *)
-permA=Pm[A@@Range[num],permutation,A];
-(* obtain permuted versions of the amplitudes and reduce *)
-result=reduce[num]/@(permA/.{Thread[A->Flist]}\[Transpose]);
-
-Return[result];
-] 
-
- (* Symmetrize the list of amplitudes Mlist according to ALL possible Irreps of permutations for RepFields, and show result under basis StBasis *)
+(* Symmetrize the list of amplitudes Mlist according to ALL possible Irreps of permutations for RepFields, and show result under basis StBasis *)
 Options[PermBasis]={Coord->False};
 PermBasis[Mlist_,RepPos_,Num_,OptionsPattern[]]:=PermBasis[Mlist,RepPos,Num]=
 Module[{depth=Length[RepPos],Dim=Length[Mlist],SymList,yngList,permAmp,permResult=<||>,SnDimlist={},emptySpaceCor,j,var,ynglist,allbasis,allbasisCor,poslist},
