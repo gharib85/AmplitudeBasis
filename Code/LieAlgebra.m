@@ -2,13 +2,320 @@
 
 (* ::Input:: *)
 (*(* main dependent functions *)*)
-(*{}*)
+(*GellMann*)
+(*GenerateLRT*)
+(*Product2ContractV2, GenerateFieldIndex, GenerateFieldTensor,TRefineTensor*)
+(*FindIndependentMbasis, SimpGFV2, GetSymBasis*)
+(**)
 
 
 (* ::Input::Initialization:: *)
 (* representation matrix for su(n) generators *)
 GellMann[n_]:=GellMann[n]=
 Flatten[Table[(*Symmetric case*)SparseArray[{{j,k}->1,{k,j}->1},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Flatten[Table[(*Antisymmetric case*)SparseArray[{{j,k}->-I,{k,j}->+I},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Table[(*Diagonal case*)Sqrt[2/l/(l+1)] SparseArray[Table[{j,j}->1,{j,1,l}]~Join~{{l+1,l+1}->-l},{n,n}],{l,1,n-1}];
+
+
+(* ::Subsubsection::Closed:: *)
+(*Littlewood-Richardson related*)
+
+
+(* ::Input::Initialization:: *)
+(*find the chain of representations along the direct product decomposition procedure that give the singlet representation in the end*)
+findpath[finallist_,group_,finalrep_,repconstr_,replist_]:=Module[{singlet,trepconstr=repconstr[[1;;-1]],replistremain=replist[[1;;-1]],lrepc,lremain,listrep},
+lrepc=Length@trepconstr;
+lremain=Length@replistremain;
+If[lremain==0,Return[]];
+If[lrepc==0&&lremain==1,If[replistremain[[1]]==finalrep,finallist={Append[finallist,replistremain[[1]]]};
+Return[];,Return[]]];
+If[lrepc==0,AppendTo[trepconstr,replist[[1]]];replistremain=replist[[2;;-1]];lremain-=1];
+If[lremain==1,
+If[Length[Position[MyRepProduct[group,{trepconstr[[-1]],replistremain[[1]]}],{finalrep,_}]]!=0,AppendTo[trepconstr,finalrep];
+AppendTo[finallist,trepconstr];
+];
+];
+listrep=MyRepProduct[group,{trepconstr[[-1]],replistremain[[1]]}][[1;;-1,1]];
+Do[findpath[finallist,group,finalrep,Append[trepconstr,listrep[[i]]],replistremain[[2;;-1]]],{i, Length[listrep]}];
+];
+SetAttributes[findpath,HoldFirst];
+FindRepPath[group_,finalrep_,replist_]:=Module[{finallist={},repconstr={}},findpath[finallist,group,finalrep,repconstr,replist];(Dynk2Yng/@#&)/@finallist];
+FindSingletPath[group_,replist_]:=FindRepPath[group,ConstantArray[0,Length[group]],replist];
+
+
+(* ::Input::Initialization:: *)
+(*The set of the Littlewood-Richardson rules that needed to check at each step of constructing*)
+IsNormalYoungDiagramQ[diag_]:=If[Length[diag]==1,True,And@@(diag[[#]]>=diag[[#+1]]&/@Range[1,Length[diag]-1])]
+CompYoungDiagramQ[y1_,y2_]:=Module[{y3},y3=PadRight[y1,Length[y2]];And@@MapThread[#1<=#2&,{y3,y2}]];
+ColumnConditionQ[l_]:=And@@(#<=1&)/@(Max[#[[1;;-1,2]]]&/@(Tally/@Select[TransposeTableaux[l],Length[#]!=0&]))
+RowConditionQ[l_]:=Module[{it,nrow,unique,counter,temp,result=True},
+nrow=Length[l];
+unique=Union[Cases[Flatten[l],_Integer]];
+If[Length[unique]==0,Return[result]];
+MapThread[Set,{counter/@unique,Table[0,{i,Length[unique]}]}];
+Do[it=-1;
+While[(-it)<=Length[l[[k]]],
+If[StringQ[l[[k,it]]],Break[]];
+counter[l[[k,it]]]+=1;
+temp=Select[unique,#<l[[k,it]]&];
+If[Length[temp]==0,it-=1;Continue[]];
+If[And@@((counter[l[[k,it]]]<=#&)/@(counter/@temp)),
+it-=1;
+Continue[];,
+result=False;Return[result]]];
+,{k,1,nrow}];
+result
+]
+EqualYoungDiagramQ[y1_,y2_]:=If[Length[y1]!=Length[y2],False,And@@MapThread[#1==#2&,{y1,y2}]];
+
+FillYD[fdl_,fdlstr_,diag1_,diag1str_,ldiag2_,ldiag2str_,fdiag_,n_]:=
+(*fdl: final YoungTableaux with integer,
+ fdlstr: final YoungTableaux with indices only,
+ diag1: YoungTableaux, 
+ diag1str: YoungTableaux with indices only, 
+ ldiag2: falttened YoungTableaux with integers that are used to paste on diag1, 
+ ldiag2str: falttened YoungTableaux with indices that are used to paste on diag1, 
+ fdiag: YoungDiagram*)
+Module[{tdiag1,tdiag1str,l1=Length[ldiag2],yd1=Length/@diag1,l=Length[diag1]},
+(*Following conditional expression is used to test whether the current constructed YoungTableaux statiesfies the Littlewood-Richardson Rules*)
+If[(!IsNormalYoungDiagramQ[yd1]),Return[]];
+If[(!CompYoungDiagramQ[yd1,fdiag]),Return[]];
+If[(!ColumnConditionQ[diag1]),Return[]];
+If[(!RowConditionQ[diag1]),Return[]];
+If[l1==0,
+If[EqualYoungDiagramQ[yd1,fdiag],If[Length[Position[fdl,diag1]]==0,AppendTo[fdl,diag1];AppendTo[fdlstr,diag1str];];Return[],Return[]],
+Do[
+(*Pad the integer and indices of the diag2 onto the right of diag1, each one has n possible ways to pad*)
+tdiag1=diag1;
+tdiag1str=diag1str;
+l=Length[tdiag1];
+If[i<=l&&i-l<=1,
+AppendTo[tdiag1[[i]],ldiag2[[1]]];
+AppendTo[tdiag1str[[i]],ldiag2str[[1]]];
+,AppendTo[tdiag1,{ldiag2[[1]]}];
+AppendTo[tdiag1str,{ldiag2str[[1]]}];
+];
+FillYD[fdl,fdlstr,tdiag1,tdiag1str,ldiag2[[2;;-1]],ldiag2str[[2;;-1]],fdiag,n];
+,{i,1,n}];
+];
+]
+SetAttributes[FillYD,HoldAll];
+
+
+(* ::Input::Initialization:: *)
+LRrule[yt1_,yt2_,fdiag_,n_]:=Module[{fdl={},fdlstr={},ldiag2=Flatten[Table[i&/@yt2[[i]],{i,1,Length[yt2]}]],ldiag2str=Flatten[yt2]},
+FillYD[fdl,fdlstr,yt1,yt1,ldiag2,ldiag2str,fdiag,n];fdlstr]
+
+LRTableaux[fytl_,YTlist_,path_,n_]:=Module[{conlist,lYTlist=Length[YTlist],tYTlist},
+If[lYTlist==1,AppendTo[fytl,YTlist[[1]]];Return[]];
+conlist=LRrule[YTlist[[1]],YTlist[[2]],path[[1]],n];
+If[lYTlist==2,AppendTo[fytl,#]&/@conlist;Return[]];
+Do[
+tYTlist=YTlist[[3;;-1]];
+PrependTo[tYTlist,conlist[[i]]];
+LRTableaux[fytl,tYTlist,path[[2;;-1]],n],{i,1,Length[conlist]}
+]
+]
+SetAttributes[LRTableaux,HoldFirst]
+
+ConvertPathtoYD[nlist_,ydlist_,n_]:=ConvertPathtoYD[nlist,ydlist,n]=Module[{nl,tydlist},
+(*Do not take into account the first elements in ydlist*)
+tydlist=PadRight[#,n,0]&/@ydlist;
+nl=Accumulate[nlist];
+nl=(nl-(Total/@tydlist))/n;
+Drop[(tydlist[[#]]+nl[[#]])&/@Range[1,Length[tydlist]]/.{0->Nothing},1]]
+
+GenerateTYT[numIP_,baserep_,fnamenum_,index_,group_]:=GenerateTYT[numIP,baserep,fnamenum,index,group]=Module[{tindex=index,n=Length[group]+1,standardyt,partbaserep=Dynk2Yng[baserep],ydlist,ll,fytl={}},
+If[Total[baserep]==0,Return[{{}}]];
+(*added following two lines to adapt the GenerateSU3 and GenerateSU3*)
+If[!MatchQ[baserep,{1,0...}],tindex=StringJoin@@ConstantArray[ToString[index],2]];
+If[Length[StringCases[fnamenum,"\[Dagger]"]]!=0&&baserep=={1},tindex=StringJoin@@ConstantArray[ToString[index],2]];
+partbaserep=partbaserep/.{0->Nothing};
+standardyt=MapThread[Range,{Accumulate[partbaserep]-partbaserep+1,Accumulate[partbaserep]}];
+(*the lables of the indices is in the following form: index[i,j,k],
+  i labels the i-th group of the repeated fields,
+  j labels the j-th field in this group of repeated fields,
+  k labels the k-th fundamental indices of this particular field*)
+ydlist=Table[Map[tindex<>"[ToString["<>ToString[fnamenum]<>"],"<>ToString[i]<>","<>ToString[#]<>"]"&,standardyt,{2}],{i,numIP}]
+]
+
+
+(* ::Input::Initialization:: *)
+GenerateLRT[model_,groupname_,replist_]:=
+(*replist is a list of elements in the following form: {__,__,__}, 
+the first slot is the number of repeated fields that construct the representation in the first slot,
+the second slot is the representation of the repeated fields,
+the last slot is the name of the repeated field*)
+Module[{group=CheckGroup[groupname],indmap=model["rep2ind"][groupname],nlist,irreplist,basereplist,index,tyt1,pathlists={},result={}},
+index=ToString@indmap@Fund[group];
+irreplist=Flatten[ConstantArray[#[[2]],#[[1]]]&/@replist,1];
+nlist=(Total[Dynk2Yng[#]])&/@irreplist;
+(*Generate tensor Young Tableaux*)
+tyt1=Flatten[GenerateTYT@@@(Join[#,{index,group}]&/@replist),1];
+pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindSingletPath[group,irreplist];
+Do[LRTableaux[result,tyt1,pathlists[[i]],Length[group]+1],{i,1,Length[pathlists]}];
+result
+]
+
+
+(* ::Subsubsection::Closed:: *)
+(*Tensor Reduction related*)
+
+
+(* ::Input::Initialization:: *)
+(* Convert the product of the symbolic tensors to the tensor product in the Mathematica format*)
+Product2Contract[x_]:=Module[{expr,tensorlist,numberlist,headlist,arglist,uniquelist,listrepeat,tensorp},
+If[Head[x]==Times,expr=List@@x,expr=x];
+numberlist=Cases[x,_?NumberQ];
+tensorlist=Sort[Complement[expr,numberlist]];
+headlist=Head/@tensorlist;
+arglist=Flatten[List@@@tensorlist];
+uniquelist=Union[arglist];
+listrepeat=Flatten/@(Position[arglist,#]&/@uniquelist);
+tensorp=TensorProduct@@headlist;
+Times@@AppendTo[numberlist,TensorContract[tensorp,listrepeat]]
+]
+(*convert the symbolic gauge group tensors into numerical ones*)
+Options[Product2ContractV2]={Symb2Num->{}};
+Product2ContractV2[x_,inarglist_,OptionsPattern[]]:=Module[{tensorlist,headlist,arglist,uniquelist,listrepeat,tensorp},
+tensorlist=Sort@Prod2List[x];
+headlist=Head/@tensorlist;
+arglist=Flatten[List@@@tensorlist];
+uniquelist=Union[arglist];
+listrepeat=Select[Flatten/@(Position[arglist,#]&/@uniquelist),Length[#]==2&];
+If[Length[listrepeat]!=0,arglist=Delete[arglist,{#}&/@Flatten[listrepeat]]];
+tensorp=TensorProduct@@headlist/.OptionValue[Symb2Num];
+If[Length[listrepeat]!=0,tensorp=TensorContract[tensorp,listrepeat]];
+Transpose[tensorp,FindPermutation[arglist,inarglist]]
+]
+
+
+(* ::Input::Initialization:: *)
+(*label the field name concerning repeated fields*)
+GenerateFieldName[model_,groupname_,fs_]:=Module[{dim,result},
+dim=DimR[CheckGroup[groupname],model[fs[[1]]][groupname]];
+result=ToExpression["t"<>fs[[1]]<>groupname<>ToString[#]]&/@Range[fs[[2]]];
+If[Cases[tAssumptions,#,Infinity]=={},AppendTo[tAssumptions,#\[Element]Arrays[{dim}]]]&/@result;
+result]
+
+GenerateFieldIndex[model_,groupname_,flist_]:=Module[{symbols,arg,indices},
+symbols=model["rep2ind"][groupname]/@(model[#[[1]]][groupname]&/@flist);
+arg=Table[{#[[1]],i,1},{i,#[[2]]}]&/@flist;
+Flatten@MapThread[#1@@@#2&,{symbols,arg}]
+]
+
+GenerateFieldTensor[model_,groupname_,flist_,map_]:=Module[{heads,symbols,arg,indices},
+(*This function generate the field tensors with the form: t<>F<>Group[ind["F",n,1]]<>n that can multiplied to the group factor, and also an association that map the field tensors to the indicies they carries on*)
+If[Length[flist]==0,Return[1]];
+heads=Flatten[GenerateFieldName[model,groupname,#]&/@flist];
+indices=GenerateFieldIndex[model,groupname,flist];
+map=AssociationThread[heads->indices];
+Times@@(Flatten@MapThread[Construct,{heads,indices}])
+]
+SetAttributes[GenerateFieldTensor,HoldAll]
+
+Contraction2Tensor[TC_,xmap_,indmap_,ct_]:=Module[{tlist,r,tensor,ind=0,tensorlist={},pos,tname,pairRep,ranklist,aux1,indexorder,maporder2index=<||>},
+(*convert a single TensorProduct to the tensors without field tensors*)
+If[!MatchQ[TC,_TensorContract],Return[TC]];
+tlist=List@@TC[[1]];
+Do[r=Replace[tRank[t],Except[_Integer]->1];
+tensor=Construct[t,++ind];
+Do[AppendTo[tensor,++ind],r-1];
+AppendTo[tensorlist,tensor],{t,tlist}]; (* t \[Rule] t[i,i+1,...,i+rank-1] *)
+tensorlist={#,Complement[tensorlist,#]}&@Select[tensorlist,Length[#]>1&];(* separate field tensors from invariant tensors *) 
+Do[pos=Position[tensorlist,#,3]&/@pair;
+tname=First@Extract[tensorlist,ReplacePart[#,{1,-1}->0]]&/@pos;
+Switch[pos[[All,1,1]],
+{2,2},Message[Contraction2Tensor::ffcontr,TC];Abort[],
+{1,2},tensorlist=ReplacePart[tensorlist,pos[[1]]->xmap[tname[[2]]]],
+{2,1},tensorlist=ReplacePart[tensorlist,pos[[2]]->xmap[tname[[1]]]],
+{1,1},pairRep=MapThread[tRep[#1][[#2[[1,3]]]]&,{tname,pos}];
+If[RepConj[#1]===#2&@@pairRep,
+tensorlist=ReplacePart[tensorlist,(Join@@pos)->#[++ct[#]]&[ indmap[pairRep[[1]]] ] ],
+Message[Contraction2Tensor::mismatch,pair,TC];Abort[]]
+],
+{pair,TC[[2]]}];
+Return[Times@@tensorlist[[1]]];
+]
+SetAttributes[Contraction2Tensor,HoldAll];
+Contraction2Tensor::ffcontr="Contraction between fields in `1`";
+Contraction2Tensor::mismatch="Contraction mismatch for pair `1` in `2`";
+
+(* Convert a polynomial of TensorContract to product of tensors with specified form of indices *)
+CounterIni[indmap_]:=AssociationThread[DeleteDuplicates@Cases[Values[indmap],_Symbol]->0] (* initialize counter for relevant indices *)
+UnfoldContraction[x_TensorContract,xmap_,indmap_]:=Module[{ct=CounterIni[indmap]},Contraction2Tensor[x,xmap,indmap,ct]]
+UnfoldContraction[x_Times,xmap_,indmap_]:=Module[{ct=CounterIni[indmap]},Times@@(Contraction2Tensor[#,xmap,indmap,ct]&/@Prod2List[x])]
+UnfoldContraction[x_Plus,xmap_,indmap_]:=Plus@@(UnfoldContraction[#,xmap,indmap]&/@Sum2List[x])
+SetAttributes[UnfoldContraction,HoldRest]
+
+RefineTensor[x_,model_,groupname_,fts_]:=Module[{tempx,flist,tfs,xmap,xposmap,rt,result},
+tempx=Expand[Expand[x]/.Power[z_,y_]:>Times@@ConstantArray[z,y]];
+flist=Select[fts,Total[model[#[[1]]][groupname]]!=0&];
+tfs=GenerateFieldTensor[model,groupname,flist,xmap];
+rt=tReduce[Plus@@(Product2Contract/@(Flatten[{Expand[tempx]}/.Plus->List]*tfs))];
+UnfoldContraction[rt,xmap,model["rep2ind"][groupname]]
+]
+SetAttributes[RefineTensor,HoldFirst]
+
+(* Refine gauge group tensors with the symmetry of the invariant tensors *)
+TRefineTensor[x_,model_,groupname_,fts_]:=TRefineTensor[x,model,groupname,fts]=Module[{trank,tdim,result,len},
+trank=tRank[x];
+tdim=tDimensions[x];
+result=Flatten[{x}];
+len=Length[result];
+result=RefineTensor[#,model,groupname,fts]&/@result;
+If[!IntegerQ[trank]||trank==0,Return[result[[1]]]];
+unflatten[result,tdim]
+]
+
+
+
+(* ::Subsubsection::Closed:: *)
+(*Symmetrization related*)
+
+
+(* ::Input::Initialization:: *)
+(*find the independent m-basis tensors and store them into the symbolic forms, numerical tensor forms and numerical vector forms*)
+FindIndependentMbasis[Mbasis_,tMbasis_,vMbasis_]:=Module[{result,tempI},
+result=Part[#,basisReduce[vMbasis]["pos"]]&/@{Mbasis,tMbasis,vMbasis};
+tempI=If[Or@@(#\[Element]Reals&/@#),1,I]&/@result[[3]];
+tempI*#&/@result
+]
+(*Delete duplicated list of tensors that are propotional to each other*)
+SimpGFV2[x_]:=If[Length[x]>=1,DeleteDuplicates[Replace[#,{_Rational->1,_Integer->1,_Complex->1},{1}]&/@(Flatten@(x/.Plus->List))],x]
+
+
+
+(* ::Input::Initialization:: *)
+(*symmetrize the group factor numerically with certain group algebra elements*)
+SymBasis[basis_,perms_]:=
+Plus@@(MapThread[(Transpose[basis,#1]*#2)&,Transpose[(ColistPP[perms])]])
+
+(*Get the coordinnate of arbitrary group factor tensor in terms of the m-basis*)
+GetCoord[qr_,v_]:=qr[[1]].v.Transpose[Inverse[qr[[2]]]]
+
+(*Get the symmetrized group factor tensors from the m-basis*)
+GetSymBasis[tMBasis_,SNIrreps_,disp_,qr_,tdim_]:=Module[{multi=SNIrreps[[2]],key=SNIrreps[[1]],num,perms,displist,tensordim,mrank,resultAux={},result={},i=1,tempv},
+num=Times@@(SnIrrepDim/@key[[1;;-1,2]]);
+displist=disp/@key[[1;;-1,1]];
+perms=Generateb/@key[[1;;-1,2]];
+perms=MapThread[#2/.Cycles[x__]:>Cycles[x+#1]&,{displist,perms}];
+tensordim=Length/@perms;
+perms=pp/@Distribute[perms,List];
+mrank=0;
+While[mrank<num*multi&&i<=Length[tMBasis],
+tempv=Flatten/@(SymBasis[tMBasis[[i]],Expand[#]]&/@perms);
+tempv=GetCoord[qr,#]&/@tempv;
+resultAux=Join[resultAux,tempv];
+(*Assuming newly symmetrized basis either all independent with the existing ones or all live in the exsiting space*)
+If[MatrixRank[resultAux]-mrank==Length[tempv],
+mrank=MatrixRank[resultAux]; 
+tempv=unflatten[Simplify[tempv],tdim];
+AppendTo[result,tempv]];
+i++;
+];
+result
+]
+
+
 
 
 (* ::Subsubsection::Closed:: *)
