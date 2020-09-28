@@ -50,64 +50,6 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Get/@Global`$CodeFiles;
 
 
-(* ::Subsection:: *)
-(*General Tools*)
-
-
-(* ::Subsubsection::Closed:: *)
-(*Linear Algebra*)
-
-
-(* ::Input::Initialization:: *)
-Sum2List[x_Plus]:=List@@x
-Sum2List[x:Except[Plus]]:=List@x
-Prod2List[x_]:=Flatten[{x}/.{Power->ConstantArray,Times->List}]
-
-FactorSplit[exp_,crit_]:=Times@@@GroupBy[Prod2List[exp],crit]
-
-(* Separate numerical factors and symbolic factors of a monomial expression *)
-(*normalize[monoAmp_]:=Module[{F,result},
-F=Switch[monoAmp,_Times,List@@monoAmp,_,{monoAmp}];
-result=Times@@@GatherBy[F,NumericQ];
-If[Length[result]==1,PrependTo[result,1]];
-If[MatchQ[result[[1]],_Complex],Return[{-I,I} result],Return[result]];
-]*)
-
-normalize[monoAmp_]:=Merge[{FactorSplit[monoAmp,NumericQ],<|True->1|>},Apply[Times]]/@{True,False}
-
-(* Find the coefficient list of an expression (e.g. an amplitude) in STANDARD FORM. *)
-FindCor::basis="non-standard expression `2` or incomplete basis `1`";
-FindCor[Amp_,StBasis_]:=Module[{F=Expand[Amp],B=normalize/@StBasis,cor},
-(* Amp: the expression (may not be an amplitude,
-StBasis: the standard basis (monomials). *)
-cor=ConstantArray[0,Length[StBasis]];
-If[F==0,Return[cor]];
-F=normalize/@Sum2List[F];
-Do[If[MemberQ[B[[All,2]],F[[i,2]]],
-cor=ReplacePart[cor,Position[B[[All,2]],F[[i,2]]]->F[[i,1]]],
-Message[FindCor::basis,Amp,StBasis];Abort[]
-],{i,Length[F]}];
-cor/B[[All,1]]
-]
-FindCor[StBasis_]:=FindCor[#,StBasis]&
-
-unflatten[e_,{d__?(IntegerQ[#1]&&Positive[#1]&)}]:=Fold[Partition,e,Take[{d},{-1,2,-1}]]/;Length[e]===Times[d]
-
-(* Select a complete basis from a list of vectors *)
-basisReduce[subspace_,mode_:"basis"]:=Module[{subbasis,len=Length[subspace],lmax,iter=1,pos=1,poslist={}},
-If[len>0,lmax=Length[subspace[[1]]],Return[{}]];
-If[!MatrixQ[subspace,NumericQ],Message[basisReduce::input,subspace],subbasis=subspace];
-While[iter<=len&&iter<=lmax,
-Switch[MatrixRank[subbasis[[;;iter]]],
-iter,iter++;AppendTo[poslist,pos],
-iter-1,subbasis=Delete[subbasis,iter];len--
-];
-pos++];
-<|"basis"->Return[If[lmax<len,subbasis[[;;lmax]],subbasis]],"pos"-> poslist|>
-]
-basisReduce::input="wrong input matrix: `1`";
-
-
 (* ::Input::Initialization:: *)
 (* Special Definitions *)
 tAssumptions={};
@@ -117,10 +59,8 @@ tDimensions:=TensorDimensions[#,Assumptions->tAssumptions]&;
 tSymmetry=TensorSymmetry[#,Assumptions->tAssumptions]&;
 
 
-(* ::Input::Initialization:: *)
-(* representation matrix for su(n) generators *)
-GellMann[n_]:=GellMann[n]=
-Flatten[Table[(*Symmetric case*)SparseArray[{{j,k}->1,{k,j}->1},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Flatten[Table[(*Antisymmetric case*)SparseArray[{{j,k}->-I,{k,j}->+I},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Table[(*Diagonal case*)Sqrt[2/l/(l+1)] SparseArray[Table[{j,j}->1,{j,1,l}]~Join~{{l+1,l+1}->-l},{n,n}],{l,1,n-1}];
+(* ::Subsection:: *)
+(*General Tools*)
 
 
 (* ::Subsubsection::Closed:: *)
@@ -547,9 +487,10 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 (* ::Input::Initialization:: *)
 (* find monomial Lorentz basis *)
 Options[MonoLorentzBasis]={finalform->True};
-MonoLorentzBasis[state_,k_,OptionsPattern[]]:=MonoLorentzBasis[SSYT[state,k,OutMode->"amplitude"],Length[state],OptionValue] (* input = {state,k} *)
+(*MonoLorentzBasis[state_,k_,OptionsPattern[]]:=MonoLorentzBasis[SSYT[state,k,OutMode->"amplitude"],Length[state],OptionValue] 
+*)
 MonoLorentzBasis[spinorbasis_List,num_Integer,OptionsPattern[]]:=Module[{operbasis,coefbasis,basispos,transfer,basis},
-operbasis=OperPoly[#,num,Dcontract->False]&/@spinorbasis;operbasis=Flatten[operbasis//.{Plus->List}]//.{Times[_Integer,p__]:>Times[p],Times[_Rational,p__]:>Times[p],Times[_Complex,p__]:>Times[I,p]};coefbasis=FindCor[reduce[#,num],spinorbasis]&/@(Amp[#]&/@operbasis);basispos=Subsets[coefbasis,{Length[spinorbasis]}];Do[If[MatrixRank[basispos[[ii]]]===Length[spinorbasis],transfer=basispos[[ii]];Break[]],{ii,Length[basispos]}];basispos=Flatten[Position[coefbasis,#][[1]]&/@transfer];
+operbasis=OperPoly[#,num,Dcontract->False]&/@spinorbasis;operbasis=Flatten[operbasis//.{Plus->List}]//.{Times[_Integer,p__]:>Times[p],Times[_Rational,p__]:>Times[p],Times[_Complex,p__]:>Times[I,p]};coefbasis=FindCor[reduce[#,num],spinorbasis]&/@(Amp/@operbasis);basispos=Subsets[coefbasis,{Length[spinorbasis]}];Do[If[MatrixRank[basispos[[ii]]]===Length[spinorbasis],transfer=basispos[[ii]];Break[]],{ii,Length[basispos]}];basispos=Flatten[Position[coefbasis,#][[1]]&/@transfer];
 basis=transform[operbasis[[basispos]],OpenFchain->OptionValue[finalform],ActivatePrintTensor->OptionValue[finalform]];
 <|"LorBasis"->basis,"Trans"->transfer|>
 ]

@@ -5,6 +5,12 @@
 (*{}*)
 
 
+(* ::Input::Initialization:: *)
+(* representation matrix for su(n) generators *)
+GellMann[n_]:=GellMann[n]=
+Flatten[Table[(*Symmetric case*)SparseArray[{{j,k}->1,{k,j}->1},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Flatten[Table[(*Antisymmetric case*)SparseArray[{{j,k}->-I,{k,j}->+I},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Table[(*Diagonal case*)Sqrt[2/l/(l+1)] SparseArray[Table[{j,j}->1,{j,1,l}]~Join~{{l+1,l+1}->-l},{n,n}],{l,1,n-1}];
+
+
 (* ::Subsubsection::Closed:: *)
 (*Lie Algebra*)
 

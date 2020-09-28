@@ -105,10 +105,11 @@ list=Join[list,SSYTfilling[ReplacePart[A,#->f&/@p],filling,n+1]], (* fill in f i
 Return[list] (* send list of results back to the previous recursions *)
 ]
 
+Clear[SSYT];
 Options[SSYT]={OutMode->"amplitude output"};
 SSYT[state_,k_,OptionsPattern[]]:=SSYT[state,k]=Module[{nt,n,Num=Length[state],array,ytabs},
 {nt,n}=yngShape[state,k];
-If[nt==0&&n==0,ytabs={},
+If[nt==0&&n==0,ytabs={{}},
 array=Tally@Flatten@Table[ConstantArray[i,nt-2state[[i]]],{i,Num}];
 ytabs=SSYTfilling[YDzero[Num,nt,n],array]];
 Switch[OptionValue[OutMode],
