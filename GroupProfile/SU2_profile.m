@@ -17,27 +17,27 @@ If[!AssociationQ[tSimp],tSimp=<||>];
 (* Define invariant tensors *)
 AppendTo[tAssumptions,del2\[Element]Arrays[{2,2},Reals]];
 tRep[del2]={{1},{1}};
-tOut[del2]=PrintTensor[<|"tensor"->"\[Delta]","upind"->#2,"downind"->#1|>]&;
+tOut[del2]=PrintTensor[<|"tensor"->"\[Delta]","upind"->{#1},"downind"->{#2}|>]&;
 
 AppendTo[tAssumptions,eps2a\[Element]Arrays[{2,2},Reals,Antisymmetric[{1,2}]]];
 tRep[eps2a]={{1},{1}};
-tOut[eps2a]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->StringJoin[#1,#2],"downind"->""|>]&;
+tOut[eps2a]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->{#1,#2}|>]&;
 
 AppendTo[tAssumptions,eps2f\[Element]Arrays[{2,2},Reals,Antisymmetric[{1,2}]]];
 tRep[eps2f]={{1},{1}};
-tOut[eps2f]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->"","downind"->StringJoin[#1,#2]|>]&;
+tOut[eps2f]=PrintTensor[<|"tensor"->"\[Epsilon]","downind"->{#1,#2}|>]&;
 
 AppendTo[tAssumptions,\[Tau]\[Element]Arrays[{3,2,2},Reals]];
 tRep[\[Tau]]={{2},{1},{1}};
-tOut[\[Tau]]=PrintTensor[<|"tensor"-> PrintTensor[<|"tensor"->"\[Tau]","upind"->#1,"downind"->""|>],"upind"->#3,"downind"->#2|>]&;
+tOut[\[Tau]]=PrintTensor[<|"tensor"-> PrintTensor[<|"tensor"->"\[Tau]","upind"->{#1}|>],"upind"->{#3},"downind"->{#2}|>]&;
 
 AppendTo[tAssumptions,del3n\[Element]Arrays[{3,3},Reals,Symmetric[{1,2}]]];
 tRep[del3n]={{2},{2}};
-tOut[del3n]=PrintTensor[<|"tensor"->"\[Delta]","upind"->StringJoin[#1,#2],"downind"->""|>]&;
+tOut[del3n]=PrintTensor[<|"tensor"->"\[Delta]","upind"->{#1,#2}|>]&;
 
 AppendTo[tAssumptions,eps3n\[Element]Arrays[{3,3,3},Reals,Antisymmetric[{1,2,3}]]];
 tRep[eps3n]={{2},{2},{2}};
-tOut[eps3n]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->StringJoin[#1,#2,#3],"downind"->""|>]&;
+tOut[eps3n]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->{#1,#2,#3}|>]&;
 
 
 (* ::Input::Initialization:: *)

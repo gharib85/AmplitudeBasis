@@ -2,10 +2,13 @@
 
 (* ::Input::Initialization:: *)
 PrintTensor[tensor_Association]:=Module[{print="\!\(\*SubsuperscriptBox[\("<>#tensor<>"\), \("<>#downind<>"\), \("<>#upind<>"\)]\)"&,t},
-t=Merge[{tensor,<|"tensor"->"","downind"->"","upind"->""|>},StringJoin];
+t=Merge[{StringJoin@@@tensor,<|"tensor"->"","downind"->"","upind"->""|>},StringJoin];
 print[t]
 ]
 PrintTensor[x_:Except[_Association]]:=x
+
+AddIndex[tensor_,index_]:=tensor=Merge[{tensor,List/@Association[index]},If[Length[#]==1&&Depth[#]==2,#[[1]],Flatten[#]]&]
+SetAttributes[AddIndex,HoldFirst];
 
 
 (* ::Input::Initialization:: *)
@@ -81,21 +84,21 @@ RowBox[{"\"\<\\!\\(\\*OverscriptBox[\\(\>\"", "<>", "fieldname", "<>", "\"\<\\),
 ShowSpecialCharacters->False,
 ShowStringCharacters->True,
 NumberMarks->True],
-FullForm]\)]];
-tensorform=<|"tensor"->fieldname,"upind"->"","downind"->""|>;
-If[model[field]["nfl"]>1, tensorform["downind"]= model[field]["indfl"][[++flavorct]];
+FullForm]\)]]; (* set fermion name according to chirality *)
+tensorform=<|"tensor"->fieldname|>;
+If[model[field]["nfl"]>1,AddIndex[tensorform,"downind"-> model[field]["indfl"][[++flavorct]]];
 tensorform["tensor"]=Inactive[PrintTensor]@tensorform;
-tensorform["downind"]=""];
+KeyDropFrom [tensorform,"downind"]]; (* add flavor index *)
 If[StringTake[field,-1] == "\[Dagger]", su2antiflag = True];
 Do[irrep=model[field][groupname];
 group=CheckGroup[model,groupname];
 indexList=model["rep2indOut"][groupname][irrep];
 If[indexList=={},Continue[]]; (* singlet *)
 index=IndexIterator[indexList,indexct];
-If[Fund[group]==irrep,If[group==SU2&&su2antiflag,tensorform["upind"]=tensorform["upind"]<>index,tensorform["downind"]=tensorform["downind"]<>index],
-tensorform["upind"]=tensorform["upind"]<>index],
+If[Fund[group]==irrep,If[group==SU2&&su2antiflag,AddIndex[tensorform,"upind"->index],AddIndex[tensorform,"downind"->index]],
+AddIndex[tensorform,"upind"->{index}]],
 {groupname,Select[model["Gauge"],nonAbelian]}];
-Subscript[h2f[hel], label] -> head[Inactive[PrintTensor][tensorform]]
+Subscript[h2f[hel], label] -> head[Inactive[PrintTensor]@tensorform]
 ]
 groupindex[model_, flistexpand_,OptionsPattern[]] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
 indexct=AssociationThread[Union@Catenate[model["rep2indOut"]]->0];
@@ -124,10 +127,10 @@ ch\[Psi]["right"[f1_],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][f1,q,ch[p2,f2]],
 ch\[Psi][ch[p1__,"right"[f1_]],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][ch[p1,f1],q,ch[p2,f2]]};
 
 listtotime={ch[p__]:>HoldForm[Times[p]],ch\[Psi][p__]:>HoldForm[Times[p]]};
-FtoTensor[activate_?BooleanQ]:=Inactivate[{F_["down",a_,"down",b_]:>PrintTensor[<|"tensor"->F,"upind"->"","downind"->a<>b|>],
+FtoTensor[activate_?BooleanQ]:=Inactivate[{F_["down",a_,"down",b_]:>PrintTensor[<|"tensor"->F,"upind"->"","downind"->{a,b}|>],
 F_["down",a_,"up",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"upind"->"","downind"->a|>],"upind"->b,"downind"->""|>],
 F_["up",a_,"down",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"upind"->a,"downind"->""|>],"upind"->"","downind"->b|>],
-F_["up",a_,"up",b_]:>PrintTensor[<|"tensor"->F,"upind"->a<>b,"downind"->""|>]},If[activate,Null,PrintTensor]];
+F_["up",a_,"up",b_]:>PrintTensor[<|"tensor"->F,"upind"->{a,b},"downind"->""|>]},If[activate,Null,PrintTensor]];
 
 transform[ope_, OptionsPattern[]] := Module[{result=ope,model, type, fer, fieldlist,Dcon={},fchain={},l2t={}, fieldrename={}},
 If[OptionValue[Dcontract],Dcon=Flatten[{Dcontract1, Dcontract2}]];
@@ -141,7 +144,7 @@ result=result//.{\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[
 fchain=spinorH2C
 ];
 result=result//.Dcon/.FtoTensor[OptionValue[ActivatePrintTensor]]//.l2t;
-result=result//.groupindex[model,fieldlist,FieldRename->fieldrename];
+result=result//.Activate[groupindex[model,fieldlist,FieldRename->fieldrename],If[OptionValue[ActivatePrintTensor],PrintTensor,Null]];
 result/.fchain
 ]
 Options[transform] = {OpenFchain->True,ActivatePrintTensor->True,Dcontract -> True, ReplaceField -> {}}; 

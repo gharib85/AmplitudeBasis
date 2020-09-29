@@ -488,11 +488,19 @@ result=MapAt[MatrixForm,result,Key["transfer"]]
 
 (* ::Input::Initialization:: *)
 (* simplification after contracted with fields *)
-ContractDelta[in_Times]:=Module[{rule,delTlist=Select[Keys[tOut], StringMatchQ[ToString[#],"del"~~__]&]},
+(*ContractDelta[in_Times]:=Module[{rule,delTlist=Select[Keys[tOut], StringMatchQ[ToString[#],"del"~~__]&]},
 rule=Rule@@@(Reverse/@Sort/@Cases[List@@in,Alternatives@@(Construct[#,x__]&/@delTlist) :>{x}]);
 in/.Thread[delTlist->(1&)]/.rule
+]*)
+ContractDelta[in_Times]:=Module[{delTlist=Select[Keys[tOut], StringMatchQ[ToString[#],"del"~~__]&],map,result,pos},
+map=Association[Rule@@@(Reverse/@Sort/@Cases[List@@in,Alternatives@@(Construct[#,x__]&/@delTlist) :>{x}])];
+result=in/.Thread[delTlist->(1&)];
+Do[pos=Cases[Position[result,dum],{___,Key["upind"]|Key["downind"],_}];
+result=ReplacePart[result,pos->map[dum]],{dum,Keys[map]}];
+Return[result]
 ]
 ContractDelta[in_Plus]:=ContractDelta/@in(*Switch[Expand[in],_Times,RMDelta[in],_Plus,Plus@@(RMDelta/@List@@Expand[in])]*)
+SetAttributes[ContractDelta,Listable];
 
 (* combine factors of an amplitude by inner product decomposition *)
 InnerDecomposeKey[model_,FactorSyms_]:=Module[{Grassmann,decompose},
@@ -543,8 +551,8 @@ nFac=Length[NAgroups]+1;(*number of factors to do Inner Product Decomposition fo
 lorentzB=LorentzBasisForType[model,type,OutputFormat->OptionValue[OutputFormat],FerCom->OptionValue[FerCom],Coord->True,OpenFchain->False,ActivatePrintTensor->False];
 groupB=GetGroupFactor[model,#,type,OutputMode->"indexed"]&/@NAgroups;
 basisTotal=Expand/@Flatten[Through[(TensorProduct@@groupB)["basis"]]\[TensorProduct]lorentzB["basis"]];
-basisTotal=RefineReplace[basisTotal,ActivatePrintTensor->False];
-If[OptionValue[OutputFormat]=="operator",basisTotal=ContractDelta/@basisTotal];
+If[OptionValue[OutputFormat]=="operator",basisTotal=ContractDelta@basisTotal];
+basisTotal=RefineReplace[basisTotal];
 basisTotal=Map[Activate,basisTotal,\[Infinity]]/.listtotime;
 If[OptionValue[Basis]=="m-basis",Return[basisTotal]];
 If[len==0,Return[<|{}->basisTotal|>]];
