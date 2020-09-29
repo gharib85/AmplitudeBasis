@@ -127,10 +127,10 @@ ch\[Psi]["right"[f1_],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][f1,q,ch[p2,f2]],
 ch\[Psi][ch[p1__,"right"[f1_]],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][ch[p1,f1],q,ch[p2,f2]]};
 
 listtotime={ch[p__]:>HoldForm[Times[p]],ch\[Psi][p__]:>HoldForm[Times[p]]};
-FtoTensor[activate_?BooleanQ]:=Inactivate[{F_["down",a_,"down",b_]:>PrintTensor[<|"tensor"->F,"upind"->"","downind"->{a,b}|>],
-F_["down",a_,"up",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"upind"->"","downind"->a|>],"upind"->b,"downind"->""|>],
-F_["up",a_,"down",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"upind"->a,"downind"->""|>],"upind"->"","downind"->b|>],
-F_["up",a_,"up",b_]:>PrintTensor[<|"tensor"->F,"upind"->{a,b},"downind"->""|>]},If[activate,Null,PrintTensor]];
+FtoTensor[activate_?BooleanQ]:=Inactivate[{F_["down",a_,"down",b_]:>PrintTensor[<|"tensor"->F,"downind"->{a,b}|>],
+F_["down",a_,"up",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"downind"->a|>],"upind"->b|>],
+F_["up",a_,"down",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"upind"->a|>],"downind"->b|>],
+F_["up",a_,"up",b_]:>PrintTensor[<|"tensor"->F,"upind"->{a,b}|>]},If[activate,Null,PrintTensor]];
 
 transform[ope_, OptionsPattern[]] := Module[{result=ope,model, type, fer, fieldlist,Dcon={},fchain={},l2t={}, fieldrename={}},
 If[OptionValue[Dcontract],Dcon=Flatten[{Dcontract1, Dcontract2}]];
@@ -148,6 +148,16 @@ result=result//.Activate[groupindex[model,fieldlist,FieldRename->fieldrename],If
 result/.fchain
 ]
 Options[transform] = {OpenFchain->True,ActivatePrintTensor->True,Dcontract -> True, ReplaceField -> {}}; 
+
+
+(* ::Input::Initialization:: *)
+PrintOper[beforeprint_Times]:=Module[{factors,bosons=1,others=1},
+factors=GroupBy[Map[Activate,List @@beforeprint,\[Infinity]],StringQ];
+If[KeyExistsQ[factors,True],bosons=StringJoin@@factors[True]];
+If[KeyExistsQ[factors,False],others=Times@@factors[False]];
+Return[bosons*others]
+]
+SetAttributes[PrintOper,Listable];
 
 
 (* ::Input::Initialization:: *)

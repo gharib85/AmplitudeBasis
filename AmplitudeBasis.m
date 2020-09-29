@@ -207,7 +207,7 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Lorentz Basis*)
 
 
@@ -552,8 +552,7 @@ lorentzB=LorentzBasisForType[model,type,OutputFormat->OptionValue[OutputFormat],
 groupB=GetGroupFactor[model,#,type,OutputMode->"indexed"]&/@NAgroups;
 basisTotal=Expand/@Flatten[Through[(TensorProduct@@groupB)["basis"]]\[TensorProduct]lorentzB["basis"]];
 If[OptionValue[OutputFormat]=="operator",basisTotal=ContractDelta@basisTotal];
-basisTotal=RefineReplace[basisTotal];
-basisTotal=Map[Activate,basisTotal,\[Infinity]]/.listtotime;
+basisTotal=PrintOper[RefineReplace@basisTotal]/.listtotime;
 If[OptionValue[Basis]=="m-basis",Return[basisTotal]];
 If[len==0,Return[<|{}->basisTotal|>]];
 
