@@ -163,17 +163,19 @@ comblist=DeleteDuplicatesBy[Distribute[Select[Keys[model],helicityQ[model,#]]&/@
 singletposition=Flatten@Position[MapThread[And,Table[SingletQ[groups[[i]],#]&/@Map[model[#][model["Gauge"][[i]]]&,comblist,{2}],{i,Length[groups]}]],True]; 
 (* convert to types: product of fieldname/D strings *)
 Times@@@(PadRight[#,Length[state]+k,"D"]&/@comblist[[singletposition]] )(* convert format for AmplitudeBasis *)
-] 
+]
+
 AllTypesR[model_,dim_]:=state2type[model,#1,#2]&@@@LorentzList[dim,"real"]//Flatten
-AllTypesC[model_,dim_]:=Module[{statelist=LorentzList[dim,"complex"],types,result={}},
+AllTypesC[model_,dim_]:=Module[{statelist=LorentzList[dim,"complex"],types,result=<||>},
 Do[types=state2type[model,#1,#2]&@@state;
 If[state==MapAt[-Reverse[#]&,state,1],
 types=DeleteDuplicates[types,(#1/.{x_String/;x!= "D":>Conj[x]})==#2&]
 ];
-AppendTo[result,types],
+AssociateTo[result,state2class@@state->types],
 {state,statelist}];
 Return[result];
 ]
+
 GetTypes[model_,dmin_,dmax_,file_]:=Module[{dim,types={}},
 Do[AppendTo[types,Timing@AllTypesC[model,dim]];
 Print["Dim ",dim,": ",Length[Flatten@#2]," types in all, time used ",#1]&@@Last[types],
@@ -185,12 +187,21 @@ GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
 
 
 (* ::Input::Initialization:: *)
+(* # operators per term *)
+Slist[model_,type_,terms_]:=Module[{flist=CheckType[model,type],n1,n2},
+n1=Times@@(model[#]["nfl"]&/@Cases[flist,{_String,1}][[All,1]]); (* single fields with S=nflavor *)
+n2=Times@@@(KeyValueMap[HookContentFormula[#2,model[#1]["nfl"]]&,Association@@#]&/@Keys[terms]); (* repfields with non-trivial symmetry *)
+n1*n2
+]
+
+
+(* ::Input::Initialization:: *)
 (* Global Charge Analysis *)
 BminusL[model_,types_]:=
 Module[{},
 GroupBy[Flatten@types,(Abs@Total[Times@@@MapAt[(model[#]["Baryon"]-model[#]["Lepton"])&,CheckType[model,#],{All,1}]])&]
 ]
-BLofAll[model_,dim_]:=Module[{types},types=Flatten@AllTypesC[model,dim];
+BLofAll[model_,dim_]:=Module[{types},types=Catenate@AllTypesC[model,dim];
 GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"]}&,CheckType[model,#],{All,1}]])&]
 ]
 
@@ -275,7 +286,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Gauge Group Factor*)
 
 
@@ -353,177 +364,8 @@ coords=AssociationThread[SNCollections[[All,1]]->MapThread[GetSymBasis[tMbasis,#
 Options[GetGroupFactor]={OutputMode->"indexed"};
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Formating & Output*)
-
-
-(* ::Subsubsection:: *)
-(*Formating*)
-
-
-(* ::Input::Initialization:: *)
-(******************* Group tensor formating **********************)
-
-(* getting printable form *)
-(*PrintTensor="\!\(\*SubsuperscriptBox[\("<>#tensor<>"\), \("<>#downind<>"\), \("<>#upind<>"\)]\)"&;*)
-(*PrintTensor[tensor_Association]:=Module[{srule={}},
-Check[AppendTo[srule,"tensorname"->tensor["tensor"]],Message[PrintTensor::noname];Abort[]];
-If[KeyExistsQ[tensor,"upind"],AppendTo[srule,"upind"->tensor["upind"]],AppendTo[srule,"upind"->""]];
-If[KeyExistsQ[tensor,"downind"],AppendTo[srule,"downind"->tensor["downind"]],AppendTo[srule,"downind"->""]];
-StringReplace["\!\(\*SubsuperscriptBox[\(tensorname\), \(downind\), \(upind\)]\)",srule]
-]*)
-PrintTensor[tensor_Association]:=Module[{print="\!\(\*SubsuperscriptBox[\("<>#tensor<>"\), \("<>#downind<>"\), \("<>#upind<>"\)]\)"&,t},
-t=Merge[{tensor,<|"tensor"->"","downind"->"","upind"->""|>},StringJoin];
-print[t]
-]
-PrintTensor[x_:Except[_Association]]:=x
-
-Sortarg[asTlist_]:= #[y__] :> Signature[#[y]]Sort[#[y]]& /@ asTlist 
-RefineReplace[x_]:=Module[{asTlist=Select[Keys@tOut,MatchQ[tSymmetry[#],_Antisymmetric]&]},
-x/.Sortarg[asTlist]/.tOut]
-
-IndexIterator[indlist_,indexct_]:=Module[{index=++indexct[indlist]},indlist[[index]]]
-SetAttributes[IndexIterator,HoldRest];
-
-(* Generate the replacing rule of the tensor indices for the final output form *)
-GenerateReplacingRule[model_,type:(_Times|_Power)]:=GenerateReplacingRule[model,CheckType[model,type]]
-GenerateReplacingRule[model_,flist_List]:=Module[{nonsingletlist,fexpand,symbollist,arglist,listind,listgen,indexct,indpair,listdummy},
-nonsingletlist=AssociationMap[Function[groupname,Select[flist,Function[fname,model[fname[[1]]][groupname]!=Singlet[CheckGroup[groupname]]]]],Select[model["Gauge"],nonAbelian]]; 
-fexpand=Flatten[ConstantArray@@@#]&/@nonsingletlist;
-symbollist=KeyValueMap[Function[fname,model["rep2ind"][#1][model[fname[[1]]][#1]]]/@#2 &,nonsingletlist]; 
-arglist=Map[Function[fname,Array[{fname[[1]],#,1}&,fname[[2]]]],nonsingletlist,{2}];
-listind=Join@@MapThread[Function[{symbol,arg},symbol@@@arg],Catenate/@{symbollist,arglist}];
-
-indexct=AssociationThread[Union@Catenate[model["rep2indOut"]]->0]; 
-listgen=Join@@KeyValueMap[Function[{groupname,namelist},IndexIterator[model["rep2indOut"][groupname][model[#][groupname]],indexct]&/@namelist],fexpand]; 
-indpair=Join@@Values@Merge[model/@{"rep2ind","rep2indOut"},Values[Merge[#,Identity]]& ]//DeleteDuplicates;
-listdummy=Function[{ind,indexlist,ct},ind[ii_]:>indexlist[[ct+ii]]]@@@(Append[#,indexct[#[[2]]]]&/@indpair);
-Return[Thread[listind->Flatten@listgen]~Join~listdummy];
-]
-
-
-(* ::Input::Initialization:: *)
-(* Amplitude Formating *)
-
-changebracket[b_ab]:=<|"tensor"->"<"<>StringJoin@@ToString/@b<>">"|>
-changebracket[b_sb]:=<|"tensor"->"["<>StringJoin@@ToString/@b<>"]"|>
-changebracket[s_sMand]:=<|"tensor"->"s","downind"-> StringJoin@@ToString/@s|>
-changebracket[p_Power]:=Switch[p[[1]],
-_ab|_sb|_sMand,Merge[{changebracket[p[[1]]],<|"upind"->ToString[p[[2]]]|>},StringJoin],
-_,p]
-changebracket[x_]:=x
-
-Options[Ampform]={sVariable->True};
-Ampform[amp_,OptionsPattern[]]:=Module[{lor=Expand[amp],coef},
-If[OptionValue[sVariable],lor=lor//.{
-ab[i_,j_]sb[i_,j_]:>-sMand[i,j],
-ab[i_,j_]^n_ sb[i_,j_]:>-sMand[i,j] ab[i,j]^(n-1),
-ab[i_,j_]sb[i_,j_]^n_:>-sMand[i,j] sb[i,j]^(n-1),
-ab[i_,j_]^n_ sb[i_,j_]^m_:>-sMand[i,j] ab[i,j]^(n-1) sb[i,j]^(m-1)}];
-Switch[Head[lor],
-Times,PrintTensor[changebracket[#]]&/@lor,
-Plus,Ampform/@lor,
-_,PrintTensor[changebracket[lor]]]
-]
-
-
-(* Lorentz Structure formating *)
-
-
-(* ::Input::Initialization:: *)
-(* Operator formating *)
-SetAttributes[SetIndex,HoldAll]; 
-Options[SetIndex]={FieldRename->{}};
-Options[groupindex]={FieldRename->{}};
-SetIndex[model_, field_, label_,indexct_,flavorct_,OptionsPattern[]] :=
-Module[{hel=model[field]["helicity"],fieldname=field,head=Identity,su2antiflag = False,irrep,group,indexList,index,tensorform}, 
-If[model[field]["stat"]=="fermion"&&MemberQ[OptionValue[FieldRename],"set chirality"],
-fieldname=model[field]["chirality"][[1]];
-head=model[field]["chirality"][[2]];
-If[head=="right",fieldname=\!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*OverscriptBox[\\(\>\"", "<>", "fieldname", "<>", "\"\<\\), \\(_\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\)]];
-tensorform=<|"tensor"->fieldname,"upind"->"","downind"->""|>;
-If[model[field]["nfl"]>1, tensorform["downind"]= model[field]["indfl"][[++flavorct]];
-tensorform["tensor"]=Inactive[PrintTensor]@tensorform;
-tensorform["downind"]=""];
-If[StringTake[field,-1] == "\[Dagger]", su2antiflag = True];
-Do[irrep=model[field][groupname];
-group=CheckGroup[model,groupname];
-indexList=model["rep2indOut"][groupname][irrep];
-If[indexList=={},Continue[]]; (* singlet *)
-index=IndexIterator[indexList,indexct];
-If[Fund[group]==irrep,If[group==SU2&&su2antiflag,tensorform["upind"]=tensorform["upind"]<>index,tensorform["downind"]=tensorform["downind"]<>index],
-tensorform["upind"]=tensorform["upind"]<>index],
-{groupname,Select[model["Gauge"],nonAbelian]}];
-Subscript[h2f[hel], label] -> head[Inactive[PrintTensor][tensorform]]
-]
-groupindex[model_, flistexpand_,OptionsPattern[]] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
-indexct=AssociationThread[Union@Catenate[model["rep2indOut"]]->0];
-MapThread[SetIndex[model, #1, #2,indexct,flavorct,FieldRename->OptionValue[FieldRename]] & , {flistexpand,Range[n]}]
-]
-
-spinorH2C={ch\[Psi]["left"[f1_],q_,"left"[f2_]]:>ch\[Psi][f1,"C",q,f2],
-ch\[Psi][ch[p1__,"left"[f1_]],q_,"left"[f2_]]:>ch\[Psi][ch[p1,f1],"C",q,f2],
-ch\[Psi]["left"[f1_],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][f1,"C",q,ch[p2,f2]],
-ch\[Psi][ch[p1__,"left"[f1_]],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][ch[p1,f1],"C",q,ch[p2,f2]]}~Join~
-{ch\[Psi]["right"[f1_],q_,"right"[f2_]]:>ch\[Psi][f1,q,"C",f2],
-ch\[Psi][ch[p1__,"right"[f1_]],q_,"right"[f2_]]:>ch\[Psi][ch[p1,f1],q,"C",f2],
-ch\[Psi]["right"[f1_],q_,ch[p2__,"right"[f2_]]]:>ch\[Psi][f1,q,"C",ch[p2,f2]],
-ch\[Psi][ch[p1__,"right"[f1_]],q_,ch[p2__,"right"[f2_]]]:>ch\[Psi][ch[p1,f1],q,"C",ch[p2,f2]]}~Join~
-{ch\[Psi]["left"[f1_],1,"right"[f2_]]:>ch\[Psi][f2,1,f1],
-ch\[Psi][ch[p1__,"left"[f1_]],1,"right"[f2_]]:>ch\[Psi][f2,1,ch[p1,f1]],
-ch\[Psi]["left"[f1_],1,ch[p2__,"right"[f2_]]]:>ch\[Psi][ch[p2,f2],1,f1],
-ch\[Psi][ch[p1__,"left"[f1_]],1,ch[p2__,"right"[f2_]]]:>ch\[Psi][ch[p2,f2],1,ch[p1,f1]]}~Join~
-{ch\[Psi]["left"[f1_],q_,"right"[f2_]]:>-ch\[Psi][f2,q,f1],
-ch\[Psi][ch[p1__,"left"[f1_]],q_,"right"[f2_]]:>-ch\[Psi][f2,q,ch[p1,f1]],
-ch\[Psi]["left"[f1_],q_,ch[p2__,"right"[f2_]]]:>-ch\[Psi][ch[p2,f2],q,f1],
-ch\[Psi][ch[p1__,"left"[f1_]],q_,ch[p2__,"right"[f2_]]]:>-ch\[Psi][ch[p2,f2],q,ch[p1,f1]]}~Join~
-{ch\[Psi]["right"[f1_],q_,"left"[f2_]]:>ch\[Psi][f1,q,f2],
-ch\[Psi][ch[p1__,"right"[f1_]],q_,"left"[f2_]]:>ch\[Psi][ch[p1,f1],q,f2],
-ch\[Psi]["right"[f1_],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][f1,q,ch[p2,f2]],
-ch\[Psi][ch[p1__,"right"[f1_]],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][ch[p1,f1],q,ch[p2,f2]]};
-
-listtotime={ch[p__]:>HoldForm[Times[p]],ch\[Psi][p__]:>HoldForm[Times[p]]};
-FtoTensor[activate_?BooleanQ]:=Inactivate[{F_["down",a_,"down",b_]:>PrintTensor[<|"tensor"->F,"upind"->"","downind"->a<>b|>],
-F_["down",a_,"up",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"upind"->"","downind"->a|>],"upind"->b,"downind"->""|>],
-F_["up",a_,"down",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"upind"->a,"downind"->""|>],"upind"->"","downind"->b|>],
-F_["up",a_,"up",b_]:>PrintTensor[<|"tensor"->F,"upind"->a<>b,"downind"->""|>]},If[activate,Null,PrintTensor]];
-
-transform[ope_, OptionsPattern[]] := Module[{result=ope,model, type, fer, fieldlist,Dcon={},fchain={},l2t={}, fieldrename={}},
-If[OptionValue[Dcontract],Dcon=Flatten[{Dcontract1, Dcontract2}]];
-If[OptionValue[OpenFchain],l2t=listtotime];
-If[OptionValue[ReplaceField] === {},Return[result//.Dcon/.FtoTensor[OptionValue[ActivatePrintTensor]]//.l2t]]; (* abstract operators *)
-{model, type, fer} = OptionValue[ReplaceField];
-fieldlist = CheckType[model,type,Counting->False];
-If[fer==4,AppendTo[fieldrename,"set chirality"]; (* rename fermion due to conventional chirality *)
-result=result//.{\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[\[Sigma] |  OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]}
-//. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}; (* change \[Sigma] matrices to \[Gamma] matrices *)
-fchain=spinorH2C
-];
-result=result//.Dcon/.FtoTensor[OptionValue[ActivatePrintTensor]]//.l2t;
-result=result//.groupindex[model,fieldlist,FieldRename->fieldrename];
-result/.fchain
-]
-Options[transform] = {OpenFchain->True,ActivatePrintTensor->True,Dcontract -> True, ReplaceField -> {}}; 
-
-
-(* ::Input::Initialization:: *)
-(* simplification after contracted with fields *)
-RMDelta[in_]:=Module[{rule,delTlist=Select[Keys[tOut], StringMatchQ[ToString[#],"del"~~__]&]},
-rule=Rule@@@(Reverse/@Sort/@Cases[List@@in,Alternatives@@(Construct[#,x__]&/@delTlist) :>{x}]);
-in/.Thread[delTlist->(1&)]/.rule
-]
-ContractDelta[in_]:=Switch[Expand[in],_Times,RMDelta[in],_Plus,Plus@@(RMDelta/@List@@Expand[in])]
-
-
-(* ::Subsubsection::Closed:: *)
-(*Output*)
 
 
 (* ::Input::Initialization:: *)
@@ -557,46 +399,38 @@ StatResult[model_,dim_Integer,OptionsPattern[]]:=Module[{start,types},
 Print["-----------------------"];
 Print["Enumerating dim ",dim," operators ..."];
 start=SessionTime[];
-types=Flatten@AllTypesC[model,dim];
+types=Catenate@AllTypesC[model,dim];
 Print[" --- find all types (time: ",SessionTime[]-start,")"];
 StatResult[model,types,OutFile->OptionValue[OutFile],Progress->OptionValue[Progress]]
 ]
 
 
 (* ::Input::Initialization:: *)
-(*********** present all operators *****************)
+(*********** show counting result *****************)
 
-(* present in notebook *)
-Options[Present]={MODEL->0};
-Present[resultc_,OptionsPattern[]]:=KeyValueMap[Block[{i=1,model=OptionValue[MODEL]}, (* for each class *)
-Print["\n---------------------\n",#1,": ",Length[#2]," type(s)"];
-KeyValueMap[Block[{j=1,slist}, (* for each type *)
-If[AssociationQ[model],slist=Slist[model,#1,#2]];
-Print["  ---------\n  ",i++,". [",#1,"] ",Total[Length/@#2]," term(s)\n"];
-KeyValueMap[Block[{}, (* for each flavor sym *)
-If[AssociationQ[model],
-Print["    Flavor Sym: ",MapAt[DrawYoungDiagram[#,ScaleFactor->6]&,#,2]&/@#1,";\n"];
-Print["    Operator number per term: ",slist[[j++]],"\n"];
-];
-Scan[Print["         ",#]&,#2];
-]&,#2];
-]&,#2];
-]&,resultc]
-
-(* present result in TeXForm *)FormEnviTeX[s_]:=StringReplace[StringDelete[StringReplace[StringReplace[s//TeXForm//ToString,{Shortest["\\text{"~~aa__~~"}"]:>aa}],{"\\dagger"->"^{\\dagger}",f:("F"|"B"|"W"|"G")~~d:("L"|"R"):>f~~"_{"~~d~~"}","uc"->"u^{\\mathcal{C}}","dc"->"d^{\\mathcal{C}}","ec"->"e^{\\mathcal{C}}","nf"->"n_f"}],"$"],{"\\psi L"->"\\psi_{\\mathcal{L}}","\\psi R"->"\\psi_{\\mathcal{R}}",Shortest[")_"~~aa__~~"\\right."]:>"\\right)_"~~aa,b:("B_{L}"|"B_{R}")~~ud:("^{"|"_{"):>"("~~b~~")"~~ud,w:("W_{"~~_~~"}^{"~~_~~"}"):>"("~~w~~")",g:("G_{"~~_~~"}^{"~~_~~"}"):>"("~~g~~")"}];
-Options[TeXPresent]={MODEL->0};TeXPresent[resultc_,OptionsPattern[],dim_:0]:=Module[{result=DeleteCases[resultc,<||>]},If[OptionValue[MODEL]===0,Print["\\section{","List Dim-",dim," Operators of one flavor}"],Print["\\section{","List Dim-",dim," Operators}"]];KeyValueMap[Block[{ii=1,model=OptionValue[MODEL]},(* for each class *)
-Print["\\subsection{$",FormEnviTeX[#1],"$: ",Length[#2]," type(s)}"];Print["\\begin{itemize}"];
-KeyValueMap[Block[{jj=1,slist}, (* for each type *)
-If[AssociationQ[model],slist=Slist[model,#1,#2](*;Print[slist]*)];
-Print["\\item $\\mathbf{type}$ ",ii++,". $",FormEnviTeX[#1],"$: ",Total[Length/@#2]," term(s)\n"];
-KeyValueMap[Block[{}, (* for each flavor sym *)
-If[AssociationQ[model],Print["    Flavor Sym: $",StringDelete[StringReplace[ToString[#1],{Shortest["-> {"~~a__~~"}"]:>"\\rightarrow\\tiny{\\yng("~~a~~")}","\[Dagger]":>"^{\\dagger}",f:("B"|"W"|"G")~~d:("L"|"R"):>f~~"_{"~~d~~"}"}]," "],"$;\n"];
-Print["    Operator number per term: $",FormEnviTeX[slist[[jj++]]],"$\n"];
-];
-Scan[Print["\\begin{align}\n         ",FormEnviTeX[#],"\n\\end{align}\n"]&,#2];
-]&,#2];
-]&,#2];Print["\\end{itemize}"];
-]&,result]]
+StatResult[model_,types_List]:=Module[{terms={},nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR,result=<||>},
+Do[AppendTo[terms,Type2TermsCount[model,type]],{type,types}];
+nTermList=Values/@terms;
+posR=Complement[Position[realQ/@types,True],Position[nTermList,{}]];
+nTypes=Length@Cases[nTermList,Except[{}]];
+AssociateTo[result,"real types"->2nTypes-Length[posR]];
+nTermsR=Total@MapAt[#/2&,2Total/@nTermList,posR];
+AssociateTo[result,"real terms"->nTermsR];
+SList=MapThread[Slist[model,#1,#2]&,{types,terms}];
+nOpers=MapThread[Dot,{nTermList,SList}];
+nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
+AssociateTo[result,"real operators"->nOpersR];
+Return[result];
+]
+Options[StatResult]={OutFile->"null",Progress->False};
+StatResult[model_,dim_Integer,OptionsPattern[]]:=Module[{start,types},
+Print["-----------------------"];
+Print["Enumerating dim ",dim," operators ..."];
+start=SessionTime[];
+types=Catenate@AllTypesC[model,dim];
+Print[" --- find all types (time: ",SessionTime[]-start,")"];
+StatResult[model,types,OutFile->OptionValue[OutFile],Progress->OptionValue[Progress]]
+]
 
 
 (* ::Subsection::Closed:: *)
@@ -652,31 +486,14 @@ result=MapAt[MatrixForm,result,Key["transfer"]]
 (*Model Analysis*)
 
 
-(* ::Item:: *)
-(*GroupMath -- HookContentFormula, DrawYoungDiagram*)
-
-
-(* ::Item:: *)
-(*Permutation Group -- GetCGCM*)
-
-
-(* ::Item:: *)
-(*Model Input -- BreakString, state2class*)
-
-
-(* ::Item:: *)
-(*Lorentz Basis -- LorentzBasisForType, LorentzList*)
-
-
-(* ::Item:: *)
-(*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)
-
-
-(* ::Subsubsection:: *)
-(*Functions*)
-
-
 (* ::Input::Initialization:: *)
+(* simplification after contracted with fields *)
+ContractDelta[in_Times]:=Module[{rule,delTlist=Select[Keys[tOut], StringMatchQ[ToString[#],"del"~~__]&]},
+rule=Rule@@@(Reverse/@Sort/@Cases[List@@in,Alternatives@@(Construct[#,x__]&/@delTlist) :>{x}]);
+in/.Thread[delTlist->(1&)]/.rule
+]
+ContractDelta[in_Plus]:=ContractDelta/@in(*Switch[Expand[in],_Times,RMDelta[in],_Plus,Plus@@(RMDelta/@List@@Expand[in])]*)
+
 (* combine factors of an amplitude by inner product decomposition *)
 InnerDecomposeKey[model_,FactorSyms_]:=Module[{Grassmann,decompose},
 (* arguments:
@@ -725,9 +542,10 @@ nFac=Length[NAgroups]+1;(*number of factors to do Inner Product Decomposition fo
 (********* compute m-basis *********)
 lorentzB=LorentzBasisForType[model,type,OutputFormat->OptionValue[OutputFormat],FerCom->OptionValue[FerCom],Coord->True,OpenFchain->False,ActivatePrintTensor->False];
 groupB=GetGroupFactor[model,#,type,OutputMode->"indexed"]&/@NAgroups;
-basisTotal=Flatten[lorentzB["basis"]\[TensorProduct]Through[(TensorProduct@@groupB)["basis"]]];
+basisTotal=Expand/@Flatten[Through[(TensorProduct@@groupB)["basis"]]\[TensorProduct]lorentzB["basis"]];
+basisTotal=RefineReplace[basisTotal,ActivatePrintTensor->False];
 If[OptionValue[OutputFormat]=="operator",basisTotal=ContractDelta/@basisTotal];
-basisTotal=RefineReplace/@Map[Activate,basisTotal,\[Infinity]]/.listtotime;
+basisTotal=Map[Activate,basisTotal,\[Infinity]]/.listtotime;
 If[OptionValue[Basis]=="m-basis",Return[basisTotal]];
 If[len==0,Return[<|{}->basisTotal|>]];
 
@@ -771,34 +589,24 @@ KeySelect[terms,And@@#/.Rule->SQ[model]&] (* remove flavor syms not allowed by n
 
 
 (* ::Input::Initialization:: *)
-Options[GenerateOperatorList]={ShowClass->True,T2TOptions->{}};
+Options[GenerateOperatorList]={ShowClass->True,AllClass->False,T2TOptions->{}};
 GenerateOperatorList[model_,dim_Integer,OptionsPattern[]]:=Module[{start=SessionTime[],states,types,len,class,iter=0,assoc=<||>,temp},
 Print["Generating types of operators ..."];
-states=LorentzList[dim];
 types=AllTypesC[model,dim];
-len=Length[types];
 If[OptionValue[ShowClass],
-Print["Evaluating class: ",Dynamic[class]," (",Dynamic[iter],"/",Length[states],")"];
-Do[class=state2class@@states[[i]];
-temp=AssociationMap[Type2TermsPro[model,#,Sequence@@OptionValue[T2TOptions]]&,types[[i]]];
+Print["Evaluating class: ",Dynamic[class]," (",Dynamic[iter],"/",Length[types],")"];
+Do[If[ !OptionValue[AllClass]&&types[class]=={},Continue[]];
+temp=AssociationMap[Type2TermsPro[model,#,Sequence@@OptionValue[T2TOptions]]&,types[class]];
 AssociateTo[assoc,class->DeleteCases[temp,<||>]];
-iter++,{i,len}],
+iter++,{class,Keys[types]}],
 
-assoc=DeleteCases[<||>]@AssociationMap[Type2TermsPro[model,#,Sequence@@OptionValue[T2TOptions]]&,Flatten[types]];
+assoc=AssociationMap[Type2TermsPro[model,#,Sequence@@OptionValue[T2TOptions]]&,Catenate@types];
+assoc=DeleteCases[assoc,<||>];
 ];
 Print["Time spent: ",SessionTime[]-start];
 Return[assoc];
 ]
 GenerateOperatorList[model_,types_List,OptionsPattern[]]:=DeleteCases[<||>]@AssociationMap[Type2TermsPro[model,#,Sequence@@OptionValue[T2TOptions]]&,types]
-
-
-(* ::Input::Initialization:: *)
-(* # operators per term *)
-Slist[model_,type_,terms_]:=Module[{flist=CheckType[model,type],n1,n2},
-n1=Times@@(model[#]["nfl"]&/@Cases[flist,{_String,1}][[All,1]]); (* single fields with S=nflavor *)
-n2=Times@@@(KeyValueMap[HookContentFormula[#2,model[#1]["nfl"]]&,Association@@#]&/@Keys[terms]); (* repfields with non-trivial symmetry *)
-n1*n2
-]
 
 
 (* ::Subsection:: *)
