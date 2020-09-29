@@ -46,5 +46,37 @@ pos++];
 basisReduce::input="wrong input matrix: `1`";
 
 
+(* ::Input::Initialization:: *)
+GatherWeights[listW_,listMult_:1]:=Module[{aux},
+aux=listW/.{rep_List,weight_?NumberQ}:>(rep->weight);
+aux=aux/.{x__Rule}:>Merge[{x},Apply[Plus]];
+aux=DeleteCases[Merge[aux listMult,Apply[Plus]],0];
+Normal[aux]/.Rule->List
+]
+
+
 (* ::Input:: *)
+(*(* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX *)*)
+(**)
+(*GatherWeights[listW_]:=GatherWeights[listW]=Module[{aux},*)
+(*aux=Flatten[listW,1];*)
+(*aux=Gather[aux,#1[[1]]==#2[[1]]&];*)
+(**)
+(*aux={#[[1,1]],Plus@@#[[1;;-1,2]]}&/@aux;*)
+(*aux=DeleteCases[aux,x_/;x[[2]]==0];*)
+(**)
+(*Return[aux];*)
+(*]*)
+(**)
+(*(* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX *)*)
+(**)
+(*GatherWeights[listW_,listMult_]:=GatherWeights[listW,listMult]=Module[{aux},*)
+(*aux=Table[{#[[1]],listMult[[i]]#[[2]]}&/@listW[[i]],{i,Length[listW]}];*)
+(*aux=Flatten[aux,1];*)
+(*aux=Gather[aux,#1[[1]]==#2[[1]]&];*)
+(**)
+(*aux={#[[1,1]],Plus@@#[[1;;-1,2]]}&/@aux;*)
+(*aux=DeleteCases[aux,x_/;x[[2]]==0];*)
+(*Return[aux];*)
+(*]*)
 (**)

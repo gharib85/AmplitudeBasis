@@ -196,7 +196,7 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Lorentz Basis*)
 
 
@@ -275,7 +275,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Gauge Group Factor*)
 
 
@@ -310,9 +310,10 @@ Product[Times@@Map[If[MatchQ[#,1|_dummyIndex],#,Fold[Prepend,#,{i,fname}]]&,Prod
 SNirrepAuX[input_]:={#[[All,1]],input[[3]]*Times@@#[[All,2]]}&/@Distribute[input[[2]],List]
 (* SNirrepAux[{SUNrepeatrep,SNreps,multi}] = {{SNrep_comb,total_multiplicity},...} *)
 
-GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=ToExpression@StringDrop[groupname,-1],
+GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=CheckGroup[model,groupname],
 SUNreplist,repeatlist,nonsinglets,repeatnonsinglets,repeatsinglets,
-displacements,indexlist,Irreplist,SNCollections,nonSingletSN,convertfactor,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,
+displacements,indexlist,Irreplist,SNCollections,nonSingletSN,
+convertfactor,fundIndex,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,
 qr,tdims,coords},
 SUNreplist={#[[2]],model[#[[1]]][groupname],#[[1]]}&/@flist; (* {repeat_num, SUNrep, fieldname} *)
 repeatlist=Select[SUNreplist,#[[1]]>1&];
@@ -329,7 +330,8 @@ nonSingletSN=MapAt[Select[#,model[#[[1]]][groupname]!=Singlet[group]&]&,SNCollec
 
 convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);
 (*Select out nonsinglet fields for constructing singlet*)
-YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@Map[ToExpression,GenerateLRT[model,groupname,nonsinglets],{2}])]*convertfactor];
+fundIndex=model@"rep2ind"@groupname@Fund[group]//ToString;
+YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@Map[ToExpression,GenerateLRT[group,fundIndex,nonsinglets],{2}])]*convertfactor];
 MbasisAll=SimpGFV2[Expand/@TRefineTensor[YDbasis,model,groupname,flist]];
 tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;
 vMbasisAll=Flatten/@tMbasisAll;
@@ -365,17 +367,15 @@ Options[GetGroupFactor]={OutputMode->"indexed"};
 
 (* getting printable form *)
 (*PrintTensor="\!\(\*SubsuperscriptBox[\("<>#tensor<>"\), \("<>#downind<>"\), \("<>#upind<>"\)]\)"&;*)
-PrintTensor[tensor_Association]:=Module[{srule={}},
+(*PrintTensor[tensor_Association]:=Module[{srule={}},
 Check[AppendTo[srule,"tensorname"->tensor["tensor"]],Message[PrintTensor::noname];Abort[]];
 If[KeyExistsQ[tensor,"upind"],AppendTo[srule,"upind"->tensor["upind"]],AppendTo[srule,"upind"->""]];
 If[KeyExistsQ[tensor,"downind"],AppendTo[srule,"downind"->tensor["downind"]],AppendTo[srule,"downind"->""]];
-StringReplace[\!\(\*
-TagBox[
-StyleBox["\"\<\\!\\(\\*SubsuperscriptBox[\\(tensorname\\), \\(downind\\), \\(upind\\)]\\)\>\"",
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\),srule]
+StringReplace["\!\(\*SubsuperscriptBox[\(tensorname\), \(downind\), \(upind\)]\)",srule]
+]*)
+PrintTensor[tensor_Association]:=Module[{print="\!\(\*SubsuperscriptBox[\("<>#tensor<>"\), \("<>#downind<>"\), \("<>#upind<>"\)]\)"&,t},
+t=Merge[{tensor,<|"tensor"->"","downind"->"","upind"->""|>},StringJoin];
+print[t]
 ]
 PrintTensor[x_:Except[_Association]]:=x
 
@@ -673,7 +673,7 @@ result=MapAt[MatrixForm,result,Key["transfer"]]
 (*Gauge Group Factor -- GenerateSU3, GenerateSU2, RefineReplace, ContractDelta*)
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Functions*)
 
 
