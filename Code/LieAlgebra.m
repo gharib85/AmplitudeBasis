@@ -52,7 +52,7 @@ If[Length[unique]==0,Return[result]];
 MapThread[Set,{counter/@unique,Table[0,{i,Length[unique]}]}];
 Do[it=-1;
 While[(-it)<=Length[l[[k]]],
-If[StringQ[l[[k,it]]],Break[]];
+If[!MatchQ[l[[k,it]],_Integer],Break[]];
 counter[l[[k,it]]]+=1;
 temp=Select[unique,#<l[[k,it]]&];
 If[Length[temp]==0,it-=1;Continue[]];
@@ -122,39 +122,41 @@ nl=Accumulate[nlist];
 nl=(nl-(Total/@tydlist))/n;
 Drop[(tydlist[[#]]+nl[[#]])&/@Range[1,Length[tydlist]]/.{0->Nothing},1]]
 
+dummyFund[fundIndex_]:=ToExpression[StringJoin@@ConstantArray[ToString[fundIndex],2]]
+
 GenerateTYT[numIP_,baserep_,fnamenum_,index_,group_]:=GenerateTYT[numIP,baserep,fnamenum,index,group]=Module[{tindex=index,n=Length[group]+1,standardyt,partbaserep=Dynk2Yng[baserep],ydlist,ll,fytl={}},
-If[Total[baserep]==0,Return[{{}}]];
-(*added following two lines to adapt the GenerateSU3 and GenerateSU3*)
-If[!MatchQ[baserep,{1,0...}],tindex=StringJoin@@ConstantArray[ToString[index],2]];
-If[Length[StringCases[fnamenum,"\[Dagger]"]]!=0&&baserep=={1},tindex=StringJoin@@ConstantArray[ToString[index],2]];
+If[MatchQ[baserep,Singlet[group]],Return[{{}}]];
+If[!MatchQ[baserep,Fund[group]],tindex=dummyFund[index]];
+If[Length[StringCases[fnamenum,"\[Dagger]"]]!=0&&baserep=={1},tindex=dummyFund[index]];
 partbaserep=partbaserep/.{0->Nothing};
 standardyt=MapThread[Range,{Accumulate[partbaserep]-partbaserep+1,Accumulate[partbaserep]}];
 (*the lables of the indices is in the following form: index[i,j,k],
   i labels the i-th group of the repeated fields,
   j labels the j-th field in this group of repeated fields,
   k labels the k-th fundamental indices of this particular field*)
-ydlist=Table[Map[tindex<>"[ToString["<>ToString[fnamenum]<>"],"<>ToString[i]<>","<>ToString[#]<>"]"&,standardyt,{2}],{i,numIP}]
+ydlist=Table[Map[tindex[fnamenum,i,#]&,standardyt,{2}],{i,numIP}]
+(*ydlist=Table[Map[tindex<>"[ToString["<>ToString[fnamenum]<>"],"<>ToString[i]<>","<>ToString[#]<>"]"&,standardyt,{2}],{i,numIP}]*)
 ]
 
 
 (* ::Input::Initialization:: *)
-GenerateLRT[group_,index_,replist_]:=
+GenerateLRT[group_,indmap_,replist_]:=
 (*replist is a list of elements in the following form: {__,__,__}, 
 the first slot is the number of repeated fields that construct the representation in the first slot,
 the second slot is the representation of the repeated fields,
 the last slot is the name of the repeated field*)
-Module[{nlist,irreplist,basereplist,tyt1,pathlists={},result={}},
+Module[{nlist,irreplist,basereplist,index=indmap[Fund[group]],tyt1,pathlists={},result={}},
 irreplist=Flatten[ConstantArray[#[[2]],#[[1]]]&/@replist,1];
 nlist=(Total[Dynk2Yng[#]])&/@irreplist;
 (*Generate tensor Young Tableaux*)
-tyt1=Flatten[GenerateTYT@@@(Join[#,{index,group}]&/@replist),1];
+tyt1=Flatten[GenerateTYT@@@(Join[#,{index,group}]&/@replist),1]; (* Young tableau of each field *)
 pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindSingletPath[group,irreplist];
 Do[LRTableaux[result,tyt1,path,Length[group]+1],{path,pathlists}];
 result
 ]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Tensor Reduction related*)
 
 

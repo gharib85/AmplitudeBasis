@@ -310,7 +310,7 @@ Product[Times@@Map[If[MatchQ[#,1|_dummyIndex],#,Fold[Prepend,#,{i,fname}]]&,Prod
 SNirrepAuX[input_]:={#[[All,1]],input[[3]]*Times@@#[[All,2]]}&/@Distribute[input[[2]],List]
 (* SNirrepAux[{SUNrepeatrep,SNreps,multi}] = {{SNrep_comb,total_multiplicity},...} *)
 
-GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=CheckGroup[model,groupname],
+GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=CheckGroup[model,groupname],indmap=model["rep2ind"][groupname],
 SUNreplist,repeatlist,nonsinglets,repeatnonsinglets,repeatsinglets,
 displacements,indexlist,Irreplist,SNCollections,nonSingletSN,
 convertfactor,fundIndex,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,
@@ -330,8 +330,7 @@ nonSingletSN=MapAt[Select[#,model[#[[1]]][groupname]!=Singlet[group]&]&,SNCollec
 
 convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);
 (*Select out nonsinglet fields for constructing singlet*)
-fundIndex=model@"rep2ind"@groupname@Fund[group]//ToString;
-YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@Map[ToExpression,GenerateLRT[group,fundIndex,nonsinglets],{2}])]*convertfactor];
+YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@GenerateLRT[group,indmap,nonsinglets])]*convertfactor];
 MbasisAll=SimpGFV2[Expand/@TRefineTensor[YDbasis,model,groupname,flist]];
 tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;
 vMbasisAll=Flatten/@tMbasisAll;
