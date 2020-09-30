@@ -127,15 +127,15 @@ ch\[Psi]["right"[f1_],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][f1,q,ch[p2,f2]],
 ch\[Psi][ch[p1__,"right"[f1_]],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][ch[p1,f1],q,ch[p2,f2]]};
 
 listtotime={ch[p__]:>HoldForm[Times[p]],ch\[Psi][p__]:>HoldForm[Times[p]]};
-FtoTensor[activate_?BooleanQ]:=Inactivate[{F_["down",a_,"down",b_]:>PrintTensor[<|"tensor"->F,"downind"->{a,b}|>],
+FtoTensor:=Inactivate[{F_["down",a_,"down",b_]:>PrintTensor[<|"tensor"->F,"downind"->{a,b}|>],
 F_["down",a_,"up",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"downind"->a|>],"upind"->b|>],
 F_["up",a_,"down",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"upind"->a|>],"downind"->b|>],
-F_["up",a_,"up",b_]:>PrintTensor[<|"tensor"->F,"upind"->{a,b}|>]},If[activate,Null,PrintTensor]];
+F_["up",a_,"up",b_]:>PrintTensor[<|"tensor"->F,"upind"->{a,b}|>]},PrintTensor];
 
 transform[ope_, OptionsPattern[]] := Module[{result=ope,model, type, fer, fieldlist,Dcon={},fchain={},l2t={}, fieldrename={}},
 If[OptionValue[Dcontract],Dcon=Flatten[{Dcontract1, Dcontract2}]];
 If[OptionValue[OpenFchain],l2t=listtotime];
-If[OptionValue[ReplaceField] === {},Return[result//.Dcon/.FtoTensor[OptionValue[ActivatePrintTensor]]//.l2t]]; (* abstract operators *)
+If[OptionValue[ReplaceField] === {},Return[result//.Dcon/.FtoTensor//.l2t]]; (* abstract operators *)
 {model, type, fer} = OptionValue[ReplaceField];
 fieldlist = CheckType[model,type,Counting->False];
 If[fer==4,AppendTo[fieldrename,"set chirality"]; (* rename fermion due to conventional chirality *)
@@ -143,9 +143,10 @@ result=result//.{\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[
 //. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}; (* change \[Sigma] matrices to \[Gamma] matrices *)
 fchain=spinorH2C
 ];
-result=result//.Dcon/.FtoTensor[OptionValue[ActivatePrintTensor]]//.l2t;
-result=result//.Activate[groupindex[model,fieldlist,FieldRename->fieldrename],If[OptionValue[ActivatePrintTensor],PrintTensor,Null]];
-result/.fchain
+result=result//.Dcon/.FtoTensor/.groupindex[model,fieldlist,FieldRename->fieldrename];
+(*result=result/.Activate[groupindex[model,fieldlist,FieldRename->fieldrename],If[OptionValue[ActivatePrintTensor],PrintTensor,Null]];*)
+result=Map[Activate,result,\[Infinity]];
+result/.fchain//.l2t
 ]
 Options[transform] = {OpenFchain->True,ActivatePrintTensor->True,Dcontract -> True, ReplaceField -> {}}; 
 
