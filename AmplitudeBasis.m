@@ -14,10 +14,10 @@ BeginPackage["AmplitudeBasis`"]
 {AddGroup,AddField,AllTypesR,AllTypesC,GetTypes,CheckType,CheckGroup};
 
 (* Lorentz Factor *)
-{LorentzBasisForType,LorentzCountForType,OperPoly};
+{LorentzBasis,LorentzCount,OperPoly};
 
 (* Gauge Group Factor *)
-{CountGroupFactor,GetGroupFactor,ConvertToFundamental};
+{GaugeCount,GaugeBasis,ConvertToFundamental};
 
 (* Formating *)
 {PrintTensor,Ampform,transform,Present};
@@ -48,15 +48,6 @@ FLAVOR={"p","r","s","t","u","v","w","x","y","z"};
 (* ::Input::Initialization:: *)
 If[!Global`$DEBUG,Begin["`Private`"]]
 Get/@Global`$CodeFiles;
-
-
-(* ::Input::Initialization:: *)
-(* Special Definitions *)
-tAssumptions={};
-tReduce:=TensorReduce[#,Assumptions->tAssumptions]&;
-tRank:=TensorRank[#,Assumptions->tAssumptions]&;
-tDimensions:=TensorDimensions[#,Assumptions->tAssumptions]&;
-tSymmetry=TensorSymmetry[#,Assumptions->tAssumptions]&;
 
 
 (* ::Subsection::Closed:: *)
@@ -188,7 +179,7 @@ GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
 
 (* ::Input::Initialization:: *)
 (* # operators per term *)
-Slist[model_,type_,terms_]:=Module[{flist=CheckType[model,type],n1,n2},
+NOperList[model_,type_,terms_]:=Module[{flist=CheckType[model,type],n1,n2},
 n1=Times@@(model[#]["nfl"]&/@Cases[flist,{_String,1}][[All,1]]); (* single fields with S=nflavor *)
 n2=Times@@@(KeyValueMap[HookContentFormula[#2,model[#1]["nfl"]]&,Association@@#]&/@Keys[terms]); (* repfields with non-trivial symmetry *)
 n1*n2
@@ -207,14 +198,14 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Lorentz Basis*)
 
 
 (* ::Input::Initialization:: *)
 (* Symmetrize the list of amplitudes Mlist according to ALL possible Irreps of permutations for RepFields, and show result under basis StBasis *)
-Options[PermBasis]={Coord->False};
-PermBasis[Mlist_,RepPos_,Num_,OptionsPattern[]]:=PermBasis[Mlist,RepPos,Num]=
+Options[LorentzBasisAux]={Coord->False};
+LorentzBasisAux[Mlist_,RepPos_,Num_,OptionsPattern[]]:=LorentzBasisAux[Mlist,RepPos,Num]=
 Module[{depth=Length[RepPos],Dim=Length[Mlist],SymList,yngList,permAmp,permResult=<||>,SnDimlist={},emptySpaceCor,j,var,ynglist,allbasis,allbasisCor,poslist},
 If[depth==0,Return[<|{}->If[OptionValue[Coord],IdentityMatrix[Length[Mlist]],Mlist]|>]];
 var=ToExpression/@("SnX"<>#&/@ToString/@Range[depth]); (* abstract index for each Snrep *)
@@ -242,8 +233,8 @@ Return[#.Mlist&/@permResult] (* return the amplitudes *)
 ]; 
 ]
 
-Options[LorentzBasisForType]={OutputFormat->"operator",Coord->False,FerCom->2,OpenFchain->True,ActivatePrintTensor->True};
-LorentzBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles,fieldsReplace,k,state,RepFields,Num,Mlist,resultCor,amp2op,OpBasis},
+Options[LorentzBasis]={OutputFormat->"operator",Coord->False,FerCom->2,OpenFchain->True,ActivatePrintTensor->True};
+LorentzBasis[model_,type_,OptionsPattern[]]:=Module[{particles,fieldsReplace,k,state,RepFields,Num,Mlist,resultCor,amp2op,OpBasis},
 k=Exponent[type,"D"];
 particles=CheckType[model,type,Counting->False];
 RepFields=Select[PositionIndex[particles],Length[#]>1&];
@@ -252,7 +243,7 @@ Num=Length[state];
 
 Mlist=SSYT[state,k,OutMode->"amplitude"];
 (* generate initial amplitude basis from SSYT *)
-resultCor=KeyMap[Thread@Rule[Keys[RepFields],#]&,PermBasis[Mlist,Values@RepFields,Num,Coord->True]];
+resultCor=KeyMap[Thread@Rule[Keys[RepFields],#]&,LorentzBasisAux[Mlist,Values@RepFields,Num,Coord->True]];
 
 Switch[OptionValue[OutputFormat],
 (* Output amplitude basis *)
@@ -269,7 +260,7 @@ Map[Expand[OpBasis.Inverse[amp2op["Trans"]]\[Transpose].#]&,resultCor,{2+Length[
 ]
 ] 
 
-LorentzCountForType[model_,type_]:=Module[{particles,k,state,RepFields,Num,grank,group,X,p,rep,irrepComb,AllSym},
+LorentzCount[model_,type_]:=Module[{particles,k,state,RepFields,Num,grank,group,X,p,rep,irrepComb,AllSym},
 particles=CheckType[model,type,Counting->False];
 k=Exponent[type,"D"];
 RepFields=Select[PositionIndex[particles],Length[#]>1&];
@@ -291,7 +282,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 
 
 (* ::Input::Initialization:: *)
-CountGroupFactor[model_,groupname_,type_]:=Module[{flist=CheckType[model,type],group=CheckGroup[groupname],repfs,relist,sym},
+GaugeCount[model_,groupname_,type_]:=Module[{flist=CheckType[model,type],group=CheckGroup[groupname],repfs,relist,sym},
 repfs=Cases[flist,{name_String,x_/;x>1}:>name];
 relist=FindIrrepCombination[group,MapAt[model[#][groupname]&,#,1]&/@flist,ConstantArray[0,Length[group]]];(* apply FindIrrepCombination *)
 sym={DeleteCases[#[[All,1]],{1}],Times@@#[[All,2]]}&/@Distribute[#,List]&/@relist[[2]]; (* collect multiplicity for SUN combinations respectively *)
@@ -321,7 +312,7 @@ Product[Times@@Map[If[MatchQ[#,1|_dummyIndex],#,Fold[Prepend,#,{i,fname}]]&,Prod
 SNirrepAuX[input_]:={#[[All,1]],input[[3]]*Times@@#[[All,2]]}&/@Distribute[input[[2]],List]
 (* SNirrepAux[{SUNrepeatrep,SNreps,multi}] = {{SNrep_comb,total_multiplicity},...} *)
 
-GetGroupFactor[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=CheckGroup[model,groupname],indmap=model["rep2ind"][groupname],
+GaugeBasis[model_,groupname_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],group=CheckGroup[model,groupname],indmap=model["rep2ind"][groupname],
 SUNreplist,repeatlist,nonsinglets,repeatnonsinglets,repeatsinglets,
 displacements,indexlist,Irreplist,SNCollections,nonSingletSN,
 convertfactor,fundIndex,YDbasis,Mbasis,MbasisAll,tMbasis,tMbasisAll,vMbasis,vMbasisAll,
@@ -361,76 +352,7 @@ tdims=Map[SnIrrepDim,SNCollections[[All,1,All,2]],{2}];(*Get tensor dimensions o
 coords=AssociationThread[SNCollections[[All,1]]->MapThread[GetSymBasis[tMbasis,#1,displacements,qr,#2]&,{nonSingletSN,tdims}]];
 <|"basis"->Mbasis,"coord"->coords|>
 ]
-Options[GetGroupFactor]={OutputMode->"indexed"};
-
-
-(* ::Subsection::Closed:: *)
-(*Formating & Output*)
-
-
-(* ::Input::Initialization:: *)
-(*********** show counting result *****************)
-
-StatResult[model_,types_List,OptionsPattern[]]:=Module[{start,file=OptionValue[OutFile],i=1,type,len=Length[types],timelist={},terms={},time,term,nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR},
-If[file!="null"&&!FileExistsQ[file],Put["Counting Operators ...",file]];
-start=SessionTime[];
-If[OptionValue[Progress],Print[Dynamic[i],"/",len,"   ",Dynamic[type]]];
-Do[i++;
-{time,term}=Timing@Type2TermsCount[model,type];
-AppendTo[timelist,time];
-AppendTo[terms,term];
-If[FileExistsQ[file],PutAppend[term,file]];
-,{type,types}];
-nTermList=Values/@terms;
-posR=Complement[Position[realQ/@types,True],Position[nTermList,{}]];
-nTypes=Length@Cases[nTermList,Except[{}]];
-Print["number of real types: ",2nTypes-Length[posR]];
-nTermsR=Total@MapAt[#/2&,2Total/@nTermList,posR];
-Print["number of real terms: ",nTermsR];
-SList=MapThread[Slist[model,#1,#2]&,{types,terms}];
-nOpers=MapThread[Dot,{nTermList,SList}];
-nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
-Print["number of real operators: ",nOpersR];
-Print["time: ",SessionTime[]-start];
-Return[timelist];
-]
-Options[StatResult]={OutFile->"null",Progress->False};
-StatResult[model_,dim_Integer,OptionsPattern[]]:=Module[{start,types},
-Print["-----------------------"];
-Print["Enumerating dim ",dim," operators ..."];
-start=SessionTime[];
-types=Catenate@AllTypesC[model,dim];
-Print[" --- find all types (time: ",SessionTime[]-start,")"];
-StatResult[model,types,OutFile->OptionValue[OutFile],Progress->OptionValue[Progress]]
-]
-
-
-(* ::Input::Initialization:: *)
-(*********** show counting result *****************)
-
-StatResult[model_,types_List]:=Module[{terms={},nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR,result=<||>},
-Do[AppendTo[terms,Type2TermsCount[model,type]],{type,types}];
-nTermList=Values/@terms;
-posR=Complement[Position[realQ/@types,True],Position[nTermList,{}]];
-nTypes=Length@Cases[nTermList,Except[{}]];
-AssociateTo[result,"real types"->2nTypes-Length[posR]];
-nTermsR=Total@MapAt[#/2&,2Total/@nTermList,posR];
-AssociateTo[result,"real terms"->nTermsR];
-SList=MapThread[Slist[model,#1,#2]&,{types,terms}];
-nOpers=MapThread[Dot,{nTermList,SList}];
-nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
-AssociateTo[result,"real operators"->nOpersR];
-Return[result];
-]
-Options[StatResult]={OutFile->"null",Progress->False};
-StatResult[model_,dim_Integer,OptionsPattern[]]:=Module[{start,types},
-Print["-----------------------"];
-Print["Enumerating dim ",dim," operators ..."];
-start=SessionTime[];
-types=Catenate@AllTypesC[model,dim];
-Print[" --- find all types (time: ",SessionTime[]-start,")"];
-StatResult[model,types,OutFile->OptionValue[OutFile],Progress->OptionValue[Progress]]
-]
+Options[GaugeBasis]={OutputMode->"indexed"};
 
 
 (* ::Subsection::Closed:: *)
@@ -482,8 +404,31 @@ result=MapAt[MatrixForm,result,Key["transfer"]]
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Analysis*)
+
+
+(* ::Input::Initialization:: *)
+(*********** show counting result *****************)
+
+StatResult[model_,types_List]:=Module[{iter=0,terms={},nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR,result=<||>},
+Do[AppendTo[terms,Type2TermsCount[model,type]],{type,types}];
+nTermList=Values/@terms;
+posR=Complement[Position[realQ/@types,True],Position[nTermList,{}]];
+nTypes=Length@Cases[nTermList,Except[{}]];
+AssociateTo[result,"complex types"->nTypes];
+AssociateTo[result,"real types"->2nTypes-Length[posR]];
+AssociateTo[result,"complex terms"->Plus@@Flatten[nTermList]];
+nTermsR=Total@MapAt[#/2&,2Total/@nTermList,posR];
+AssociateTo[result,"real terms"->nTermsR];
+SList=MapThread[NOperList[model,#1,#2]&,{types,terms}];
+nOpers=MapThread[Dot,{nTermList,SList}];
+AssociateTo[result,"complex operators"->Total@nOpers];
+nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
+AssociateTo[result,"real operators"->nOpersR];
+Return[result];
+]
+StatResult[model_,dim_Integer]:=StatResult[model,Catenate@AllTypesC[model,dim]]
 
 
 (* ::Input::Initialization:: *)
@@ -540,7 +485,8 @@ SQ[model_]:=Not@TrueQ[model[#1]["nfl"]<Length[#2]]&
 
 
 (* ::Input::Initialization:: *)
-Options[Type2TermsPro]={OutputFormat->"operator",Basis->"p-basis",FerCom->2,deSym->True,flavorTensor->True,fullform->False,AddFlavor->True};
+Options[Type2TermsPro]={OutputFormat->"operator",Basis->"p-basis",FerCom->2,deSym->True,flavorTensor->True,fullform->False,AddFlavor->True,OperAbbreviation->{}};
+(* RENAME: ? *)
 Type2TermsPro[model_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],NAgroups=Select[model["Gauge"],nonAbelian],
 len,nFac,lorentzB,groupB,basisTotal,
 SymComb,pCoord,indexCG,indexFac,cols},
@@ -548,11 +494,11 @@ len=Count[flist,{_String,_?(#>1&)}];(*num of repeated fields*)
 nFac=Length[NAgroups]+1;(*number of factors to do Inner Product Decomposition for Sn groups*)
 
 (********* compute m-basis *********)
-lorentzB=LorentzBasisForType[model,type,OutputFormat->OptionValue[OutputFormat],FerCom->OptionValue[FerCom],Coord->True,OpenFchain->False,ActivatePrintTensor->False];
-groupB=GetGroupFactor[model,#,type,OutputMode->"indexed"]&/@NAgroups;
+lorentzB=LorentzBasis[model,type,OutputFormat->OptionValue[OutputFormat],FerCom->OptionValue[FerCom],Coord->True,OpenFchain->False,ActivatePrintTensor->False];
+groupB=GaugeBasis[model,#,type,OutputMode->"indexed"]&/@NAgroups;
 basisTotal=Expand/@Flatten[Through[(TensorProduct@@groupB)["basis"]]\[TensorProduct]lorentzB["basis"]];
 If[OptionValue[OutputFormat]=="operator",basisTotal=ContractDelta@basisTotal];
-basisTotal=PrintOper[RefineReplace@basisTotal]/.listtotime;
+basisTotal=PrintOper[RefineReplace@basisTotal,OpAbbr->OptionValue[OperAbbreviation]]/.listtotime;
 If[OptionValue[Basis]=="m-basis",Return[basisTotal]];
 If[len==0,Return[<|{}->basisTotal|>]];
 
@@ -583,9 +529,9 @@ Return[#.basisTotal&/@pCoord]]
 
 SnDecompose[replist_]:=Join@@MapThread[ConstantArray,{IntegerPartitions[Total@First@replist],DecomposeSnProduct[replist]}]
 Type2TermsCount[model_,type_]:=Module[{len,lorentzB,groupB,nFac,SymComb,terms,pairContraction},
-lorentzB=LorentzCountForType[model,type];
+lorentzB=LorentzCount[model,type];
 len=Length[Keys[lorentzB][[1]]]; (* num of repeated fields *)
-groupB=CountGroupFactor[model,#,type]&/@Select[model["Gauge"],nonAbelian];
+groupB=GaugeCount[model,#,type]&/@Select[model["Gauge"],nonAbelian];
 nFac=Length[groupB]+1; (* number of factors to do Inner Product Decomposition for Sn groups *)
 SymComb=Distribute[Normal/@Prepend[groupB,lorentzB],List];
 terms=Join@@(ConstantArray[Merge[Keys[#],SnDecompose],Times@@Values[#]]&/@SymComb);

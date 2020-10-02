@@ -145,20 +145,34 @@ fchain=spinorH2C
 ];
 result=result//.Dcon/.FtoTensor/.groupindex[model,fieldlist,FieldRename->fieldrename];
 (*result=result/.Activate[groupindex[model,fieldlist,FieldRename->fieldrename],If[OptionValue[ActivatePrintTensor],PrintTensor,Null]];*)
-result=Map[Activate,result,\[Infinity]];
+If[OptionValue[ActivatePrintTensor],result=Map[Activate,result,\[Infinity]]];
 result/.fchain//.l2t
 ]
 Options[transform] = {OpenFchain->True,ActivatePrintTensor->True,Dcontract -> True, ReplaceField -> {}}; 
 
 
 (* ::Input::Initialization:: *)
-PrintOper[beforeprint_Times]:=Module[{factors,bosons=1,others=1},
+Options[PrintOper]={OpAbbr->{}};
+PrintOper[beforeprint_Times,OptionsPattern[]]:=Module[{factors,abbr=OptionValue[OpAbbr],bosons=1,others=1},
 factors=GroupBy[Map[Activate,List @@beforeprint,\[Infinity]],StringQ];
-If[KeyExistsQ[factors,True],bosons=StringJoin@@factors[True]];
-If[KeyExistsQ[factors,False],others=Times@@factors[False]];
+If[KeyExistsQ[factors,True],bosons=StringJoin@@(factors[True]/.abbr)];
+If[KeyExistsQ[factors,False],others=Times@@(factors[False]/.abbr)];
 Return[bosons*others]
 ]
 SetAttributes[PrintOper,Listable];
+
+
+(* ::Input::Initialization:: *)
+PrintStat[model_,dim_Integer,OptionsPattern[]]:=Module[{start,stat},
+Print["-----------------------"];
+Print["Enumerating dim ",dim," operators ..."];
+start=SessionTime[];
+types=Catenate@AllTypesC[model,dim];
+Print[" --- find all types (time: ",SessionTime[]-start,")"];
+stat=StatResult[model,types];
+KeyValueMap[Print["number of ",#1,": ",#2]&,stat];
+Print["total time: ",SessionTime[]-start];
+]
 
 
 (* ::Input::Initialization:: *)

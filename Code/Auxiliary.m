@@ -55,28 +55,10 @@ Normal[aux]/.Rule->List
 ]
 
 
-(* ::Input:: *)
-(*(* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX *)*)
-(**)
-(*GatherWeights[listW_]:=GatherWeights[listW]=Module[{aux},*)
-(*aux=Flatten[listW,1];*)
-(*aux=Gather[aux,#1[[1]]==#2[[1]]&];*)
-(**)
-(*aux={#[[1,1]],Plus@@#[[1;;-1,2]]}&/@aux;*)
-(*aux=DeleteCases[aux,x_/;x[[2]]==0];*)
-(**)
-(*Return[aux];*)
-(*]*)
-(**)
-(*(* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX *)*)
-(**)
-(*GatherWeights[listW_,listMult_]:=GatherWeights[listW,listMult]=Module[{aux},*)
-(*aux=Table[{#[[1]],listMult[[i]]#[[2]]}&/@listW[[i]],{i,Length[listW]}];*)
-(*aux=Flatten[aux,1];*)
-(*aux=Gather[aux,#1[[1]]==#2[[1]]&];*)
-(**)
-(*aux={#[[1,1]],Plus@@#[[1;;-1,2]]}&/@aux;*)
-(*aux=DeleteCases[aux,x_/;x[[2]]==0];*)
-(*Return[aux];*)
-(*]*)
-(**)
+(* ::Input::Initialization:: *)
+(* Special Definitions *)
+tAssumptions={};
+tReduce:=TensorReduce[#,Assumptions->tAssumptions]&;
+tRank:=TensorRank[#,Assumptions->tAssumptions]&;
+tDimensions:=TensorDimensions[#,Assumptions->tAssumptions]&;
+tSymmetry=TensorSymmetry[#,Assumptions->tAssumptions]&;
