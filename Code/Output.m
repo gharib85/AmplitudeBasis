@@ -53,6 +53,7 @@ _ab|_sb|_sMand,Merge[{changebracket[p[[1]]],<|"upind"->ToString[p[[2]]]|>},Strin
 _,p]
 changebracket[x_]:=x
 
+SetAttributes[Ampform,Listable];
 Options[Ampform]={sVariable->True};
 Ampform[amp_,OptionsPattern[]]:=Module[{lor=Expand[amp],coef},
 If[OptionValue[sVariable],lor=lor//.{

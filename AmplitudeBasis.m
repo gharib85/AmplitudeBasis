@@ -7,8 +7,8 @@ $CodeFiles=FileNames[__~~".m",FileNameJoin[{$AmplitudeBasisDir,"Code"}]];
 (* ::Input::Initialization:: *)
 BeginPackage["AmplitudeBasis`"]
 
-(* General *)
-{tAssumptions,tRep,tOut,tVal,tYDcol,tSimp,dummyIndexCount,GellMann,ab,sb,SSYT,reduce};
+(* Amplitude *)
+{ab,sb,s,Mandelstam,SSYT,reduce};
 
 (* Model Input *)
 {AddGroup,AddField,AllTypesR,AllTypesC,GetTypes,CheckType,CheckGroup};
@@ -17,20 +17,86 @@ BeginPackage["AmplitudeBasis`"]
 {LorentzBasis,LorentzCount,OperPoly};
 
 (* Gauge Group Factor *)
-{GaugeCount,GaugeBasis,ConvertToFundamental};
+{GaugeCount,GaugeBasis};
 
 (* Formating *)
-{PrintTensor,Ampform,transform,Present};
+{Ampform,transform,Present};
 
 (* j-basis *)
-{W2,W2Diagonalize,Mandelstam};
+{W2,W2Diagonalize};
 
 (* Analysis *)
-{Type2TermsPro,Type2TermsCount,StatResult,GenerateOperatorList};
+{Type2TermsPro,Type2TermsCount,StatResult,PrintStat,GenerateOperatorList};
 
 (* Useful Lie groups in GroupMath *)
 {U1,SU2,SU3,SU4,SU5,SU6};
 
+(* Group Profile *)
+{tAssumptions,tRep,tOut,tVal,tYDcol,tSimp,dummyIndexCount,GellMann,ConvertToFundamental,PrintTensor};
+
+
+ab::usage="ab[i,j] stands for angle bracket of spinor helicity variables <ij> == \!\(\*SubscriptBox[\(\[Epsilon]\), \(\[Alpha]\[Beta]\)]\)\!\(\*SuperscriptBox[SubscriptBox[\(\[Lambda]\), \(i\)], \(\[Alpha]\)]\)\!\(\*SuperscriptBox[SubscriptBox[\(\[Lambda]\), \(j\)], \(\[Beta]\)]\). Antisymmetry is enforced. 
+It can be turned into bracket form by the function Ampform[].";
+sb::usage="sb[i,j] stands for angle bracket of spinor helicity variables [ij] == \!\(\*SubscriptBox[\(\[Epsilon]\), \(\*OverscriptBox[\(\[Alpha]\), \(.\)] \*OverscriptBox[\(\[Beta]\), \(.\)]\)]\)\!\(\*SuperscriptBox[SubscriptBox[OverscriptBox[\(\[Lambda]\), \(~\)], \(i\)], OverscriptBox[\(\[Alpha]\), \(.\)]]\)\!\(\*SuperscriptBox[SubscriptBox[OverscriptBox[\(\[Lambda]\), \(~\)], \(j\)], OverscriptBox[\(\[Beta]\), \(.\)]]\). Antisymmetry is enforced. 
+It can be turned into bracket form by the function Ampform[].";
+s::usage="s[i,j] is shorthand input form of ab[i,j]sb[j,i], which equals the Mandelstam variable \!\(\*SubscriptBox[\(s\), \(ij\)]\).
+It can be turned into \!\(\*SubscriptBox[\(s\), \(ij\)]\) by the function Ampform[].";
+Mandelstam::usage="Mandelstam[ch] is shorthand input form of \!\(\*SubscriptBox[\(s\), \(ch\)]\) == \!\(\*FractionBox[\(1\), \(2\)]\)\!\(\*SubscriptBox[\(\[Sum]\), \(i, j \[Element] ch\)]\)ab[i,j]sb[j,i].";
+
+SSYT::usage="SSYT[state,k] gives amplitude y-basis in bracket form.
+\[Bullet] state: collection of helicities of all external particles;
+\[Bullet] k: number of extra momenta (equivalent to number of derivatives in the operator), non-negative integers that are either odd or even are allowed for a given state.
+";
+
+reduce::usage="reduce[amp,num] reduces generic N point amplitude to combination of y-basis amplitudes.
+\[Bullet] amp: polynomial of ab[] and sb[] as input amplitude;
+\[Bullet] num: number of particles, usually necessary due to undetermined number of scalars;
+\[Bullet] reduce[num] == reduce[#,num]& is a function to reduce num-point amplitudes.
+";
+
+AddGroup::usage="AddGroup[model,groupname,field,reps,ind] add a symmetry group to the model.
+\[Bullet] model: the model to be modified;
+\[Bullet] groupname: name of the group added to the model, has to be in the form of 'group'<>'identifier' where 'group' is the standard name of the group in Math whose Cartan Matrix is stored in the variable <group>, while the 'identifier' should be a single letter;
+\[Bullet] field: name of the gauge boson if it is a gauge group, while the corresponding particles with helicities \[MinusPlus]1 are named field<>'L'/'R';
+\[Bullet] reps: possible reps of the gauge bosons under global symmetries;
+\[Bullet] ind: indices used for various representations of the group, stored in Association.
+";
+
+AddField::usage="AddField[model,field,hel,Greps,reps] add a field/particle specie to the model.
+\[Bullet] model: the model to be modified;
+\[Bullet] field: name of the field/particle to be added -- if it is complex, its conjugate is named field<>'\[Dagger]';
+\[Bullet] hel: helicity of the particle;
+\[Bullet] Greps: representations of the particle under all the gauge groups;
+\[Bullet] reps: representations of the particle under other groups.
+";
+
+AllTypesR::usage="AllTypesR[model,dim] gives the list of types in the model at certain dimension, with conjugating types counted separately.";
+AllTypesC::usage="AllTypesC[model,dim] gives the classified types in the model at certain dimension, modulo charge conjugation.";
+GetTypes::usage="GetTypes[model,dmin,dmax,file] compute types of the model in a range of dimensions and store in the file.";
+
+CheckType::usage="CheckType[model,type] turns a type in the form of product of field names into list of them, meanwhile checking if they have been added to the model.";
+CheckGroup::usage="CheckGroup[model,groupname] returns the group variable by removing the identifier in the groupname, meanwhile checking if the group file is correctly loaded.";
+
+LorentzBasis::usage="LorentzBasis[model,type] enumerates basis amplitude or Lorentz structures for certain type in the model.
+Returns the m-basis Lorentz structure and the p-basis as coordinates in m-basis.";
+LorentzCount::usage="LorentzCount[model,type] effectively counts the number of amplitudes/Lorentz structures for certain type in the model, classified by permutation symmetries of the identical particles/repeated fields.";
+
+OperPoly::usage="OperPoly[amp,num] turns amplitudes in terms of ab[] and sb[] into corresponding operators.";
+transform::usage="transform[oper] turns operators into various forms.";
+
+GaugeBasis::usage="GaugeBasis[model,groupname,type] enumerates gauge group structures in terms of invariant tensors, organized by permutation symmetries of the identical particles/repeated fields.";
+GaugeCount::usage="GaugeCount[model,groupname,type] effectively counts the number of group structures for each permutation symmetries of the identical particles/repeated fields.";
+
+Ampform::usage="Ampform[amp] prints amplitudes in terms of ab[] and sb[] as more conventional form <> and [] for reading.";
+
+W2::usage="W2[amp,ch] gives the Casimir \!\(\*SuperscriptBox[\(W\), \(2\)]\) operator for certain channel acting on the amplitude.";
+W2Diagonalize::usage="W2Diagonal[state,k,ch] uses Casimir \!\(\*SuperscriptBox[\(W\), \(2\)]\) to obtain j-basis, the amplitudes of Lorentz class [state,k] with definite angular momentum j.";
+
+Type2TermsPro::usage="Type2TermsPro[model,type] enumerates the full p-basis of a type in the model, organized by the flavor symmetries of the identical particle/repeated fields.";
+Type2TermsCount::usage="Type2TermsCount[model,type] effectively counts the number of p-basis for each flavor symmetry of a type in the model.";
+
+PrintStat::usage="PrintStat[model,dim] effectively counts the number of types, p-basis and operators at given dimension in a model.";
+GenerateOperatorList::usage="GenerateOperatorList[model,dim] enumerates all the p-basis at certain dimension in the model.";
 
 
 (* ::Subsection:: *)
@@ -41,8 +107,8 @@ BeginPackage["AmplitudeBasis`"]
 permutationBasis="left"; (* or "right" *)
 groupList={};
 h2f=<|-1->FL,-1/2->\[Psi],0->\[Phi],1/2->OverBar[\[Psi]],1->FR|>;
-LorentzIndex={"\[Mu]","\[Nu]","\[Lambda]","\[Rho]","\[Sigma]","\[Eta]","\[Xi]","\[Tau]","\[Upsilon]","\[CurlyPhi]","\[Chi]","\[Psi]","\[Omega]"};
-FLAVOR={"p","r","s","t","u","v","w","x","y","z"};
+LorentzIndex={"\[Mu]","\[Nu]","\[Lambda]","\[Rho]","\[Sigma]","\[Eta]","\[Xi]","\[Upsilon]"};
+FLAVOR={"p","r","s","t","u","v"};
 
 
 (* ::Input::Initialization:: *)
