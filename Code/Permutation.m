@@ -19,6 +19,12 @@ pp[permlist_]:=If[Length[permlist]>1,pp2[First[permlist],pp[Rest[permlist]]],Fir
 
 
 (* ::Input::Initialization:: *)
+(* generate index replacement rule for given permutation *)
+IndexPermute[cyc_Cycles,indset_]:=AssociationThread[indset->Permute[indset,cyc]]
+IndexInvPermute[cyc_Cycles,indset_]:=AssociationThread[Permute[indset,cyc]->indset]
+
+
+(* ::Input::Initialization:: *)
 (*********************** irreducible ideal of group algebra *******************)
 
 (*Given a tableau Generate List vertical cycle groups and horizontal cycle groups*)
