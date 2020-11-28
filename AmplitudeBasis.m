@@ -222,26 +222,6 @@ singletposition=Flatten@Position[MapThread[And,Table[SingletQ[groups[[i]],#]&/@M
 Times@@@(PadRight[#,Length[state]+k,"D"]&/@comblist[[singletposition]] )(* convert format for AmplitudeBasis *)
 ]
 
-AllTypesR[model_,dim_]:=state2type[model,#1,#2]&@@@LorentzList[dim,"real"]//Flatten
-AllTypesC[model_,dim_]:=Module[{statelist=LorentzList[dim,"complex"],types,result=<||>},
-Do[types=state2type[model,#1,#2]&@@state;
-If[state==MapAt[-Reverse[#]&,state,1],
-types=DeleteDuplicates[types,(#1/.{x_String/;x!= "D":>Conj[x]})==#2&]
-];
-AssociateTo[result,state2class@@state->types],
-{state,statelist}];
-Return[result];
-]
-
-GetTypes[model_,dmin_,dmax_,file_]:=Module[{dim,types={}},
-Do[AppendTo[types,Timing@AllTypesC[model,dim]];
-Print["Dim ",dim,": ",Length[Flatten@#2]," types in all, time used ",#1]&@@Last[types],
-{dim,Range[dmin,dmax]}];
-Put[types[[All,2]],NotebookDirectory[]<>file];
-Return[types[[All,2]]];
-]
-GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
-
 
 (* ::Input::Initialization:: *)
 (* # operators per term *)
@@ -472,6 +452,28 @@ result=MapAt[MatrixForm,result,Key["transfer"]]
 
 (* ::Subsection::Closed:: *)
 (*Model Analysis*)
+
+
+(* ::Input::Initialization:: *)
+AllTypesR[model_,dim_]:=state2type[model,#1,#2]&@@@LorentzList[dim,"real"]//Flatten
+AllTypesC[model_,dim_]:=Module[{statelist=LorentzList[dim,"complex"],types,result=<||>},
+Do[types=state2type[model,#1,#2]&@@state;
+If[state==MapAt[-Reverse[#]&,state,1],
+types=DeleteDuplicates[types,(#1/.{x_String/;x!= "D":>Conj[x]})==#2&]
+];
+AssociateTo[result,state2class@@state->types],
+{state,statelist}];
+Return[result];
+]
+
+GetTypes[model_,dmin_,dmax_,file_]:=Module[{dim,types={}},
+Do[AppendTo[types,Timing@AllTypesC[model,dim]];
+Print["Dim ",dim,": ",Length[Catenate@#2]," types in all, time used ",#1]&@@Last[types],
+{dim,Range[dmin,dmax]}];
+Put[types[[All,2]],NotebookDirectory[]<>file];
+Return[types[[All,2]]];
+]
+GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
 
 
 (* ::Input::Initialization:: *)
