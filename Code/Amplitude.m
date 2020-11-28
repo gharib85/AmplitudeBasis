@@ -145,10 +145,11 @@ MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
 (* ::Input::Initialization:: *)
 (* symmetrize particles in amplitude *)
 YPermute[amp_,permutation_,num_]:=Module[{plist=Sum2List@Expand@permutation,Flist,A,outlist,permA,result=0},
-plist=FactorSplit[#,MatchQ[_Cycles]]&/@plist;
-plist=MapAt[AssociationThread[Permute[Range[num],#]->Range[num]]&,plist,{All,Key[True]}];
-Do[result+=p[False]*reduce[amp/.
-{ab[i_,j_]:>ab[p[True][i],p[True][j]],sb[i_,j_]:>sb[p[True][i],p[True][j]]},num],
+plist=FactorSplit[#,MatchQ[_Cycles]]&/@plist; (* <|False\[Rule]coeff, True\[Rule]Cycles|> *)
+plist=MapAt[IndexInvPermute[#,Range[num]]&,plist,{All,Key[True]}];
+Do[result+=p[False]*reduce[amp/.{
+ab[i_,j_]:>ab[p[True][i],p[True][j]],
+sb[i_,j_]:>sb[p[True][i],p[True][j]]},num],
 {p,plist}];
 Return[result];
 ]
