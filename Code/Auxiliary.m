@@ -5,8 +5,8 @@ Sum2List[x_Plus]:=List@@x
 Sum2List[x:Except[Plus]]:=List@x
 Prod2List[x_]:=Flatten[{x}/.{Power[b_,n_Integer]:>ConstantArray[b,n],Times->List}]
 
-FactorSplit[exp_,crit_]:=Times@@@GroupBy[Prod2List[exp],crit]
-FactorSplit[crit_]:=Times@@@GroupBy[Prod2List[#],crit]&
+FactorSplit[exp_,crit_]:=FactorSplit[crit][exp]
+FactorSplit[crit_]:=Merge[{Times@@@GroupBy[Prod2List[#],crit],<|True->1,False->1|>},Apply[Times]]&
 
 (* Find the coefficient list of an expression (e.g. an amplitude) in STANDARD FORM. *)
 FindCor::basis="non-standard expression `1` or incomplete basis `2`";
