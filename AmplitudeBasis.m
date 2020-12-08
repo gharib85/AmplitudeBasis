@@ -116,7 +116,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Get/@Global`$CodeFiles;
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Input*)
 
 
@@ -191,7 +191,7 @@ If[IntegerQ[2hel],AppendTo[attribute,"helicity"->hel],Message[AddField::overh,fi
 AssociateTo[attribute,Thread[model["Gauge"]->Greps]];
 AssociateTo[attribute,Thread[model["Global"]->Globalreps]];
 Switch[flavor,
-_Integer,AssociateTo[attribute,{"nfl"->flavor,"indfl"->FLAVOR}],
+_Integer|_Symbol,AssociateTo[attribute,{"nfl"->flavor,"indfl"->FLAVOR}],
 _List,AssociateTo[attribute,{"nfl"->flavor[[1]],"indfl"->flavor[[2]]}]];
 AssociateTo[attribute,"stat"->If[IntegerQ[hel],"boson","fermion"]];
 If[attribute["stat"]=="fermion" ,AssociateTo[attribute,"chirality"->OptionValue[Chirality]]];
@@ -587,7 +587,7 @@ pCoord=Extract[{All}~Join~ConstantArray[1,len]~Join~{All}]/@pCoord (* Select fir
 (* impose spin-stat: remove flavor syms not allowed by nflavor *)
 pCoord=KeySelect[pCoord,And@@#/.Rule->SQ[model]&];
 (* transform the key format *)
-If[OptionValue[flavorTensor],pCoord=KeyMap[Select[Join[#,#->{1}&/@Cases[flist,{x_,1}:> x]],model[#[[1]]]["nfl"]!=1&]&,pCoord]];
+If[OptionValue[flavorTensor],pCoord=KeyMap[Select[Join[#1,Cases[flist,{x_,1}:>(x->{1})]],!TrueQ[model[#1[[1]]]["nfl"]==1]&]&,pCoord]];
 
 If[OptionValue[fullform],Return[<|"m-basis"->basisTotal,"coordinate"->pCoord|>],
 Return[#.basisTotal&/@pCoord]]
