@@ -1,5 +1,14 @@
 1. Integrate W2 function in Type2TermPro (need j-basis for group factor);
 2. Formatting file system to standard package;
 3. Try SU(5) gauge group, write group profile generator;
-4. Code optimization, variable renaming;
+4. Code optimization
+	a. variable renaming;
+	b. usage message;
+	c. regularize option;
+	d. remove redundant functions, variables and algorithms;
+	e. write comments for user-portal functions;
 5. CP symmetry;
+6. Add massive Dirac fermion to model;
+7. Add global symmetry constraint
+	a. linearly realized symmetry: gauge symmetry without gauge boson;
+	b. non-linearly realized symmetry: Adler Zero ... 

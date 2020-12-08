@@ -23,7 +23,7 @@ BeginPackage["AmplitudeBasis`"]
 {Ampform,transform,Present};
 
 (* j-basis *)
-{W2,W2Diagonalize};
+{W2,W2Diagonalize,W2Check};
 
 (* Analysis *)
 {Type2TermsPro,Type2TermsCount,StatResult,PrintStat,GenerateOperatorList};
@@ -116,7 +116,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Get/@Global`$CodeFiles;
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Input*)
 
 
@@ -222,26 +222,6 @@ singletposition=Flatten@Position[MapThread[And,Table[SingletQ[groups[[i]],#]&/@M
 Times@@@(PadRight[#,Length[state]+k,"D"]&/@comblist[[singletposition]] )(* convert format for AmplitudeBasis *)
 ]
 
-AllTypesR[model_,dim_]:=state2type[model,#1,#2]&@@@LorentzList[dim,"real"]//Flatten
-AllTypesC[model_,dim_]:=Module[{statelist=LorentzList[dim,"complex"],types,result=<||>},
-Do[types=state2type[model,#1,#2]&@@state;
-If[state==MapAt[-Reverse[#]&,state,1],
-types=DeleteDuplicates[types,(#1/.{x_String/;x!= "D":>Conj[x]})==#2&]
-];
-AssociateTo[result,state2class@@state->types],
-{state,statelist}];
-Return[result];
-]
-
-GetTypes[model_,dmin_,dmax_,file_]:=Module[{dim,types={}},
-Do[AppendTo[types,Timing@AllTypesC[model,dim]];
-Print["Dim ",dim,": ",Length[Flatten@#2]," types in all, time used ",#1]&@@Last[types],
-{dim,Range[dmin,dmax]}];
-Put[types[[All,2]],NotebookDirectory[]<>file];
-Return[types[[All,2]]];
-]
-GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
-
 
 (* ::Input::Initialization:: *)
 (* # operators per term *)
@@ -264,7 +244,7 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Lorentz Basis*)
 
 
@@ -282,9 +262,10 @@ If[Dim<Times@@SnDimlist,Continue[]];
 For[emptySpaceCor=ConstantArray[0,Length[Mlist]];j=0,j<depth,j++,
 emptySpaceCor=ConstantArray[emptySpaceCor,SnDimlist[[depth-j]]]
 ];  (* Coordinate for projected out irrep spaces *)
-ynglist=MapThread[Append[#1,#2]&,{yngList[[i]],var}]; (* abstract ynglist for each basis vector in Snrep *)
-allbasis=Hold@Table@@Evaluate[Join[{Hold@YPermute[Mlist,pp[YO@@@ynglist],Num]},Evaluate[{var,SnDimlist}\[Transpose]]]]; (* permute to get all basis vector *)
-allbasisCor=Transpose[Map[FindCor[#,Mlist]&,ReleaseHold[allbasis],{depth+1}],Append[Range[2,depth+1],1]]/.emptySpaceCor->Nothing; 
+ynglist=MapThread[YO@@@(Function[x,Append[#1,x]]/@#2)&,{yngList[[i]],Range/@SnDimlist}]; (* abstract ynglist for each basis vector in Snrep *) 
+(*allbasis=Hold@Table@@Evaluate[Join[{YPermute[Mlist,pp[YO@@@ynglist],Num]},Evaluate[{var,SnDimlist}\[Transpose]]]];*) (* permute to get all basis vector *)
+allbasisCor=Map[FindCor[Mlist]/@YPermute[Mlist,#,Num]&,Outer[pp@List[##]&,##]&@@ynglist,{depth}];
+allbasisCor=Transpose[allbasisCor,Append[Range[2,depth+1],1]]/.emptySpaceCor->Nothing; 
 (* get coordinates of all basis vactors *)
 If[Flatten@allbasisCor!={},
 poslist=basisReduce[Extract[ConstantArray[1,depth]]/@allbasisCor]["pos"]; (* get positions of independent basis *)
@@ -300,16 +281,18 @@ Return[#.Mlist&/@permResult] (* return the amplitudes *)
 ]
 
 Options[LorentzBasis]={OutputFormat->"operator",Coord->False,FerCom->2,OpenFchain->True,ActivatePrintTensor->True};
-LorentzBasis[model_,type_,OptionsPattern[]]:=Module[{particles,fieldsReplace,k,state,RepFields,Num,Mlist,resultCor,amp2op,OpBasis},
+LorentzBasis[model_,type_,OptionsPattern[]]:=Module[{particles,fieldsReplace,k,state,RepFields,Num,Mlist,resultCor,amp2op,OpBasis,flip=False},
 k=Exponent[type,"D"];
 particles=CheckType[model,type,Counting->False];
 RepFields=Select[PositionIndex[particles],Length[#]>1&];
 state=model[#]["helicity"]&/@particles;
 Num=Length[state];
+If[{Num-2,2}.yngShape[state,k]>{Num-2,2}.yngShape[-state,k],flip=True];
 
-Mlist=SSYT[state,k,OutMode->"amplitude"];
+Mlist=SSYT[If[flip,-1,1]*state,k,OutMode->"amplitude"];
 (* generate initial amplitude basis from SSYT *)
 resultCor=KeyMap[Thread@Rule[Keys[RepFields],#]&,LorentzBasisAux[Mlist,Values@RepFields,Num,Coord->True]];
+If[flip,Mlist=Mlist/.{ab->sb,sb->ab}];
 
 Switch[OptionValue[OutputFormat],
 (* Output amplitude basis *)
@@ -425,53 +408,75 @@ Options[GaugeBasis]={OutputMode->"indexed"};
 (*W2 Operator*)
 
 
-(* ::Input::Initialization:: *)
-BridgeQ[I_,i_,j_]:=MemberQ[I,i]\[Xor]MemberQ[I,j]
-BridgeQ[I_]:=BridgeQ[I,##]&
-BridgeSign[I_,i_,j_]:=If[BridgeQ[I,i,j],1,-1]
-MM[I_,i_,j_,k_,l_]:=-BridgeSign[I,i,k](ab[i,l]ab[j,k]+ab[i,k]ab[j,l])/4;
-MbMb[I_,i_,j_,k_,l_]:=-BridgeSign[I,i,k](sb[i,l]sb[j,k]+sb[i,k]sb[j,l])/4;
-MMb[I_,i_,j_,k_,l_]:=BridgeSign[I,i,k]Sum[(ab[m,i]ab[j,n]+ab[m,j]ab[i,n])(sb[m,k]sb[l,n]+sb[m,l]sb[k,n]),{m,I},{n,I}]/4//Simplify;
-Mandelstam[I_]:=(1/2)Sum[s[i,j],{i,I},{j,I}]
+(* ::Input:: *)
+(*BridgeQ[I_,i_,j_]:=MemberQ[I,i]\[Xor]MemberQ[I,j]*)
+(*BridgeQ[I_]:=BridgeQ[I,##]&*)
+(*BridgeSign[I_,i_,j_]:=If[BridgeQ[I,i,j],1,-1]*)
+(*MM[I_,i_,j_,k_,l_]:=-BridgeSign[I,i,k](ab[i,l]ab[j,k]+ab[i,k]ab[j,l])/4;*)
+(*MbMb[I_,i_,j_,k_,l_]:=-BridgeSign[I,i,k](sb[i,l]sb[j,k]+sb[i,k]sb[j,l])/4;*)
+(*MMb[I_,i_,j_,k_,l_]:=BridgeSign[I,i,k]Sum[(ab[m,i]ab[j,n]+ab[m,j]ab[i,n])(sb[m,k]sb[l,n]+sb[m,l]sb[k,n]),{m,I},{n,I}]/4//Simplify;*)
+(*Mandelstam[I_]:=(1/2)Sum[s[i,j],{i,I},{j,I}]*)
+(**)
+(*W2[Ind_List]:=W2[#,Ind]&*)
+(*W2[Amp_Plus,Ind_List]:=W2[Ind]/@Amp*)
+(*W2[Amp:Except[Plus],Ind_List]:=Module[*)
+(*{list=Prod2List[Amp],ablist={},sblist={},prefactor=1,sf,sg,sfg},*)
+(*(* find bridges *)*)
+(*Map[Switch[Head[#],*)
+(*ab,If[BridgeQ[Ind]@@#,AppendTo[ablist,#],prefactor*=#],*)
+(*sb,If[BridgeQ[Ind]@@#,AppendTo[sblist,#],prefactor*=#],*)
+(*_,prefactor*=# (* other factors *)*)
+(*]&,list];*)
+(*(* calculations *)*)
+(*sf=-(3/4)Length[ablist]Times@@ablist+2Sum[MM[Ind,ablist[[i,1]],ablist[[i,2]],ablist[[j,1]],ablist[[j,2]]]Times@@Delete[ablist,{{i},{j}}],{j,Length[ablist]},{i,j-1}];*)
+(*sg=-(3/4)Length[sblist]Times@@sblist+2Sum[MbMb[Ind,sblist[[i,1]],sblist[[i,2]],sblist[[j,1]],sblist[[j,2]]]Times@@Delete[sblist,{{i},{j}}],{j,Length[sblist]},{i,j-1}];*)
+(*sfg=Sum[MMb[Ind,ablist[[i,1]],ablist[[i,2]],sblist[[j,1]],sblist[[j,2]]]Times@@Delete[ablist,i]Times@@Delete[sblist,j],{i,Length[ablist]},{j,Length[sblist]}];*)
+(**)
+(*Return[prefactor(Mandelstam[Ind] (sf*(Times@@sblist)+(Times@@ablist)*sg)+ sfg)//Simplify]*)
+(*]*)
 
-W2[Ind_List]:=W2[#,Ind]&
-W2[Amp_Plus,Ind_List]:=W2[Ind]/@Amp
-W2[Amp:Except[Plus],Ind_List]:=Module[
-{list=Prod2List[Amp],ablist={},sblist={},prefactor=1,sf,sg,sfg},
-(* find bridges *)
-Map[Switch[Head[#],
-ab,If[BridgeQ[Ind]@@#,AppendTo[ablist,#],prefactor*=#],
-sb,If[BridgeQ[Ind]@@#,AppendTo[sblist,#],prefactor*=#],
-_,prefactor*=# (* other factors *)
-]&,list];
-(* calculations *)
-sf=-(3/4)Length[ablist]Times@@ablist+2Sum[MM[Ind,ablist[[i,1]],ablist[[i,2]],ablist[[j,1]],ablist[[j,2]]]Times@@Delete[ablist,{{i},{j}}],{j,Length[ablist]},{i,j-1}];
-sg=-(3/4)Length[sblist]Times@@sblist+2Sum[MbMb[Ind,sblist[[i,1]],sblist[[i,2]],sblist[[j,1]],sblist[[j,2]]]Times@@Delete[sblist,{{i},{j}}],{j,Length[sblist]},{i,j-1}];
-sfg=Sum[MMb[Ind,ablist[[i,1]],ablist[[i,2]],sblist[[j,1]],sblist[[j,2]]]Times@@Delete[ablist,i]Times@@Delete[sblist,j],{i,Length[ablist]},{j,Length[sblist]}];
 
-Return[prefactor(Mandelstam[Ind] (sf*(Times@@sblist)+(Times@@ablist)*sg)+ sfg)//Simplify]
-]
-
-
-(* ::Input::Initialization:: *)
-Options[W2Diagonalize]={OutputFormat->"print"};
-W2Diagonalize[state_,k_,Ind_,OptionsPattern[]]:=
-Module[{Num=Length[state],iniBasis=SSYT[state,k,OutMode->"amplitude"],stBasis=SSYT[state,k+2,OutMode->"amplitude"],
-W2Basis,W2result,eigensys,result},
-W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));
-eigensys=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result]//Eigensystem;
-result=<|"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>;
-
-Switch[OptionValue[OutputFormat],
-"working",result,
-"print",result=MapAt[Ampform,result,{Key["j-basis"],All}];
-result=MapAt[MatrixForm,result,Key["transfer"]]
-]
-]
+(* ::Input:: *)
+(*Options[W2Diagonalize]={OutputFormat->"print"};*)
+(*W2Diagonalize[state_,k_,Ind_,OptionsPattern[]]:=*)
+(*Module[{Num=Length[state],iniBasis=SSYT[state,k,OutMode->"amplitude"],stBasis=SSYT[state,k+2,OutMode->"amplitude"],*)
+(*W2Basis,W2result,eigensys,result},*)
+(*W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));*)
+(*eigensys=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result]//Eigensystem;*)
+(*result=<|"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>;*)
+(**)
+(*Switch[OptionValue[OutputFormat],*)
+(*"working",result,*)
+(*"print",result=MapAt[Ampform,result,{Key["j-basis"],All}];*)
+(*result=MapAt[MatrixForm,result,Key["transfer"]]*)
+(*]*)
+(*]*)
 
 
 (* ::Subsection::Closed:: *)
 (*Model Analysis*)
+
+
+(* ::Input::Initialization:: *)
+AllTypesR[model_,dim_]:=state2type[model,#1,#2]&@@@LorentzList[dim,"real"]//Flatten
+AllTypesC[model_,dim_]:=Module[{statelist=LorentzList[dim,"complex"],types,result=<||>},
+Do[types=state2type[model,#1,#2]&@@state;
+If[state==MapAt[-Reverse[#]&,state,1],
+types=DeleteDuplicates[types,(#1/.{x_String/;x!= "D":>Conj[x]})==#2&]
+];
+AssociateTo[result,state2class@@state->types],
+{state,statelist}];
+Return[result];
+]
+
+GetTypes[model_,dmin_,dmax_,file_]:=Module[{dim,types={}},
+Do[AppendTo[types,Timing@AllTypesC[model,dim]];
+Print["Dim ",dim,": ",Length[Catenate@#2]," types in all, time used ",#1]&@@Last[types],
+{dim,Range[dmin,dmax]}];
+Put[types[[All,2]],NotebookDirectory[]<>file];
+Return[types[[All,2]]];
+]
+GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
 
 
 (* ::Input::Initialization:: *)
@@ -569,7 +574,7 @@ If[OptionValue[Basis]=="m-basis",Return[basisTotal]];
 If[len==0,Return[<|{}->basisTotal|>]];
 
 (********* compute p-basis *********)
-SymComb=Distribute[Normal/@Prepend[Through[groupB["coord"]],lorentzB["coord"]],List];(*list all syms combinations from factors*)
+SymComb=Distribute[Normal/@Append[Through[groupB["coord"]],lorentzB["coord"]],List];(*list all syms combinations from factors*)
 pCoord=Distribute[InnerDecomposeKey[model,#]&@Keys[#]->Distribute[Values[#],List],List]&/@SymComb//Flatten;(*perform IPD and expand multiplicities of basis and IPD*)
 pCoord=Merge[pCoord/.{((sym_->CG_)->fac_):>sym->{CG,fac}},Identity];(*merge into association group by Sym*)
 indexCG=Drop[Partition[Range[len (1+nFac)],1+nFac]//Transpose,1]//Flatten;
