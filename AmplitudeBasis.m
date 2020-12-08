@@ -116,7 +116,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Get/@Global`$CodeFiles;
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Input*)
 
 
@@ -125,7 +125,8 @@ Get/@Global`$CodeFiles;
 helicityQ[model_,h_]:=model[#]["helicity"]==h&  
 (* judge if reps of group in replist could form a singlet *)
 SingletQ[group_,{rep__List}]:=MemberQ[MyRepProduct[group,{rep}][[All,1]],ConstantArray[0,Length[group]]] (* for non-Abelian groups *)
-SingletQ[group_,{rep__?NumericQ}]:=Plus[rep]==0 (* for Abelian groups *)
+SingletQ[{},{rep__?NumericQ}]:=Plus@@rep==0 (* for Abelian groups *)
+SingletQ[{},0]:=True
 (* get conjugate rep of a given rep *)
 RepConj[rep_List]:=Reverse[rep] (* for non-Abelian reps *)
 RepConj[charge_?NumericQ]:=-charge (* for Abelian charges *)
@@ -135,7 +136,7 @@ nonAbelian[groupname_]:=Length[CheckGroup[groupname]]>0 (* judge if a group is n
 Singlet[group_]:=Replace[group,_List->0,{Depth[group]-2}]
 Fund[group_]:=ReplacePart[Singlet[group],1->1]
 AFund[group_]:=ReplacePart[Singlet[group],-1->1]
-CheckType[model_,type_,OptionsPattern[]]:=Module[{flist=DeleteCases[Prod2List[type],"D"],inModel},
+CheckType[model_,type_,OptionsPattern[]]:=Module[{flist=DeleteCases[Prod2List[type],"D"|_?NumericQ],inModel},
 inModel=KeyExistsQ[model,#]&/@flist;
 If[Nand@@inModel,Message[CheckType::unknown,type];Abort[]];
 If[OptionValue[Sorted],flist=SortBy[flist,model[#]["helicity"]&]];
@@ -209,17 +210,18 @@ Conj[field<>"\[Dagger]"]=field;
 
 
 (* ::Input::Initialization:: *)
-(* for a given helicity state, find (more than) all field combinations in a model that match the helicities and form singlets for all groups *)
-state2type[model_,state_,k_]:=Module[{comblist,groups=CheckGroup/@model["Gauge"],singletposition},
-(* state: list of helicities for particles in a scattering 
-k: number of extra momenta/derivatives
-*)
+GaugeClass[model_,type:(_Times|_Power)]:=GaugeClass[model,CheckType[model,type,Counting->False]]
+GaugeClass[model_,fields_List]:=Module[{greps},
+greps=Model[#]/@Model["Gauge"]&/@fields\[Transpose];
+greps=Replace[Sort/@greps,{x__?NumericQ}:>Plus[x],1];
+If[MemberQ[greps,x_?NumericQ/;x!=0],False,greps]
+]
+state2type[model_,state_,k_]:=Module[{comblist,combindexed,singletcomb,groups=CheckGroup/@model["Gauge"]},
 (* field combinations in the model with given helicities *)
-comblist=DeleteDuplicatesBy[Distribute[Select[Keys[model],helicityQ[model,#]]&/@state,List],Sort]; 
-(* find singlet combinations *)
-singletposition=Flatten@Position[MapThread[And,Table[SingletQ[groups[[i]],#]&/@Map[model[#][model["Gauge"][[i]]]&,comblist,{2}],{i,Length[groups]}]],True]; 
-(* convert to types: product of fieldname/D strings *)
-Times@@@(PadRight[#,Length[state]+k,"D"]&/@comblist[[singletposition]] )(* convert format for AmplitudeBasis *)
+comblist=DeleteDuplicatesBy[Distribute[(Select[Keys[model],helicityQ[model,#]]&/@state),List],Sort];
+combindexed=Delete[GroupBy[comblist,GaugeClass[model,#]&],Key[False]];(* find singlet combinations *)
+singletcomb=Catenate@KeySelect[combindexed,And@@MapThread[SingletQ,{groups,#}]&];
+Times@@@(PadRight[#,Length[state]+k,"D"]&/@singletcomb)
 ]
 
 
@@ -244,7 +246,7 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Lorentz Basis*)
 
 
@@ -252,9 +254,8 @@ GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"
 (* Symmetrize the list of amplitudes Mlist according to ALL possible Irreps of permutations for RepFields, and show result under basis StBasis *)
 Options[LorentzBasisAux]={Coord->False};
 LorentzBasisAux[Mlist_,RepPos_,Num_,OptionsPattern[]]:=LorentzBasisAux[Mlist,RepPos,Num]=
-Module[{depth=Length[RepPos],Dim=Length[Mlist],SymList,yngList,permAmp,permResult=<||>,SnDimlist={},emptySpaceCor,j,var,ynglist,allbasis,allbasisCor,poslist},
+Module[{depth=Length[RepPos],Dim=Length[Mlist],SymList,yngList,permAmp,permResult=<||>,SnDimlist={},emptySpaceCor,j,ynglist,allbasis,allbasisCor,poslist},
 If[depth==0,Return[<|{}->If[OptionValue[Coord],IdentityMatrix[Length[Mlist]],Mlist]|>]];
-var=ToExpression/@("SnX"<>#&/@ToString/@Range[depth]); (* abstract index for each Snrep *)
 
 yngList=Distribute[Thread[{IntegerPartitions@Length[#],First[#]}]&/@RepPos,List];
 Do[SnDimlist=SnIrrepDim/@yngList[[i,All,1]]; (* tensor dimensions of Snrep space *)
@@ -453,7 +454,7 @@ Options[GaugeBasis]={OutputMode->"indexed"};
 (*]*)
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Analysis*)
 
 
@@ -483,7 +484,8 @@ GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
 (*********** show counting result *****************)
 
 StatResult[model_,types_List]:=Module[{iter=0,terms={},nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR,result=<||>},
-Do[AppendTo[terms,Type2TermsCount[model,type]],{type,types}];
+Print["Counting operators ",Dynamic[iter],"/",Length[types]];
+Do[iter++;AppendTo[terms,Type2TermsCount[model,type]],{type,types}];
 nTermList=Values/@terms;
 posR=Complement[Position[realQ/@types,True],Position[nTermList,{}]];
 nTypes=Length@Cases[nTermList,Except[{}]];
@@ -494,12 +496,12 @@ nTermsR=Total@MapAt[#/2&,2Total/@nTermList,posR];
 AssociateTo[result,"real terms"->nTermsR];
 SList=MapThread[NOperList[model,#1,#2]&,{types,terms}];
 nOpers=MapThread[Dot,{nTermList,SList}];
-AssociateTo[result,"complex operators"->Total@nOpers];
+AssociateTo[result,"complex operators"->Total@nOpers//Simplify];
 nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
 AssociateTo[result,"real operators"->nOpersR];
 Return[result];
 ]
-StatResult[model_,dim_Integer]:=StatResult[model,Catenate@AllTypesC[model,dim]]
+StatResult[model_,dim_Integer]:=Module[{},Print["Enumerating types ..."];StatResult[model,Catenate@AllTypesC[model,dim]]]
 
 
 (* ::Input::Initialization:: *)
