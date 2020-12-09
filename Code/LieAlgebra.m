@@ -318,7 +318,7 @@ result
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Lie Algebra*)
 
 
