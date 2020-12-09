@@ -7,6 +7,12 @@ $CodeFiles=FileNames[__~~".m",FileNameJoin[{$AmplitudeBasisDir,"Code"}]];
 (* ::Input::Initialization:: *)
 BeginPackage["AmplitudeBasis`"]
 
+
+(* ::Subsubsection::Closed:: *)
+(*Declaration*)
+
+
+(* ::Input::Initialization:: *)
 (* Amplitude *)
 {ab,sb,s,Mandelstam,SSYT,reduce};
 
@@ -33,6 +39,10 @@ BeginPackage["AmplitudeBasis`"]
 
 (* Group Profile *)
 {tAssumptions,tRep,tOut,tVal,tYDcol,tSimp,dummyIndexCount,GellMann,ConvertToFundamental,PrintTensor};
+
+
+(* ::Subsubsection::Closed:: *)
+(*Help Text*)
 
 
 ab::usage="ab[i,j] stands for angle bracket of spinor helicity variables <ij> == \!\(\*SubscriptBox[\(\[Epsilon]\), \(\[Alpha]\[Beta]\)]\)\!\(\*SuperscriptBox[SubscriptBox[\(\[Lambda]\), \(i\)], \(\[Alpha]\)]\)\!\(\*SuperscriptBox[SubscriptBox[\(\[Lambda]\), \(j\)], \(\[Beta]\)]\). Antisymmetry is enforced. 
@@ -116,7 +126,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Get/@Global`$CodeFiles;
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Input*)
 
 
@@ -210,6 +220,11 @@ Conj[field<>"\[Dagger]"]=field;
 
 
 (* ::Input::Initialization:: *)
+CombList[fieldlist_,num_]:=Module[{len=Length[fieldlist],list},
+list={0}~Join~#~Join~{len+num}&/@Subsets[Range[len+num-1],{len-1}];
+list=Differences[#]-1&/@list;
+Join@@MapThread[ConstantArray,{fieldlist,#}]&/@list
+]
 GaugeClass[model_,type:(_Times|_Power)]:=GaugeClass[model,CheckType[model,type,Counting->False]]
 GaugeClass[model_,fields_List]:=Module[{greps},
 greps=Model[#]/@Model["Gauge"]&/@fields\[Transpose];
@@ -218,7 +233,8 @@ If[MemberQ[greps,x_?NumericQ/;x!=0],False,greps]
 ]
 state2type[model_,state_,k_]:=Module[{comblist,combindexed,singletcomb,groups=CheckGroup/@model["Gauge"]},
 (* field combinations in the model with given helicities *)
-comblist=DeleteDuplicatesBy[Distribute[(Select[Keys[model],helicityQ[model,#]]&/@state),List],Sort];
+comblist=Join@@@Distribute[CombList[Select[Keys[model],helicityQ[model,#1]],#2]&@@@Tally[state],List];
+(*comblist=DeleteDuplicatesBy[Distribute[(Select[Keys[model],helicityQ[model,#]]&/@state),List],Sort];*)
 combindexed=Delete[GroupBy[comblist,GaugeClass[model,#]&],Key[False]];(* find singlet combinations *)
 singletcomb=Catenate@KeySelect[combindexed,And@@MapThread[SingletQ,{groups,#}]&];
 Times@@@(PadRight[#,Length[state]+k,"D"]&/@singletcomb)
@@ -454,27 +470,36 @@ Options[GaugeBasis]={OutputMode->"indexed"};
 (*]*)
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Analysis*)
 
 
 (* ::Input::Initialization:: *)
 AllTypesR[model_,dim_]:=state2type[model,#1,#2]&@@@LorentzList[dim,"real"]//Flatten
-AllTypesC[model_,dim_]:=Module[{statelist=LorentzList[dim,"complex"],types,result=<||>},
-Do[types=state2type[model,#1,#2]&@@state;
+Options[AllTypesC]={StatusPrint->False,OutputFile->""};
+AllTypesC[model_,statelist_,OptionsPattern[]]:=Module[{iter=0,class,file=True,types,result=<||>},
+If[OptionValue[StatusPrint],Print["Looking for types in class ",Dynamic[class],",  ",Dynamic[iter],"/",Length[statelist]]];
+If[OptionValue[OutputFile]!="",file=NotebookDirectory[]<>OptionValue[OutputFile]];
+Do[iter++;class=state2class@@state;
+types=state2type[model,#1,#2]&@@state;
 If[state==MapAt[-Reverse[#]&,state,1],
 types=DeleteDuplicates[types,(#1/.{x_String/;x!= "D":>Conj[x]})==#2&]
 ];
-AssociateTo[result,state2class@@state->types],
+AssociateTo[result,class->types];
+(*If[!TrueQ[file],PutAppend[class\[Rule]types,file]]*),
 {state,statelist}];
+Put[result,file];
 Return[result];
 ]
+AllTypesC[model_,dim_Integer,OptionsPattern[]]:=AllTypesC[model,LorentzList[dim,"complex"],
+StatusPrint->OptionValue[StatusPrint],
+OutputFile->OptionValue[OutputFile]]
 
 GetTypes[model_,dmin_,dmax_,file_]:=Module[{dim,types={}},
-Do[AppendTo[types,Timing@AllTypesC[model,dim]];
+Do[AppendTo[types,Timing@AllTypesC[model,dim,StatusPrint->True,OutputFile->file<>ToString[dim]<>".m"]];
 Print["Dim ",dim,": ",Length[Catenate@#2]," types in all, time used ",#1]&@@Last[types],
 {dim,Range[dmin,dmax]}];
-Put[types[[All,2]],NotebookDirectory[]<>file];
+(*Put[types[[All,2]],NotebookDirectory[]<>file];*)
 Return[types[[All,2]]];
 ]
 GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
@@ -483,23 +508,29 @@ GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
 (* ::Input::Initialization:: *)
 (*********** show counting result *****************)
 
-StatResult[model_,types_List]:=Module[{iter=0,terms={},nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR,result=<||>},
+StatResult[model_,types_List]:=Module[{start=SessionTime[],iter=0,terms={}},
 Print["Counting operators ",Dynamic[iter],"/",Length[types]];
 Do[iter++;AppendTo[terms,Type2TermsCount[model,type]],{type,types}];
+Print["Done! time used: ",SessionTime[]-start];
+Return[AssociationThread[types->terms]];
+]
+Clear[PresentStat];
+PresentStat[stat_Association,nflist_:<||>]:=Module[{terms,nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR},
+If[Length@nflist!=0,terms=KeySelect[#,And@@#/.Rule->SQ[nflist]&]&/@stat,terms=stat]; (* remove flavor syms not allowed by nflavor *)
 nTermList=Values/@terms;
-posR=Complement[Position[realQ/@types,True],Position[nTermList,{}]];
+posR=Complement[Position[realQ/@Keys[terms],True],Position[nTermList,{}]];
 nTypes=Length@Cases[nTermList,Except[{}]];
-AssociateTo[result,"complex types"->nTypes];
-AssociateTo[result,"real types"->2nTypes-Length[posR]];
-AssociateTo[result,"complex terms"->Plus@@Flatten[nTermList]];
+(*Print["number of complex types"->nTypes];*)
+Print["number of real types"->2nTypes-Length[posR]];
+(*Print["number of complex terms"->Plus@@Catenate[nTermList]];*)
 nTermsR=Total@MapAt[#/2&,2Total/@nTermList,posR];
-AssociateTo[result,"real terms"->nTermsR];
-SList=MapThread[NOperList[model,#1,#2]&,{types,terms}];
-nOpers=MapThread[Dot,{nTermList,SList}];
-AssociateTo[result,"complex operators"->Total@nOpers//Simplify];
+Print["number of real terms"->nTermsR];
+If[nflist==<||>,Return[]];
+SList=KeyValueMap[NOperList[nflist,#1,#2]&,terms];
+nOpers=MapThread[Dot,{Values@nTermList,SList}];
+(*Print["number of complex operators"->Total@nOpers//Simplify];*)
 nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
-AssociateTo[result,"real operators"->nOpersR];
-Return[result];
+Print["number of real operators"->nOpersR];
 ]
 StatResult[model_,dim_Integer]:=Module[{},Print["Enumerating types ..."];StatResult[model,Catenate@AllTypesC[model,dim]]]
 
@@ -609,8 +640,7 @@ nFac=Length[groupB]+1; (* number of factors to do Inner Product Decomposition fo
 SymComb=Distribute[Normal/@Prepend[groupB,lorentzB],List];
 terms=Join@@(ConstantArray[Merge[Keys[#],SnDecompose],Times@@Values[#]]&/@SymComb);
 terms=Association[Rule@@@Tally[Join@@(Distribute[Thread/@Normal[#],List]&/@terms)]];
-terms=KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]&/@#&,terms]; (* impose spin-statistics to get flavor sym *)
-KeySelect[terms,And@@#/.Rule->SQ[model]&] (* remove flavor syms not allowed by nflavor *)
+KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]&/@#&,terms](* impose spin-statistics to get flavor sym *)
 ]
 
 
