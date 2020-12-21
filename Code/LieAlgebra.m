@@ -666,6 +666,10 @@ Label[end];
 Return[auxMax];
 ]
 
+
+
+
+(* ::Input::Initialization:: *)
 (* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX *)
 (* Reduces a direct product representation in its irreducible parts *)
 

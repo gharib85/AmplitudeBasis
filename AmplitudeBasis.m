@@ -17,7 +17,7 @@ BeginPackage["AmplitudeBasis`"]
 {ab,sb,s,Mandelstam,SSYT,reduce};
 
 (* Model Input *)
-{AddGroup,AddField,AllTypesR,AllTypesC,GetTypes,CheckType,CheckGroup};
+{AddGroup,AddField,AllTypesR,AllTypesC,GetTypes,CheckType,CheckGroup,TotCharge,deltaBL};
 
 (* Lorentz Factor *)
 {LorentzBasis,LorentzCount,OperPoly};
@@ -221,6 +221,7 @@ Conj[field<>"\[Dagger]"]=field;
 
 (* ::Input::Initialization:: *)
 CombList[fieldlist_,num_]:=Module[{len=Length[fieldlist],list},
+If[len==0,Return[{}]];
 list={0}~Join~#~Join~{len+num}&/@Subsets[Range[len+num-1],{len-1}];
 list=Differences[#]-1&/@list;
 Join@@MapThread[ConstantArray,{fieldlist,#}]&/@list
@@ -252,14 +253,16 @@ n1*n2
 
 (* ::Input::Initialization:: *)
 (* Global Charge Analysis *)
-BminusL[model_,types_]:=
-Module[{},
-GroupBy[Flatten@types,(Abs@Total[Times@@@MapAt[(model[#]["Baryon"]-model[#]["Lepton"])&,CheckType[model,#],{All,1}]])&]
+TotCharge[model_,qnum_,type_]:=Module[{particles=CheckType[model,type,Counting->False]},
+Total[model[#][qnum]&/@particles]
 ]
-BLofAll[model_,dim_]:=Module[{types},types=Catenate@AllTypesC[model,dim];
-GroupBy[Flatten@types,(Total[Times@@@MapAt[{model[#]["Baryon"],model[#]["Lepton"]}&,CheckType[model,#],{All,1}]])&]
+deltaBL[model_,type_]:=Module[{deltaB,deltaL,sign=1},
+deltaB=TotCharge[model,"Baryon",type];
+deltaL=TotCharge[model,"Lepton",type];
+If[deltaB<0,sign=-1];
+If[deltaB==0&&deltaL<0,sign=-1];
+sign{deltaB,deltaL}
 ]
-
 
 
 (* ::Subsection::Closed:: *)
@@ -488,7 +491,7 @@ types=DeleteDuplicates[types,(#1/.{x_String/;x!= "D":>Conj[x]})==#2&]
 AssociateTo[result,class->types];
 (*If[!TrueQ[file],PutAppend[class\[Rule]types,file]]*),
 {state,statelist}];
-Put[result,file];
+If[!TrueQ[file],Put[result,file]];
 Return[result];
 ]
 AllTypesC[model_,dim_Integer,OptionsPattern[]]:=AllTypesC[model,LorentzList[dim,"complex"],
@@ -514,6 +517,8 @@ Do[iter++;AppendTo[terms,Type2TermsCount[model,type]],{type,types}];
 Print["Done! time used: ",SessionTime[]-start];
 Return[AssociationThread[types->terms]];
 ]
+StatResult[model_,dim_Integer]:=Module[{},Print["Enumerating types ..."];StatResult[model,Catenate@AllTypesC[model,dim]]]
+
 Clear[PresentStat];
 PresentStat[stat_Association,nflist_:<||>]:=Module[{terms,nTermList,posR,nTypes,nTermsR,SList,nOpers,nOpersR},
 If[Length@nflist!=0,terms=KeySelect[#,And@@#/.Rule->SQ[nflist]&]&/@stat,terms=stat]; (* remove flavor syms not allowed by nflavor *)
@@ -532,7 +537,6 @@ nOpers=MapThread[Dot,{Values@nTermList,SList}];
 nOpersR=Total@MapAt[#/2&,2nOpers,posR]//Simplify;
 Print["number of real operators"->nOpersR];
 ]
-StatResult[model_,dim_Integer]:=Module[{},Print["Enumerating types ..."];StatResult[model,Catenate@AllTypesC[model,dim]]]
 
 
 (* ::Input::Initialization:: *)
@@ -589,7 +593,7 @@ SQ[model_]:=Not@TrueQ[model[#1]["nfl"]<Length[#2]]&
 
 
 (* ::Input::Initialization:: *)
-Options[Type2TermsPro]={OutputFormat->"operator",Basis->"p-basis",FerCom->2,deSym->True,flavorTensor->True,fullform->False,AddFlavor->True,OperAbbreviation->{}};
+Options[Type2TermsPro]={OutputFormat->"operator",Basis->"p-basis",FerCom->2,deSym->True,flavorTensor->True,fullform->False,AddFlavor->True,TakeFirstBasis->True,OperAbbreviation->{}};
 (* RENAME: ? *)
 Type2TermsPro[model_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],NAgroups=Select[model["Gauge"],nonAbelian],
 len,nFac,lorentzB,groupB,basisTotal,
@@ -600,7 +604,7 @@ nFac=Length[NAgroups]+1;(*number of factors to do Inner Product Decomposition fo
 (********* compute m-basis *********)
 lorentzB=LorentzBasis[model,type,OutputFormat->OptionValue[OutputFormat],FerCom->OptionValue[FerCom],Coord->True,OpenFchain->False,ActivatePrintTensor->False];
 groupB=GaugeBasis[model,#,type,OutputMode->"indexed"]&/@NAgroups;
-basisTotal=Expand/@Flatten[Through[(TensorProduct@@groupB)["basis"]]\[TensorProduct]lorentzB["basis"]];
+basisTotal=Expand/@Flatten[TensorProduct@@Through[groupB["basis"]]\[TensorProduct]lorentzB["basis"]];
 If[OptionValue[OutputFormat]=="operator",basisTotal=ContractDelta@basisTotal];
 basisTotal=PrintOper[RefineReplace@basisTotal,OpAbbr->OptionValue[OperAbbreviation]]/.listtotime;
 If[OptionValue[Basis]=="m-basis",Return[basisTotal]];
@@ -619,7 +623,7 @@ If[OptionValue[deSym],
 cols=DeSymmetrize[Flatten[Values[pCoord],1+len],GetRowsForFirstBasis[Values[pCoord]]];
 pCoord=AssociationThread[Keys[pCoord]->Map[UnitVector[Length[basisTotal],#]&,cols,{2}]],
 
-pCoord=Extract[{All}~Join~ConstantArray[1,len]~Join~{All}]/@pCoord (* Select first basis from Sn irrep *)
+If[OptionValue[TakeFirstBasis],pCoord=Extract[{All}~Join~ConstantArray[1,len]~Join~{All}]/@pCoord] (* Select first basis from Sn irrep *)
 ];
 
 (* impose spin-stat: remove flavor syms not allowed by nflavor *)
