@@ -228,7 +228,7 @@ Join@@MapThread[ConstantArray,{fieldlist,#}]&/@list
 ]
 GaugeClass[model_,type:(_Times|_Power)]:=GaugeClass[model,CheckType[model,type,Counting->False]]
 GaugeClass[model_,fields_List]:=Module[{greps},
-greps=Model[#]/@Model["Gauge"]&/@fields\[Transpose];
+greps=model[#]/@model["Gauge"]&/@fields\[Transpose];
 greps=Replace[Sort/@greps,{x__?NumericQ}:>Plus[x],1];
 If[MemberQ[greps,x_?NumericQ/;x!=0],False,greps]
 ]
