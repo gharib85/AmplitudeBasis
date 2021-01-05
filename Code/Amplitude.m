@@ -80,7 +80,7 @@ yngShape::wrongk="wrong number of derivatives/momenta";
 yngShape::wrongh="wrong helicity in state `1`";
 yngShape::wrongf="wrong fermion number in state `1`";
 yngShape[state_,k_]:=Module[{},
-If[!SubsetQ[{1,1/2,0,-1/2,-1},DeleteDuplicates[state]],Message[yngShape::wrongh,state]];
+If[Nand@@IntegerQ/@(2state),Message[yngShape::wrongh,state]];
 If[!IntegerQ[Total[state]],Message[yngShape::wrongf,state]];
 If[OddQ[k-kmin[state]]\[Or]k-kmin[state]<0,Message[yngShape::wrongk];Abort[]];
 {Total@Select[state,Positive]+k/2,-Total@Select[state,Negative]+k/2}
@@ -129,16 +129,24 @@ Return[result]
 
 (* ::Input::Initialization:: *)
 (* List All Lorentz Structure at given dimension *)
-LorentzList[dim_,mode_:"complex"]:=Module[{n,k,Nh,Nhlist={},result},
-Do[n=dim-N-nt;
+Options[LorentzList]={Conj->False,HelicityInclude->{0,1/2,1}};
+LorentzList[dim_,OptionsPattern[]]:=Module[{hlist,n,k,num,Numh,Nh,Nhsol,N0sol,Nhlist={},result},hlist=Sort@DeleteDuplicates@Flatten[{1,-1}\[TensorProduct]OptionValue[HelicityInclude]];
+Numh=Map[Subscript[num,#]&,hlist];
+Do[n=dim-Num-nt;
 For[k=0,k<=2 nt,k++,
-Do[Nh={i,2 n-k-2 i,3N+2k-2dim+i+j,2 nt-k-2 j,j};If[Nh[[3]]<0||kmin[Nh,"Nh"]>k,Continue[],AppendTo[Nhlist,{Nh,k}]],{i,0,Floor[n-k/2]},{j,0,Floor[nt-k/2]}];
+Nhsol=Flatten[Outer[Join,##,1]&@@MapThread[Solve[Total[2Abs[#[[2]]]#&/@#1]==2#2-k,#1,NonNegativeIntegers]&,{GroupBy[Numh,Sign[#[[2]]]&]/@{-1,1},{n,nt}}],1];
+Do[Nh=Numh/.sol;If[MemberQ[hlist,0],
+N0sol=Solve[Total[Numh]==Num/.sol,Subscript[num, 0],NonNegativeIntegers];
+If[Length[N0sol]==1&&kmin[Join@@MapThread[ConstantArray,{hlist,Nh/.N0sol[[1]]}]]<=k,AppendTo[Nhlist,{Nh/.N0sol[[1]],k}]],
+If[Total[Numh]==Num/.sol,AppendTo[Nhlist,{Numh/.sol,k}]]
+],{sol,Nhsol}];
+(*Do[Nh={i,2 n-k-2 i,3N+2k-2dim+i+j,2 nt-k-2 j,j};If[Nh[[3]]<0||kmin[Nh,"Nh"]>k,Continue[],AppendTo[Nhlist,{Nh,k}]],{i,0,Floor[n-k/2]},{j,0,Floor[nt-k/2]}];*)
 If[n+nt+3==dim,Break[]]
-],{N,3,dim},{nt,0,Floor[(dim-N)/2]}];
-Switch[mode,
-"complex",result=DeleteDuplicates[Nhlist,#1==MapAt[Reverse,#2,1]&],
-"real",result=Nhlist\[Union](MapAt[Reverse,#1,1]&)/@Nhlist];
-MapAt[Join@@MapThread[ConstantArray,{{-1,-(1/2),0,1/2,1},#1}]&,result,{All,1}]
+],{Num,3,dim},{nt,0,Floor[(dim-Num)/2]}];
+
+If[OptionValue[Conj],result=Nhlist\[Union](MapAt[Reverse,#1,1]&)/@Nhlist,
+result=DeleteDuplicates[Nhlist,#1==MapAt[Reverse,#2,1]&]];
+MapAt[Join@@MapThread[ConstantArray,{hlist,#1}]&,result,{All,1}]
 ]
 
 

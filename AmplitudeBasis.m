@@ -20,7 +20,7 @@ BeginPackage["AmplitudeBasis`"]
 {AddGroup,AddField,AllTypesR,AllTypesC,GetTypes,CheckType,CheckGroup,TotCharge,deltaBL};
 
 (* Lorentz Factor *)
-{LorentzBasis,LorentzCount,OperPoly};
+{LorentzList,LorentzBasis,LorentzCount,OperPoly};
 
 (* Gauge Group Factor *)
 {GaugeCount,GaugeBasis};
@@ -478,7 +478,7 @@ Options[GaugeBasis]={OutputMode->"indexed"};
 
 
 (* ::Input::Initialization:: *)
-AllTypesR[model_,dim_]:=state2type[model,#1,#2]&@@@LorentzList[dim,"real"]//Flatten
+AllTypesR[model_,dim_]:=state2type[model,#1,#2]&@@@LorentzList[dim,Conj->True]//Flatten
 Options[AllTypesC]={StatusPrint->False,OutputFile->""};
 AllTypesC[model_,statelist_,OptionsPattern[]]:=Module[{iter=0,class,file=True,types,result=<||>},
 If[OptionValue[StatusPrint],Print["Looking for types in class ",Dynamic[class],",  ",Dynamic[iter],"/",Length[statelist]]];
@@ -494,7 +494,7 @@ AssociateTo[result,class->types];
 If[!TrueQ[file],Put[result,file]];
 Return[result];
 ]
-AllTypesC[model_,dim_Integer,OptionsPattern[]]:=AllTypesC[model,LorentzList[dim,"complex"],
+AllTypesC[model_,dim_Integer,OptionsPattern[]]:=AllTypesC[model,LorentzList[dim],
 StatusPrint->OptionValue[StatusPrint],
 OutputFile->OptionValue[OutputFile]]
 
