@@ -41,7 +41,7 @@ iter,iter++;AppendTo[poslist,pos],
 iter-1,subbasis=Delete[subbasis,iter];len--
 ];
 pos++];
-<|"basis"->Return[If[lmax<len,subbasis[[;;lmax]],subbasis]],"pos"-> poslist|>
+<|"basis"->If[lmax<len,subbasis[[;;lmax]],subbasis],"pos"-> poslist|>
 ]
 basisReduce::input="wrong input matrix: `1`";
 
