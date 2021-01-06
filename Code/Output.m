@@ -131,7 +131,21 @@ listtotime={ch[p__]:>HoldForm[Times[p]],ch\[Psi][p__]:>HoldForm[Times[p]]};
 FtoTensor:=Inactivate[{F_["down",a_,"down",b_]:>PrintTensor[<|"tensor"->F,"downind"->{a,b}|>],
 F_["down",a_,"up",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"downind"->a|>],"upind"->b|>],
 F_["up",a_,"down",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"upind"->a|>],"downind"->b|>],
-F_["up",a_,"up",b_]:>PrintTensor[<|"tensor"->F,"upind"->{a,b}|>]},PrintTensor];
+F_["up",a_,"up",b_]:>PrintTensor[<|"tensor"->F,"upind"->{a,b}|>],CL_["down",a_,"down",b_,"down",c_,"down",d_]:>PrintTensor[<|"tensor"->CL,"downind"->{a,b,c,d}|>],
+CL_["down",a_,"up",b_,"down",c_,"down",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"downind"->a|>],"upind"->b|>],"downind"->{c,d}|>],
+CL_["up",a_,"down",b_,"down",c_,"down",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"upind"->a|>],"downind"->{b,c,d}|>],
+CL_["up",a_,"up",b_,"down",c_,"down",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"upind"->{a,b}|>],"downind"->{c,d}|>],
+CL_["down",a_,"down",b_,"down",c_,"up",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"downind"->{a,b,c}|>],"upind"->d|>],
+CL_["down",a_,"up",b_,"down",c_,"up",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"downind"->a|>],"upind"->b|>],"downind"->c|>],"upind"->d|>],
+CL_["up",a_,"down",b_,"down",c_,"up",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"upind"->a|>],"downind"->{b,c}|>],"upind"->d|>],
+CL_["up",a_,"up",b_,"down",c_,"up",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"upind"->{a,b}|>],"downind"->c|>],"upind"->d|>],CL_["down",a_,"down",b_,"up",c_,"down",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"downind"->{a,b}|>],"upind"->c|>],"downind"->d|>],
+CL_["down",a_,"up",b_,"up",c_,"down",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"downind"->a|>],"upind"->{b,c}|>],"downind"->d|>],
+CL_["up",a_,"down",b_,"up",c_,"down",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"upind"->a|>],"downind"->b|>],"upind"->c|>],"downind"->d|>],
+CL_["up",a_,"up",b_,"up",c_,"down",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"upind"->{a,b,c}|>],"downind"->d|>],
+CL_["down",a_,"down",b_,"up",c_,"up",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"downind"->{a,b}|>],"upind"->{c,d}|>],
+CL_["down",a_,"up",b_,"up",c_,"up",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"downind"->a|>],"upind"->{b,c,d}|>],
+CL_["up",a_,"down",b_,"up",c_,"up",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"upind"->a|>],"downind"->b|>],"upind"->{c,d}|>],
+CL_["up",a_,"up",b_,"up",c_,"up",d_]:>PrintTensor[<|"tensor"->CL,"upind"->{a,b,c,d}|>]},PrintTensor];
 
 transform[ope_, OptionsPattern[]] := Module[{result=ope,model, type, fer, fieldlist,Dcon={},fchain={},l2t={}, fieldrename={}},
 If[OptionValue[Dcontract],Dcon=Flatten[{Dcontract1, Dcontract2}]];
