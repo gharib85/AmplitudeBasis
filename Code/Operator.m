@@ -1,13 +1,15 @@
 (* ::Package:: *)
 
 (* ::Input::Initialization:: *)
+su2l=Append[Alphabet["Greek"],Append[StringJoin[#,"1"]&/@Alphabet["Greek"],StringJoin[#,"2"]&/@Alphabet["Greek"]]]//Flatten;
+su2r=Append[Alphabet[],Append[StringJoin[#,"1"]&/@Alphabet[],StringJoin[#,"2"]&/@Alphabet[]]]//Flatten;
 SetAttributes[{\[Psi]},Flat];\[Psi][a_*b_]:=\[Psi][a,b];
 (* Change Amplitude to \[Psi]'s Combination *)
 (* input all the angular bracket then obtain \[Psi]'s Combination *)
 operab[a_]:=Module[{alist,oper=1,la},
 If[a===1,oper=1,
 alist=Prod2List[a];la=Length[alist];
-Do[oper*=Subscript[h2f[-1/2], #1][2,Alphabet["Greek"][[i]]]Subscript[h2f[-1/2], #2][1,Alphabet["Greek"][[i]]]&@@alist[[i]],
+Do[oper*=Subscript[h2f[-1/2], #1][2,su2l[[i]]]Subscript[h2f[-1/2], #2][1,su2l[[i]]]&@@alist[[i]],
 {i,la}]];
 Return[oper]
 ]
@@ -15,7 +17,7 @@ Return[oper]
 opersb[s_]:=Module[{slist,oper=1,ls},
 If[s===1,oper=1,
 slist=Prod2List[s];ls=Length[slist];
-Do[oper*=Subscript[h2f[1/2], #1][1,Alphabet["English"][[i]]]Subscript[h2f[1/2], #2][2,Alphabet["English"][[i]]]&@@slist[[i]],
+Do[oper*=Subscript[h2f[1/2], #1][1,su2r[[i]]]Subscript[h2f[1/2], #2][2,su2r[[i]]]&@@slist[[i]],
 {i,ls}]];
 Return[oper]
 ]
@@ -32,59 +34,59 @@ Integer,l\[Psi]b=0,_,l\[Psi]b=1];
 Switch[l\[Psi]-l\[Psi]b,
 0,Switch[l\[Psi],
 0,ans=Subscript[\[Phi], i],
-1,ans1[[0]]=\[Psi];ans2[[0]]=\[Psi];ans=\[Psi][ans1,ans2];ans[[0]]=("\[Sigma]"^Alphabet["Greek"][[iGreek]]);ans=ans (Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]] Subscript[h2f[0], i]);iGreek++,
-_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans Subscript[h2f, i]
+1,ans1[[0]]=\[Psi];ans2[[0]]=\[Psi];ans=\[Psi][ans1,ans2];ans[[0]]=("\[Sigma]"^su2l[[iGreek]]);ans=ans (Subscript[Subscript[D, i], su2l[[iGreek]]] Subscript[h2f[0], i]);iGreek++,
+_,Do[ans=ans Subscript[Subscript[D, i], su2l[[iGreek]]]("\[Sigma]"^su2l[[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans Subscript[h2f, i]
 ],
 
 1,Switch[l\[Psi]b,
 0,ans1[[0]]=Subscript[h2f[-1/2], i];ans=ans1,
-1,ans=("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],ans2[[1]],ans2[[2]]] Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]Subscript[h2f[-1/2], i][ans1[[2,1]],ans1[[2,2]]];iGreek++,
-_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]b}];ans=ans Subscript[h2f[-1/2], i][ans1[[l\[Psi],1]],ans1[[l\[Psi],2]]]
+1,ans=("\[Sigma]"^su2l[[iGreek]])[ans1[[1,1]],ans1[[1,2]],ans2[[1]],ans2[[2]]] Subscript[Subscript[D, i], su2l[[iGreek]]]Subscript[h2f[-1/2], i][ans1[[2,1]],ans1[[2,2]]];iGreek++,
+_,Do[ans=ans Subscript[Subscript[D, i], su2l[[iGreek]]]("\[Sigma]"^su2l[[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]b}];ans=ans Subscript[h2f[-1/2], i][ans1[[l\[Psi],1]],ans1[[l\[Psi],2]]]
 ],
 
 -1,Switch[l\[Psi],
 0,ans2[[0]]=Subscript[h2f[1/2], i];ans=ans2,
-1,ans=("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]]]Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]Subscript[h2f[1/2], i][ans2[[2,1]],ans2[[2,2]]];iGreek++,
-_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans Subscript[h2f[1/2], i][ans2[[l\[Psi]b,1]],ans2[[l\[Psi]b,2]]]
+1,ans=("\[Sigma]"^su2l[[iGreek]])[ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]]]Subscript[Subscript[D, i], su2l[[iGreek]]]Subscript[h2f[1/2], i][ans2[[2,1]],ans2[[2,2]]];iGreek++,
+_,Do[ans=ans Subscript[Subscript[D, i], su2l[[iGreek]]]("\[Sigma]"^su2l[[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans Subscript[h2f[1/2], i][ans2[[l\[Psi]b,1]],ans2[[l\[Psi]b,2]]]
 ],
 
 2,Switch[l\[Psi]b,
-0,ans=("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],2,Alphabet["English"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],1,Alphabet["English"][[iGreek]]] * Subscript[Subscript[Subscript[h2f[-1], i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];
+0,ans=("\[Sigma]"^su2l[[iGreek]])[ans1[[1,1]],ans1[[1,2]],2,su2r[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],1,su2r[[iGreek]]] * Subscript[Subscript[Subscript[h2f[-1], i], su2l[[iGreek]]], su2l[[iGreek+1]]];
 iGreek+=2,
-1,ans=("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],ans2[[1]],ans2[[2]]] * Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],2,Alphabet["English"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+2]])[ans1[[3,1]],ans1[[3,2]],1,Alphabet["English"][[iGreek]]] * Subscript[Subscript[Subscript[h2f[-1], i], Alphabet["Greek"][[iGreek+1]]], Alphabet["Greek"][[iGreek+2]]];
+1,ans=("\[Sigma]"^su2l[[iGreek]])[ans1[[1,1]],ans1[[1,2]],ans2[[1]],ans2[[2]]] * Subscript[Subscript[D, i], su2l[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],2,su2r[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+2]])[ans1[[3,1]],ans1[[3,2]],1,su2r[[iGreek]]] * Subscript[Subscript[Subscript[h2f[-1], i], su2l[[iGreek+1]]], su2l[[iGreek+2]]];
 iGreek+=3,
-_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]b}];
-ans=ans ("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[l\[Psi]-1,1]],ans1[[l\[Psi]-1,2]],2,Alphabet["English"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[ans1[[l\[Psi],1]],ans1[[l\[Psi],2]],1,Alphabet["English"][[iGreek]]] * Subscript[Subscript[Subscript[h2f[-1], i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];
+_,Do[ans=ans Subscript[Subscript[D, i], su2l[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]b}];
+ans=ans ("\[Sigma]"^su2l[[iGreek]])[ans1[[l\[Psi]-1,1]],ans1[[l\[Psi]-1,2]],2,su2r[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+1]])[ans1[[l\[Psi],1]],ans1[[l\[Psi],2]],1,su2r[[iGreek]]] * Subscript[Subscript[Subscript[h2f[-1], i], su2l[[iGreek]]], su2l[[iGreek+1]]];
 iGreek+=2
 ],
 
 -2,Switch[l\[Psi],
-0,ans=("\[Sigma]"^Alphabet["Greek"][[iGreek]])[2,Alphabet["Greek"][[iGreek]],ans2[[1,1]],ans2[[1,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[1,Alphabet["Greek"][[iGreek]],ans2[[2,1]],ans2[[2,2]]] * Subscript[Subscript[Subscript[h2f[1], i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];
+0,ans=("\[Sigma]"^su2l[[iGreek]])[2,su2l[[iGreek]],ans2[[1,1]],ans2[[1,2]]] * ("\[Sigma]"^su2l[[iGreek+1]])[1,su2l[[iGreek]],ans2[[2,1]],ans2[[2,2]]] * Subscript[Subscript[Subscript[h2f[1], i], su2l[[iGreek]]], su2l[[iGreek+1]]];
 iGreek+=2,
-1,ans=("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]]] * Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[2,Alphabet["Greek"][[iGreek]],ans2[[2,1]],ans2[[2,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+2]])[1,Alphabet["Greek"][[iGreek]],ans2[[3,1]],ans2[[3,2]]] * Subscript[Subscript[Subscript[h2f[1], i], Alphabet["Greek"][[iGreek+1]]], Alphabet["Greek"][[iGreek+2]]];
+1,ans=("\[Sigma]"^su2l[[iGreek]])[ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]]] * Subscript[Subscript[D, i], su2l[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+1]])[2,su2l[[iGreek]],ans2[[2,1]],ans2[[2,2]]] * ("\[Sigma]"^su2l[[iGreek+2]])[1,su2l[[iGreek]],ans2[[3,1]],ans2[[3,2]]] * Subscript[Subscript[Subscript[h2f[1], i], su2l[[iGreek+1]]], su2l[[iGreek+2]]];
 iGreek+=3,
-_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];
-ans=ans ("\[Sigma]"^Alphabet["Greek"][[iGreek]])[2,Alphabet["Greek"][[iGreek]],ans2[[l\[Psi]b-1,1]],ans2[[l\[Psi]b-1,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[1,Alphabet["Greek"][[iGreek]],ans2[[l\[Psi]b,1]],ans2[[l\[Psi]b,2]]] * Subscript[Subscript[Subscript[h2f[1], i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]];
+_,Do[ans=ans Subscript[Subscript[D, i], su2l[[iGreek]]]("\[Sigma]"^su2l[[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];
+ans=ans ("\[Sigma]"^su2l[[iGreek]])[2,su2l[[iGreek]],ans2[[l\[Psi]b-1,1]],ans2[[l\[Psi]b-1,2]]] * ("\[Sigma]"^su2l[[iGreek+1]])[1,su2l[[iGreek]],ans2[[l\[Psi]b,1]],ans2[[l\[Psi]b,2]]] * Subscript[Subscript[Subscript[h2f[1], i], su2l[[iGreek]]], su2l[[iGreek+1]]];
 iGreek+=2
 ],(**************** gravition *****************)
 
 4,Switch[l\[Psi]b,
-0,ans=("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],2,Alphabet["English"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],1,Alphabet["English"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+2]])[ans1[[3,1]],ans1[[3,2]],2,Alphabet["English"][[iGreek+1]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+3]])[ans1[[4,1]],ans1[[4,2]],1,Alphabet["English"][[iGreek+1]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[-2], i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]],Alphabet["Greek"][[iGreek+2]]],Alphabet["Greek"][[iGreek+3]]];
+0,ans=("\[Sigma]"^su2l[[iGreek]])[ans1[[1,1]],ans1[[1,2]],2,su2r[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],1,su2r[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+2]])[ans1[[3,1]],ans1[[3,2]],2,su2r[[iGreek+1]]] * ("\[Sigma]"^su2l[[iGreek+3]])[ans1[[4,1]],ans1[[4,2]],1,su2r[[iGreek+1]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[-2], i], su2l[[iGreek]]], su2l[[iGreek+1]]],su2l[[iGreek+2]]],su2l[[iGreek+3]]];
 iGreek+=4,
-1,ans=("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[1,1]],ans1[[1,2]],ans2[[1]],ans2[[2]]] * Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],2,Alphabet["English"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+2]])[ans1[[3,1]],ans1[[3,2]],1,Alphabet["English"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+3]])[ans1[[4,1]],ans1[[4,2]],2,Alphabet["English"][[iGreek+1]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+4]])[ans1[[5,1]],ans1[[5,2]],1,Alphabet["English"][[iGreek+1]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[-2], i], Alphabet["Greek"][[iGreek+1]]], Alphabet["Greek"][[iGreek+2]]],Alphabet["Greek"][[iGreek+3]]],Alphabet["Greek"][[iGreek+4]]];
+1,ans=("\[Sigma]"^su2l[[iGreek]])[ans1[[1,1]],ans1[[1,2]],ans2[[1]],ans2[[2]]] * Subscript[Subscript[D, i], su2l[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+1]])[ans1[[2,1]],ans1[[2,2]],2,su2r[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+2]])[ans1[[3,1]],ans1[[3,2]],1,su2r[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+3]])[ans1[[4,1]],ans1[[4,2]],2,su2r[[iGreek+1]]] * ("\[Sigma]"^su2l[[iGreek+4]])[ans1[[5,1]],ans1[[5,2]],1,su2r[[iGreek+1]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[-2], i], su2l[[iGreek+1]]], su2l[[iGreek+2]]],su2l[[iGreek+3]]],su2l[[iGreek+4]]];
 iGreek+=5,
 
-_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]b}];
-ans=ans ("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[l\[Psi]-3,1]],ans1[[l\[Psi]-3,2]],2,Alphabet["English"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[ans1[[l\[Psi]-2,1]],ans1[[l\[Psi]-2,2]],1,Alphabet["English"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+2]])[ans1[[l\[Psi]-1,1]],ans1[[l\[Psi]-1,2]],2,Alphabet["English"][[iGreek+1]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+3]])[ans1[[l\[Psi],1]],ans1[[l\[Psi],2]],1,Alphabet["English"][[iGreek+1]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[-2], i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]],Alphabet["Greek"][[iGreek+2]]],Alphabet["Greek"][[iGreek+3]]];
+_,Do[ans=ans Subscript[Subscript[D, i], su2l[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]b}];
+ans=ans ("\[Sigma]"^su2l[[iGreek]])[ans1[[l\[Psi]-3,1]],ans1[[l\[Psi]-3,2]],2,su2r[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+1]])[ans1[[l\[Psi]-2,1]],ans1[[l\[Psi]-2,2]],1,su2r[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+2]])[ans1[[l\[Psi]-1,1]],ans1[[l\[Psi]-1,2]],2,su2r[[iGreek+1]]] * ("\[Sigma]"^su2l[[iGreek+3]])[ans1[[l\[Psi],1]],ans1[[l\[Psi],2]],1,su2r[[iGreek+1]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[-2], i], su2l[[iGreek]]], su2l[[iGreek+1]]],su2l[[iGreek+2]]],su2l[[iGreek+3]]];
 iGreek+=4
 ],
 -4,Switch[l\[Psi],
-0,ans=("\[Sigma]"^Alphabet["Greek"][[iGreek]])[2,Alphabet["Greek"][[iGreek]],ans2[[1,1]],ans2[[1,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[1,Alphabet["Greek"][[iGreek]],ans2[[2,1]],ans2[[2,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+2]])[2,Alphabet["Greek"][[iGreek+1]],ans2[[3,1]],ans2[[3,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+3]])[1,Alphabet["Greek"][[iGreek+1]],ans2[[4,1]],ans2[[4,2]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[2], i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]],Alphabet["Greek"][[iGreek+2]]],Alphabet["Greek"][[iGreek+3]]];
+0,ans=("\[Sigma]"^su2l[[iGreek]])[2,su2l[[iGreek]],ans2[[1,1]],ans2[[1,2]]] * ("\[Sigma]"^su2l[[iGreek+1]])[1,su2l[[iGreek]],ans2[[2,1]],ans2[[2,2]]] * ("\[Sigma]"^su2l[[iGreek+2]])[2,su2l[[iGreek+1]],ans2[[3,1]],ans2[[3,2]]] * ("\[Sigma]"^su2l[[iGreek+3]])[1,su2l[[iGreek+1]],ans2[[4,1]],ans2[[4,2]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[2], i], su2l[[iGreek]]], su2l[[iGreek+1]]],su2l[[iGreek+2]]],su2l[[iGreek+3]]];
 iGreek+=4,
-1,ans=("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]]] * Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[2,Alphabet["Greek"][[iGreek]],ans2[[2,1]],ans2[[2,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+2]])[1,Alphabet["Greek"][[iGreek]],ans2[[3,1]],ans2[[3,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+3]])[2,Alphabet["Greek"][[iGreek+1]],ans2[[4,1]],ans2[[4,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+4]])[1,Alphabet["Greek"][[iGreek+1]],ans2[[5,1]],ans2[[5,2]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[2], i], Alphabet["Greek"][[iGreek+1]]], Alphabet["Greek"][[iGreek+2]]],Alphabet["Greek"][[iGreek+3]]],Alphabet["Greek"][[iGreek+4]]];
+1,ans=("\[Sigma]"^su2l[[iGreek]])[ans1[[1]],ans1[[2]],ans2[[1,1]],ans2[[1,2]]] * Subscript[Subscript[D, i], su2l[[iGreek]]] * ("\[Sigma]"^su2l[[iGreek+1]])[2,su2l[[iGreek]],ans2[[2,1]],ans2[[2,2]]] * ("\[Sigma]"^su2l[[iGreek+2]])[1,su2l[[iGreek]],ans2[[3,1]],ans2[[3,2]]] * ("\[Sigma]"^su2l[[iGreek+3]])[2,su2l[[iGreek+1]],ans2[[4,1]],ans2[[4,2]]] * ("\[Sigma]"^su2l[[iGreek+4]])[1,su2l[[iGreek+1]],ans2[[5,1]],ans2[[5,2]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[2], i], su2l[[iGreek+1]]], su2l[[iGreek+2]]],su2l[[iGreek+3]]],su2l[[iGreek+4]]];
 iGreek+=5,
-_,Do[ans=ans Subscript[Subscript[D, i], Alphabet["Greek"][[iGreek]]]("\[Sigma]"^Alphabet["Greek"][[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];
-ans=ans ("\[Sigma]"^Alphabet["Greek"][[iGreek]])[2,Alphabet["Greek"][[iGreek]],ans2[[l\[Psi]b-3,1]],ans2[[l\[Psi]b-3,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+1]])[1,Alphabet["Greek"][[iGreek]],ans2[[l\[Psi]b-2,1]],ans2[[l\[Psi]b-2,2]]] *  ("\[Sigma]"^Alphabet["Greek"][[iGreek+2]])[2,Alphabet["Greek"][[iGreek+1]],ans2[[l\[Psi]b-1,1]],ans2[[l\[Psi]b-1,2]]] * ("\[Sigma]"^Alphabet["Greek"][[iGreek+3]])[1,Alphabet["Greek"][[iGreek+1]],ans2[[l\[Psi]b,1]],ans2[[l\[Psi]b,2]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[2], i], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]],Alphabet["Greek"][[iGreek+2]]],Alphabet["Greek"][[iGreek+3]]];
+_,Do[ans=ans Subscript[Subscript[D, i], su2l[[iGreek]]]("\[Sigma]"^su2l[[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];
+ans=ans ("\[Sigma]"^su2l[[iGreek]])[2,su2l[[iGreek]],ans2[[l\[Psi]b-3,1]],ans2[[l\[Psi]b-3,2]]] * ("\[Sigma]"^su2l[[iGreek+1]])[1,su2l[[iGreek]],ans2[[l\[Psi]b-2,1]],ans2[[l\[Psi]b-2,2]]] *  ("\[Sigma]"^su2l[[iGreek+2]])[2,su2l[[iGreek+1]],ans2[[l\[Psi]b-1,1]],ans2[[l\[Psi]b-1,2]]] * ("\[Sigma]"^su2l[[iGreek+3]])[1,su2l[[iGreek+1]],ans2[[l\[Psi]b,1]],ans2[[l\[Psi]b,2]]] * Subscript[Subscript[Subscript[Subscript[Subscript[h2f[2], i], su2l[[iGreek]]], su2l[[iGreek+1]]],su2l[[iGreek+2]]],su2l[[iGreek+3]]];
 iGreek+=4
 ],
 
@@ -159,7 +161,7 @@ Return[head]
 bar[sign_]:=If[sign===1,{},{"\[Sigma]"->"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"}];
 \[Sigma]2[a_,iGreek_]:={{Superscript["g",a[[1,1]] a[[2,1]]],-I},{1,"\[Sigma]"[a[[1,1]],a[[2,1]]]},{iGreek}}
 (* where \[Sigma]^\[Mu]\[Nu]=(i/2)[\[Gamma]^\[Mu],\[Gamma]^\[Nu]]~(i/2)(\[Sigma]^\[Mu]Overscript[\[Sigma], _]^\[Nu]-\[Sigma]^\[Nu]Overscript[\[Sigma], _]^\[Mu]) *)
-\[Sigma]3[a_,iGreek_,sign_:1]:=Module[{e=DeleteCases[Alphabet["Greek"],"\[Sigma]"][[iGreek]]},
+\[Sigma]3[a_,iGreek_,sign_:1]:=Module[{e=DeleteCases[su2l,"\[Sigma]"][[iGreek]]},
 {{Superscript["g",a[[1,1]] a[[2,1]]],-Superscript["g",a[[1,1]] a[[3,1]]],Superscript["g",a[[2,1]] a[[3,1]]],I sign Signature[{a[[1,1]],a[[2,1]],a[[3,1]],e}]Superscript["\[Epsilon]",a[[1,1]]a[[2,1]]a[[3,1]]e]},{"\[Sigma]"[a[[3,1]]],"\[Sigma]"[a[[2,1]]],"\[Sigma]"[a[[1,1]]],"\[Sigma]"[e]},{iGreek+1}}
 ]
 (* a is the \[Sigma] chain, such as {\[Sigma]^\[Mu],\[Sigma]^\[Nu],...}.iGreek determines the new \[Sigma] matrix's index. sign determines the first \[Sigma] in \[Sigma] chain is \[Sigma] or Overscript[\[Sigma], _],correspond to 1 and -1 *)
@@ -196,11 +198,13 @@ contract={MapThread[Superscript["g",i_ j_]#1:>#2/;Signature[{i,j}]>0&,{{Subscrip
 "\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[q1_,j_],q_],Subscript[Subscript[Subscript[Subscript[CL_, j_], a_],b_],c_],Subscript[Subscript[Subscript[Subscript[CL_, a_], j_],b_],c_],Subscript[Subscript[Subscript[Subscript[CL_, a_], b_],j_],c_],Subscript[Subscript[Subscript[Subscript[CL_, a_], b_],c_],j_]},{Subscript[Subscript[D, a], i],Subscript[Subscript[Subscript[h2f[-1], a], i], q],Subscript[Subscript[Subscript[h2f[-1], a], q], i],Subscript[Subscript[Subscript[h2f[1], a], i], q],Subscript[Subscript[Subscript[h2f[1], a], q], i],ch\[Psi][p,"\[Sigma]"[i],q],ch\[Psi][p,
 "\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[i],q],ch\[Psi][p,"\[Sigma]"[i,q1],q],ch\[Psi][p,
 "\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[i,q1],q],ch\[Psi][p,"\[Sigma]"[q1,i],q],ch\[Psi][p,
-"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[q1,i],q],Subscript[Subscript[Subscript[Subscript[CL, i], a],b],c],Subscript[Subscript[Subscript[Subscript[CL, a], i],b],c],Subscript[Subscript[Subscript[Subscript[CL, a], b],i],c],Subscript[Subscript[Subscript[Subscript[CL, a], b],c],i]}}],Superscript["g",i_ j_]Superscript["\[Epsilon]",j_ k_ l_ m_]:>Signature[{i,k,l,m}] Signature[{j,k,l,m}] Superscript["\[Epsilon]",i k l m],Subscript[Subscript[Subscript[h2f[-1], k_], i_], j_]Superscript["\[Epsilon]",i_ j_ a_ b_]:>2I Subscript[Subscript[Subscript[h2f[-1], k], a], b]Signature[{i,j,a,b}],Subscript[Subscript[Subscript[h2f[1], k_], i_], j_]Superscript["\[Epsilon]",i_ j_ a_ b_]:>-2I Subscript[Subscript[Subscript[h2f[1], k], a], b]Signature[{i,j,a,b}],Superscript["\[Epsilon]",i1_ j1_ k1_ l1_]Superscript["\[Epsilon]",i2_ j2_ k2_ l2_]:>epsilon2[{i1,j1,k1,l1},{i2,j2,k2,l2}],Superscript["g",i_ j_]Superscript["g",i_ k_]:>Superscript["g",j k],Superscript["g",i_ i_]:>4,Superscript["g",i_ j_]Superscript["g",i_ j_]:>4}//Flatten;(* let Subscript[F, label] or Subscript[Overscript[F, _], label] absorb redundant epsilon *)Ftilde[iGreek_]:={Subscript[Subscript[Subscript[h2f[-1], label_], i_], j_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>-I/2 Subscript[Subscript[Subscript[h2f[-1], label], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]]epsilon2[{i,j,Alphabet["Greek"][[iGreek]],Alphabet["Greek"][[iGreek+1]]},{a,b,c,d}],Subscript[Subscript[Subscript[h2f[1], label_], i_], j_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>I/2 Subscript[Subscript[Subscript[h2f[1], label], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]]epsilon2[{i,j,Alphabet["Greek"][[iGreek]],Alphabet["Greek"][[iGreek+1]]},{a,b,c,d}],
-(*spin2*)Subscript[Subscript[Subscript[Subscript[Subscript[h2f[-2], label_], i_], j_],k_],l_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>-I/2 Subscript[Subscript[Subscript[Subscript[Subscript[h2f[-2], label], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]],k],l]epsilon2[{i,j,Alphabet["Greek"][[iGreek]],Alphabet["Greek"][[iGreek+1]]},{a,b,c,d}],Subscript[Subscript[Subscript[Subscript[Subscript[h2f[2], label_], i_], j_],k_],l_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>I/2 Subscript[Subscript[Subscript[Subscript[Subscript[h2f[2], label], Alphabet["Greek"][[iGreek]]], Alphabet["Greek"][[iGreek+1]]],k],l]epsilon2[{i,j,Alphabet["Greek"][[iGreek]],Alphabet["Greek"][[iGreek+1]]},{a,b,c,d}]};
+"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[q1,i],q],Subscript[Subscript[Subscript[Subscript[CL, i], a],b],c],Subscript[Subscript[Subscript[Subscript[CL, a], i],b],c],Subscript[Subscript[Subscript[Subscript[CL, a], b],i],c],Subscript[Subscript[Subscript[Subscript[CL, a], b],c],i]}}],Superscript["g",i_ j_]Superscript["\[Epsilon]",j_ k_ l_ m_]:>Signature[{i,k,l,m}] Signature[{j,k,l,m}] Superscript["\[Epsilon]",i k l m],Subscript[Subscript[Subscript[h2f[-1], k_], i_], j_]Superscript["\[Epsilon]",i_ j_ a_ b_]:>2I Subscript[Subscript[Subscript[h2f[-1], k], a], b]Signature[{i,j,a,b}],Subscript[Subscript[Subscript[h2f[1], k_], i_], j_]Superscript["\[Epsilon]",i_ j_ a_ b_]:>-2I Subscript[Subscript[Subscript[h2f[1], k], a], b]Signature[{i,j,a,b}],Superscript["\[Epsilon]",i1_ j1_ k1_ l1_]Superscript["\[Epsilon]",i2_ j2_ k2_ l2_]:>epsilon2[{i1,j1,k1,l1},{i2,j2,k2,l2}],Superscript["g",i_ j_]Superscript["g",i_ k_]:>Superscript["g",j k],Superscript["g",i_ i_]:>4,Superscript["g",i_ j_]Superscript["g",i_ j_]:>4}//Flatten;(* let Subscript[F, label] or Subscript[Overscript[F, _], label] absorb redundant epsilon *)Ftilde[iGreek_]:={Subscript[Subscript[Subscript[h2f[-1], label_], i_], j_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>-I/2 Subscript[Subscript[Subscript[h2f[-1], label], su2l[[iGreek]]], su2l[[iGreek+1]]]epsilon2[{i,j,su2l[[iGreek]],su2l[[iGreek+1]]},{a,b,c,d}],Subscript[Subscript[Subscript[h2f[1], label_], i_], j_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>I/2 Subscript[Subscript[Subscript[h2f[1], label], su2l[[iGreek]]], su2l[[iGreek+1]]]epsilon2[{i,j,su2l[[iGreek]],su2l[[iGreek+1]]},{a,b,c,d}],
+(*spin2*)Subscript[Subscript[Subscript[Subscript[Subscript[h2f[-2], label_], i_], j_],k_],l_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>-I/2 Subscript[Subscript[Subscript[Subscript[Subscript[h2f[-2], label], su2l[[iGreek]]], su2l[[iGreek+1]]],k],l]epsilon2[{i,j,su2l[[iGreek]],su2l[[iGreek+1]]},{a,b,c,d}],Subscript[Subscript[Subscript[Subscript[Subscript[h2f[2], label_], i_], j_],k_],l_]Superscript["\[Epsilon]",a_ b_ c_ d_]:>I/2 Subscript[Subscript[Subscript[Subscript[Subscript[h2f[2], label], su2l[[iGreek]]], su2l[[iGreek+1]]],k],l]epsilon2[{i,j,su2l[[iGreek]],su2l[[iGreek+1]]},{a,b,c,d}]};
 (* redefine the index *)
 beforeform={Subscript[Subscript[D, i_], j_]:>Subscript[D, i][j],Subscript[D, i_][j_]^2:>0,Subscript[D, i_][j_]ch\[Psi][q_,"\[Sigma]"[j_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[j_],Subscript[f_, i_]]:>0,Subscript[D, i_][j_]ch\[Psi][Subscript[f_, i_],"\[Sigma]"[j_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[j_],q_]:>0,Subscript[D, i_][\[Nu]_]ch\[Psi][q_,"\[Sigma]"[\[Mu]_,\[Nu]_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[\[Mu]_,\[Nu]_],Subscript[f_, i_]]:>-I Subscript[D, i][\[Mu]] ch\[Psi][q,1,Subscript[f, i]],Subscript[D, i_][\[Mu]_]ch\[Psi][q_,"\[Sigma]"[\[Mu]_,\[Nu]_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[\[Mu]_,\[Nu]_],Subscript[f_, i_]]:>I Subscript[D, i][\[Nu]] ch\[Psi][q,1,Subscript[f, i]],Subscript[D, i_][\[Mu]_]ch\[Psi][Subscript[q_, i_],"\[Sigma]"[\[Mu]_,\[Nu]_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[\[Mu]_,\[Nu]_],f_]:>-I Subscript[D, i][\[Nu]] ch\[Psi][Subscript[q, i],1,f],Subscript[D, i_][\[Nu]_]ch\[Psi][Subscript[q_, i_],"\[Sigma]"[\[Mu]_,\[Nu]_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[\[Mu]_,\[Nu]_],f_]:>I Subscript[D, i][\[Mu]] ch\[Psi][Subscript[q, i],1,f],Subscript[Subscript[Subscript[h2f[-1], i_], j_], k_]:>Subscript[h2f[-1], i][j,k],(Subscript[h2f[-1], i_][j_,j_]|Subscript[h2f[1], i_][j_,j_]):>0,Subscript[Subscript[Subscript[h2f[1], i_], j_], k_]:>Subscript[h2f[1], i][j,k],Subscript[h2f[-1], i_][\[Mu]_,\[Nu]_](Subscript[h2f[1], j_][\[Mu]_,\[Nu]_]|Subscript[h2f[1], j_][\[Nu]_,\[Mu]_]):>0,Subscript[D, i_][j_](Subscript[h2f[-1], i_][j_,k_]|Subscript[h2f[1], i_][j_,k_]|Subscript[h2f[-1], i_][k_,j_]|Subscript[h2f[1], i_][k_,j_]):>0,Superscript["\[Epsilon]",i_ j_ k_ l_]:>"\[Epsilon]"[i,j,k,l],
-(* spin2 *)Subscript[Subscript[Subscript[Subscript[CL_,i_], j_], k_],l_]:>CL[i,j,k,l],(CL_[i_,i_,j_,k_]|CL_[i_,j_,i_,k_]|CL_[i_,j_,k_,i_]|CL_[i_,j_,j_,k_]|CL_[i_,j_,k_,j_]|CL_[i_,j_,k_,k_]):>0,(Subscript[h2f[-2], i_][\[Mu]_,\[Nu]_,\[Lambda]_,\[Rho]_]|Subscript[h2f[-2], i_][\[Lambda]_,\[Rho]_,\[Mu]_,\[Nu]_])(Subscript[h2f[2], j_][\[Mu]_,\[Nu]_,\[Sigma]_,\[Delta]_]|Subscript[h2f[2], j_][\[Nu]_,\[Mu]_,\[Sigma]_,\[Delta]_]|Subscript[h2f[2], j_][\[Sigma]_,\[Delta]_,\[Mu]_,\[Nu]_]|Subscript[h2f[2], j_][\[Sigma]_,\[Delta]_,\[Nu]_,\[Mu]_]):>0};
+(* spin2 *)Subscript[Subscript[Subscript[Subscript[CL_,i_], j_], k_],l_]:>CL[i,j,k,l],(CL_[i_,i_,j_,k_]|CL_[i_,j_,i_,k_]|CL_[i_,j_,k_,i_]|CL_[i_,j_,j_,k_]|CL_[i_,j_,k_,j_]|CL_[i_,j_,k_,k_]):>0,
+Subscript[h2f[-1], i_][\[Mu]_,\[Nu]_](Subscript[h2f[2], j_][\[Mu]_,\[Nu]_,\[Sigma]_,\[Delta]_]|Subscript[h2f[2], j_][\[Nu]_,\[Mu]_,\[Sigma]_,\[Delta]_]|Subscript[h2f[2], j_][\[Sigma]_,\[Delta]_,\[Mu]_,\[Nu]_]|Subscript[h2f[2], j_][\[Sigma]_,\[Delta]_,\[Nu]_,\[Mu]_]):>0,
+Subscript[h2f[1], i_][\[Mu]_,\[Nu]_](Subscript[h2f[-2], j_][\[Mu]_,\[Nu]_,\[Sigma]_,\[Delta]_]|Subscript[h2f[-2], j_][\[Nu]_,\[Mu]_,\[Sigma]_,\[Delta]_]|Subscript[h2f[-2], j_][\[Sigma]_,\[Delta]_,\[Mu]_,\[Nu]_]|Subscript[h2f[-2], j_][\[Sigma]_,\[Delta]_,\[Nu]_,\[Mu]_]):>0,(Subscript[h2f[-2], i_][\[Mu]_,\[Nu]_,\[Lambda]_,\[Rho]_]|Subscript[h2f[-2], i_][\[Lambda]_,\[Rho]_,\[Mu]_,\[Nu]_])(Subscript[h2f[2], j_][\[Mu]_,\[Nu]_,\[Sigma]_,\[Delta]_]|Subscript[h2f[2], j_][\[Nu]_,\[Mu]_,\[Sigma]_,\[Delta]_]|Subscript[h2f[2], j_][\[Sigma]_,\[Delta]_,\[Mu]_,\[Nu]_]|Subscript[h2f[2], j_][\[Sigma]_,\[Delta]_,\[Nu]_,\[Mu]_]):>0};
 (* distribute all D to each field *)
 Dcontract1={MapThread[MapThread[{Subscript[Subscript[D, i_], j_]#1:>#2,Superscript[Subscript[D, i_],j_]#1:>#3}&,{{#1,ch[p__,#1]},{ch[Subscript[D, j],#2],ch[p,Subscript[D, j],#2]},{ch[Superscript[D,j],#2],ch[p,Superscript[D,j],#2]}}]&,{{Subscript[h2f[0], i_],Subscript[h2f[-1], i_][q__],Subscript[h2f[1], i_][q__],Subscript[h2f[-2], i_][q__],Subscript[h2f[2], i_][q__]},{Subscript[h2f[0], i],Subscript[h2f[-1], i][q],Subscript[h2f[1], i][q],Subscript[h2f[-2], i][q],Subscript[h2f[2], i][q]}}]}//Flatten;
 Dcontract2={MapThread[MapThread[{Subscript[Subscript[D, i_], j_] #1:>#2,Superscript[Subscript[D, i_],j_] #1:>#3}&,{{ch\[Psi][#1,q__],ch\[Psi][ch[p__,#1],q__]},{ch\[Psi][ch[Subscript[D, j],#2],q],ch\[Psi][ch[p,Subscript[D, j],#2],q]},{ch\[Psi][ch[Superscript[D,j],#2],q],ch\[Psi][ch[p,Superscript[D,j],#2],q]}}]&,{{Subscript[h2f[-1/2], i_],Subscript[h2f[1/2], i_]},{Subscript[h2f[-1/2], i],Subscript[h2f[1/2], i]}}],MapThread[MapThread[{Subscript[Subscript[D, i_], j_] #1:>#2,Superscript[Subscript[D, i_],j_] #1:>#3}&,{{ch\[Psi][q__,#1],ch\[Psi][q__,ch[p__,#1]]},{ch\[Psi][q,ch[Subscript[D, j],#2]],ch\[Psi][q,ch[p,Subscript[D, j],#2]]},{ch\[Psi][q,ch[Superscript[D,j],#2]],ch\[Psi][q,ch[p,Superscript[D,j],#2]]}}]&,{{Subscript[h2f[-1/2], i_],Subscript[h2f[1/2], i_]},{Subscript[h2f[-1/2], i],Subscript[h2f[1/2], i]}}]}//Flatten;
@@ -208,7 +212,6 @@ Dcontract2={MapThread[MapThread[{Subscript[Subscript[D, i_], j_] #1:>#2,Superscr
 (* define the antisym tensor and vector *)
 antisym[a_]:={a\[Element]Matrices[{4,4},Reals,Antisymmetric[{1,2}]]};Csym[a_]:={a\[Element]Arrays[{4,4,4,4},Reals,{Antisymmetric[{1,2}],Antisymmetric[{3,4}],{Cycles[{{1,3},{2,4}}],1}}]};
 sym[v_]:={v\[Element]Arrays[{4}]};
-
 
 
 (* ::Input::Initialization:: *)
@@ -534,33 +537,33 @@ SetAttributes[{antichange}, HoldAll];
 antichange[PartofAmp_,Greek_]:=Module[{spinor,particle},
 Switch[PartofAmp,
 Subscript[D, _][_],particle=PartofAmp[[0,2]];
-spinor=-I/2*Subscript[h2f[-1/2], particle][1,Alphabet["Greek"][[Greek]]]Subscript[h2f[1/2], particle][1,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]];Greek++,
+spinor=-I/2*Subscript[h2f[-1/2], particle][1,su2l[[Greek]]]Subscript[h2f[1/2], particle][1,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[1]]][2,su2l[[Greek]],2,su2r[[Greek]]];Greek++,
 
 Subscript[h2f[-1], _][__],particle=PartofAmp[[0,2]];
-spinor=1/4*Subscript[h2f[-1/2], particle][1,Alphabet["Greek"][[Greek]]]Subscript[h2f[-1/2], particle][1,Alphabet["Greek"][[Greek+1]]]"\[Sigma]"[PartofAmp[[2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[4]]][2,Alphabet["Greek"][[Greek+1]],1,Alphabet[][[Greek]]];Greek+=2,
+spinor=1/4*Subscript[h2f[-1/2], particle][1,su2l[[Greek]]]Subscript[h2f[-1/2], particle][1,su2l[[Greek+1]]]"\[Sigma]"[PartofAmp[[2]]][2,su2l[[Greek]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[4]]][2,su2l[[Greek+1]],1,su2r[[Greek]]];Greek+=2,
 
-Subscript[h2f[1], _][__],particle=PartofAmp[[0,2]];spinor=1/4*Subscript[h2f[1/2], particle][1,Alphabet[][[Greek]]]Subscript[h2f[1/2], particle][1,Alphabet[][[Greek+1]]]"\[Sigma]"[PartofAmp[[2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[4]]][1,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek+1]]];Greek+=2,
+Subscript[h2f[1], _][__],particle=PartofAmp[[0,2]];spinor=1/4*Subscript[h2f[1/2], particle][1,su2r[[Greek]]]Subscript[h2f[1/2], particle][1,su2r[[Greek+1]]]"\[Sigma]"[PartofAmp[[2]]][2,su2l[[Greek]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[4]]][1,su2l[[Greek]],2,su2r[[Greek+1]]];Greek+=2,
 
 (******* spin2 begin ********)
 Subscript[h2f[-2], _][__],particle=PartofAmp[[0,2]];
-spinor=1/16*Subscript[h2f[-1/2], particle][1,Alphabet["Greek"][[Greek]]]Subscript[h2f[-1/2], particle][1,Alphabet["Greek"][[Greek+1]]]"\[Sigma]"[PartofAmp[[2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[4]]][2,Alphabet["Greek"][[Greek+1]],1,Alphabet[][[Greek]]]Subscript[h2f[-1/2], particle][1,Alphabet["Greek"][[Greek+2]]]Subscript[h2f[-1/2], particle][1,Alphabet["Greek"][[Greek+3]]]"\[Sigma]"[PartofAmp[[6]]][2,Alphabet["Greek"][[Greek+2]],2,Alphabet[][[Greek+1]]]"\[Sigma]"[PartofAmp[[8]]][2,Alphabet["Greek"][[Greek+3]],1,Alphabet[][[Greek+1]]];Greek+=4,
+spinor=1/16*Subscript[h2f[-1/2], particle][1,su2l[[Greek]]]Subscript[h2f[-1/2], particle][1,su2l[[Greek+1]]]"\[Sigma]"[PartofAmp[[2]]][2,su2l[[Greek]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[4]]][2,su2l[[Greek+1]],1,su2r[[Greek]]]Subscript[h2f[-1/2], particle][1,su2l[[Greek+2]]]Subscript[h2f[-1/2], particle][1,su2l[[Greek+3]]]"\[Sigma]"[PartofAmp[[6]]][2,su2l[[Greek+2]],2,su2r[[Greek+1]]]"\[Sigma]"[PartofAmp[[8]]][2,su2l[[Greek+3]],1,su2r[[Greek+1]]];Greek+=4,
 
-Subscript[h2f[2], _][__],particle=PartofAmp[[0,2]];spinor=1/16*Subscript[h2f[1/2], particle][1,Alphabet[][[Greek]]]Subscript[h2f[1/2], particle][1,Alphabet[][[Greek+1]]]"\[Sigma]"[PartofAmp[[2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[4]]][1,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek+1]]]Subscript[h2f[1/2], particle][1,Alphabet[][[Greek+2]]]Subscript[h2f[1/2], particle][1,Alphabet[][[Greek+3]]]"\[Sigma]"[PartofAmp[[6]]][2,Alphabet["Greek"][[Greek+2]],2,Alphabet[][[Greek+2]]]"\[Sigma]"[PartofAmp[[8]]][1,Alphabet["Greek"][[Greek+2]],2,Alphabet[][[Greek+3]]];Greek+=4,
+Subscript[h2f[2], _][__],particle=PartofAmp[[0,2]];spinor=1/16*Subscript[h2f[1/2], particle][1,su2r[[Greek]]]Subscript[h2f[1/2], particle][1,su2r[[Greek+1]]]"\[Sigma]"[PartofAmp[[2]]][2,su2l[[Greek]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[4]]][1,su2l[[Greek]],2,su2r[[Greek+1]]]Subscript[h2f[1/2], particle][1,su2r[[Greek+2]]]Subscript[h2f[1/2], particle][1,su2r[[Greek+3]]]"\[Sigma]"[PartofAmp[[6]]][2,su2l[[Greek+2]],2,su2r[[Greek+2]]]"\[Sigma]"[PartofAmp[[8]]][1,su2l[[Greek+2]],2,su2r[[Greek+3]]];Greek+=4,
 (******* spin2 over **********)
 
-ch\[Psi][Subscript[h2f[-1/2], _],1,Subscript[h2f[-1/2], _]],spinor=PartofAmp[[1]][2,Alphabet["Greek"][[Greek]]]PartofAmp[[3]][1,Alphabet["Greek"][[Greek]]];Greek++,
+ch\[Psi][Subscript[h2f[-1/2], _],1,Subscript[h2f[-1/2], _]],spinor=PartofAmp[[1]][2,su2l[[Greek]]]PartofAmp[[3]][1,su2l[[Greek]]];Greek++,
 
-ch\[Psi][Subscript[h2f[1/2], _],1,Subscript[h2f[1/2], _]],spinor=PartofAmp[[1]][1,Alphabet[][[Greek]]]PartofAmp[[3]][2,Alphabet[][[Greek]]];Greek++,
+ch\[Psi][Subscript[h2f[1/2], _],1,Subscript[h2f[1/2], _]],spinor=PartofAmp[[1]][1,su2r[[Greek]]]PartofAmp[[3]][2,su2r[[Greek]]];Greek++,
 
-ch\[Psi][Subscript[h2f[-1/2], _],"\[Sigma]"[_]|"\[Gamma]"[_],Subscript[h2f[1/2], _]],spinor=PartofAmp[[1]][2,Alphabet["Greek"][[Greek]]]"\[Sigma]"[PartofAmp[[2,1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]PartofAmp[[3]][2,Alphabet[][[Greek]]];Greek++,
+ch\[Psi][Subscript[h2f[-1/2], _],"\[Sigma]"[_]|"\[Gamma]"[_],Subscript[h2f[1/2], _]],spinor=PartofAmp[[1]][2,su2l[[Greek]]]"\[Sigma]"[PartofAmp[[2,1]]][1,su2l[[Greek]],1,su2r[[Greek]]]PartofAmp[[3]][2,su2r[[Greek]]];Greek++,
 
-ch\[Psi][Subscript[h2f[1/2], _],"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[_]|"\[Gamma]"[_],Subscript[h2f[-1/2], _]],spinor=PartofAmp[[1]][1,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[2,1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]PartofAmp[[3]][1,Alphabet["Greek"][[Greek]]];Greek++,
+ch\[Psi][Subscript[h2f[1/2], _],"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[_]|"\[Gamma]"[_],Subscript[h2f[-1/2], _]],spinor=PartofAmp[[1]][1,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2,1]]][2,su2l[[Greek]],2,su2r[[Greek]]]PartofAmp[[3]][1,su2l[[Greek]]];Greek++,
 
-ch\[Psi][Subscript[h2f[-1/2], _],"\[Sigma]"[__],Subscript[h2f[-1/2], _]],spinor=I/2*PartofAmp[[1]][2,Alphabet["Greek"][[Greek]]]("\[Sigma]"[PartofAmp[[2,1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[2,2]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek]]]-"\[Sigma]"[PartofAmp[[2,2]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[2,1]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek]]])PartofAmp[[3]][1,Alphabet["Greek"][[Greek+1]]];Greek+=2,
+ch\[Psi][Subscript[h2f[-1/2], _],"\[Sigma]"[__],Subscript[h2f[-1/2], _]],spinor=I/2*PartofAmp[[1]][2,su2l[[Greek]]]("\[Sigma]"[PartofAmp[[2,1]]][1,su2l[[Greek]],1,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2,2]]][2,su2l[[Greek+1]],2,su2r[[Greek]]]-"\[Sigma]"[PartofAmp[[2,2]]][1,su2l[[Greek]],1,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2,1]]][2,su2l[[Greek+1]],2,su2r[[Greek]]])PartofAmp[[3]][1,su2l[[Greek+1]]];Greek+=2,
 
-ch\[Psi][Subscript[h2f[1/2], _],"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[__],Subscript[h2f[1/2], _]],spinor=I/2*PartofAmp[[1]][1,Alphabet[][[Greek]]]("\[Sigma]"[PartofAmp[[2,1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[2,2]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek+1]]]-"\[Sigma]"[PartofAmp[[2,2]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[2,1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek+1]]])PartofAmp[[3]][2,Alphabet[][[Greek+1]]];Greek+=2,
+ch\[Psi][Subscript[h2f[1/2], _],"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[__],Subscript[h2f[1/2], _]],spinor=I/2*PartofAmp[[1]][1,su2r[[Greek]]]("\[Sigma]"[PartofAmp[[2,1]]][2,su2l[[Greek]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2,2]]][1,su2l[[Greek]],1,su2r[[Greek+1]]]-"\[Sigma]"[PartofAmp[[2,2]]][2,su2l[[Greek]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2,1]]][1,su2l[[Greek]],1,su2r[[Greek+1]]])PartofAmp[[3]][2,su2r[[Greek+1]]];Greek+=2,
 
-"\[Epsilon]"[__],spinor=I/4("\[Sigma]"[PartofAmp[[1]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[2]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek+1]]]"\[Sigma]"[PartofAmp[[3]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek+1]]]"\[Sigma]"[PartofAmp[[4]]][1,Alphabet["Greek"][[Greek+1]],1,Alphabet[][[Greek]]]-"\[Sigma]"[PartofAmp[[1]]][1,Alphabet["Greek"][[Greek]],1,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[2]]][2,Alphabet["Greek"][[Greek+1]],2,Alphabet[][[Greek]]]"\[Sigma]"[PartofAmp[[3]]][1,Alphabet["Greek"][[Greek+1]],1,Alphabet[][[Greek+1]]]"\[Sigma]"[PartofAmp[[4]]][2,Alphabet["Greek"][[Greek]],2,Alphabet[][[Greek+1]]]);Greek+=2,
+"\[Epsilon]"[__],spinor=I/4("\[Sigma]"[PartofAmp[[1]]][2,su2l[[Greek]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2]]][1,su2l[[Greek]],1,su2r[[Greek+1]]]"\[Sigma]"[PartofAmp[[3]]][2,su2l[[Greek+1]],2,su2r[[Greek+1]]]"\[Sigma]"[PartofAmp[[4]]][1,su2l[[Greek+1]],1,su2r[[Greek]]]-"\[Sigma]"[PartofAmp[[1]]][1,su2l[[Greek]],1,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2]]][2,su2l[[Greek+1]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[3]]][1,su2l[[Greek+1]],1,su2r[[Greek+1]]]"\[Sigma]"[PartofAmp[[4]]][2,su2l[[Greek]],2,su2r[[Greek+1]]]);Greek+=2,
 
 Subscript[h2f[0], _],spinor=1,
 
