@@ -116,7 +116,7 @@ GenerateOperatorList::usage="GenerateOperatorList[model,dim] enumerates all the 
 (* ::Input::Initialization:: *)
 permutationBasis="left"; (* or "right" *)
 groupList={};
-h2f=<|-1->FL,-1/2->\[Psi],0->\[Phi],1/2->OverBar[\[Psi]],1->FR|>;
+h2f=<|-2->CL,-1->FL,-1/2->\[Psi],0->\[Phi],1/2->OverBar[\[Psi]],1->FR,2->CR|>;
 LorentzIndex={"\[Mu]","\[Nu]","\[Lambda]","\[Rho]","\[Sigma]","\[Eta]","\[Xi]","\[Upsilon]"};
 FLAVOR={"p","r","s","t","u","v"};
 
@@ -163,7 +163,7 @@ CheckGroup::ndef="Group `1` not defined.";
 (* Names for Abstract Fields *)
 state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
 
-Fields[model_]:=Keys@Select[model,MatchQ[#,_Association]&]
+Fields[model_]:=DeleteCases[Keys@Select[model,MatchQ[#,_Association]&],"rep2ind"|"rep2indOut"]
 SetSimplificationRule[model_]:=Module[{group,indexset=Catenate@model["rep2indOut"]},
 Unprotect[Times];Clear[Times];
 Do[group=CheckGroup[model,groupname];Check[tSimp[group]/.{INDEXSET->indexset}//ReleaseHold,"simplification rule for "<>ToString[groupname]<>" not found"],{groupname,model["Gauge"]}];
@@ -506,6 +506,24 @@ Print["Dim ",dim,": ",Length[Catenate@#2]," types in all, time used ",#1]&@@Last
 Return[types[[All,2]]];
 ]
 GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
+
+
+(* ::Input::Initialization:: *)
+GaugeJoin[model_,particles_]:=Module[{groups=CheckGroup/@model["Gauge"],reps,result},
+reps=(model[#]/@model["Gauge"])&/@particles;
+result=MapThread[Switch[#1,{},{{Total[#2],1}},{__List},ReduceRepProduct[#1,#2]]&,{groups,reps\[Transpose]}];
+{#[[All,1]],Times@@#[[All,2]]}&/@Distribute[result,List]
+]
+GatherPairGauge[model_]:=Module[{particlePairs,pairGauge,allPairGauge,pairs,result=<||>},
+particlePairs=DeleteDuplicates[Tuples[Fields[model],2],Sort[#1]==Sort[Conj/@#2]||Sort[#1]==Sort[#2]&];
+pairGauge=AssociationMap[GaugeJoin[Model,#]&,particlePairs];
+allPairGauge=DeleteDuplicates[Catenate[pairGauge][[All,1]]];
+Do[pairs=Position[pairGauge,{rep,_}][[All,1,1]];
+If[MemberQ[Keys[result],RepConj/@rep],result[RepConj/@rep]=result[RepConj/@rep]~Join~Map[Conj,pairs,{2}],
+AssociateTo[result,rep->pairs]
+],{rep,allPairGauge}];
+result
+]
 
 
 (* ::Input::Initialization:: *)
