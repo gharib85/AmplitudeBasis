@@ -66,11 +66,7 @@ reduce[Num_]:=reduce[#,Num]&
 
 
 (* ::Input::Initialization:: *)
-kmin[input_,mode_:"hlist"]:=Module[{state,hp,hn},
-Switch[mode,
-"hlist",state=input,
-"Nh",state=Join@@MapThread[ConstantArray,{{-1,-1/2,0,1/2,1},input}]
-];
+kmin[state_]:=Module[{hp,hn},
 hp=Total@Select[state,Positive];
 hn=Total@Select[state,Negative];
 Return[Max[{Mod[2hp,2],4Max[state]-2hp,2hn-4Min[state]}]];
@@ -140,7 +136,7 @@ N0sol=Solve[Total[Numh]==Num/.sol,Subscript[num, 0],NonNegativeIntegers];
 If[Length[N0sol]==1&&kmin[Join@@MapThread[ConstantArray,{hlist,Nh/.N0sol[[1]]}]]<=k,AppendTo[Nhlist,{Nh/.N0sol[[1]],k}]],
 If[Total[Numh]==Num/.sol,AppendTo[Nhlist,{Numh/.sol,k}]]
 ],{sol,Nhsol}];
-(*Do[Nh={i,2 n-k-2 i,3N+2k-2dim+i+j,2 nt-k-2 j,j};If[Nh[[3]]<0||kmin[Nh,"Nh"]>k,Continue[],AppendTo[Nhlist,{Nh,k}]],{i,0,Floor[n-k/2]},{j,0,Floor[nt-k/2]}];*)
+
 If[n+nt+3==dim,Break[]]
 ],{Num,3,dim},{nt,0,Floor[(dim-Num)/2]}];
 

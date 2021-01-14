@@ -126,7 +126,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Get/@Global`$CodeFiles;
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Input*)
 
 
@@ -196,11 +196,12 @@ AddGroup::profile="Profile for group `1` not found.";
 
 (* Adding New Field to a Model *)
 AddField::overh="helicity of `1` is neither integer nor half-integer.";
-Options[AddField]={Flavor->1,Hermitian->False,Chirality->{}};
-AddField[model_,field_String,hel_,Greps_List,Globalreps_List,OptionsPattern[]]:=Module[{attribute=<||>,flavor=OptionValue[Flavor],NAgroups,shape},
+Options[AddField]={Flavor->1,Dim->"default",Hermitian->False,Chirality->{}};
+AddField[model_,field_String,hel_,Greps_List,Globalreps_List,OptionsPattern[]]:=Module[{attribute=<||>,flavor=OptionValue[Flavor],NAgroups,shape,dim=OptionValue[Dim]},
 If[IntegerQ[2hel],AppendTo[attribute,"helicity"->hel],Message[AddField::overh,field]];
 AssociateTo[attribute,Thread[model["Gauge"]->Greps]];
 AssociateTo[attribute,Thread[model["Global"]->Globalreps]];
+AssociateTo[attribute,"dim"->If[NumericQ[dim],dim,1+Abs[hel]]];
 Switch[flavor,
 _Integer|_Symbol,AssociateTo[attribute,{"nfl"->flavor,"indfl"->FLAVOR}],
 _List,AssociateTo[attribute,{"nfl"->flavor[[1]],"indfl"->flavor[[2]]}]];
