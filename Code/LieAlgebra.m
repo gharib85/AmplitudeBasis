@@ -110,8 +110,7 @@ If[lYTlist==2,AppendTo[fytl,#]&/@conlist;Return[]];
 Do[
 tYTlist=YTlist[[3;;-1]];
 PrependTo[tYTlist,conlist[[i]]];
-LRTableaux[fytl,tYTlist,path[[2;;-1]],n],{i,1,Length[conlist]}
-]
+LRTableaux[fytl,tYTlist,path[[2;;-1]],n],{i,1,Length[conlist]}]
 ]
 SetAttributes[LRTableaux,HoldFirst]
 
@@ -125,7 +124,9 @@ Drop[(tydlist[[#]]+nl[[#]])&/@Range[1,Length[tydlist]]/.{0->Nothing},1]]
 dummyFund[fundIndex_]:=ToExpression[StringJoin@@ConstantArray[ToString[fundIndex],2]]
 
 GenerateTYT[numIP_,baserep_,fnamenum_,index_,group_]:=GenerateTYT[numIP,baserep,fnamenum,index,group]=Module[{tindex=index,n=Length[group]+1,standardyt,partbaserep=Dynk2Yng[baserep],ydlist,ll,fytl={}},
-If[MatchQ[baserep,Singlet[group]],Return[{{}}]];
+(*If[MatchQ[baserep,Singlet[group]],Return[{{}}]];*)
+(*Haolin Modified to adapt the j-basis*)
+If[MatchQ[baserep,Singlet[group]],Return[ConstantArray[{},numIP]]];
 If[!MatchQ[baserep,Fund[group]],tindex=dummyFund[index]];
 If[Length[StringCases[fnamenum,"\[Dagger]"]]!=0&&baserep=={1},tindex=dummyFund[index]];
 partbaserep=partbaserep/.{0->Nothing};
@@ -155,8 +156,41 @@ Do[LRTableaux[result,tyt1,path,Length[group]+1],{path,pathlists}];
 result
 ]
 
+GenerateLRTYTs[group_,rep_,YTs_]:=
+(*Get the Target Tableaux of the target Young diagram of representation "rep" given a series of input young tableaux*)
+Module[{nlist,irreplist,basereplist,index=indmap[Fund[group]],tyt1,nonSingletYTs,pathlists={},result={}},
+nonSingletYTs=YTs/.{}->Nothing;
+irreplist=(Length/@#)&/@nonSingletYTs;
+nlist=Total/@irreplist;
+irreplist=Yng2Dynk[group,#]&/@irreplist;
+pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindRepPath[group,rep,irreplist];
+Do[LRTableaux[result,nonSingletYTs,path,Length[group]+1],{path,pathlists}];
+result
+]
 
-(* ::Subsubsection::Closed:: *)
+PartitionList[list_,part_]:=Module[{endpoint=Accumulate[part]},list[[#]]&/@MapThread[Span,{endpoint-part+1,endpoint}]];
+FillSSYTSUN[result_,indexmap_,tableaux_,totaln_,N_,n_]:=Module[{temp=tableaux,ttemp},
+Do[
+If[(N-insert)<(Length[tableaux[[indexmap[n][[1]]]]]-indexmap[n][[2]]),Return[]];
+temp[[Sequence@@indexmap[n]]]=insert;
+ttemp=TransposeTableaux[temp];
+If[And@@(OrderedQ/@ttemp)&&And@@(Less@@@(temp/.Infinity->Nothing)),
+If[n==totaln,AppendTo[result,ttemp];,
+FillSSYTSUN[result,indexmap,temp,totaln,N,n+1];
+]
+],{insert,N}]]
+SetAttributes[FillSSYTSUN,HoldAll];
+GetSSYTSUN[partition_,group_]:=Module[{N=Length[group]+1,totaln=Total[partition],tempkeys,temptab,indexmap,initialtab,result={}},
+tempkeys=Range[totaln];
+temptab=TransposeTableaux@PartitionList[tempkeys,partition];
+indexmap=Association@MapThread[Rule,{tempkeys,((Position[temptab,#][[1]]))&/@tempkeys}];
+initialtab=TransposeTableaux@PartitionList[ConstantArray[Infinity,totaln],partition];
+FillSSYTSUN[result,indexmap,initialtab,totaln,N,1];
+result
+];
+
+
+(* ::Subsubsection:: *)
 (*Tensor Reduction related*)
 
 
@@ -175,8 +209,10 @@ Times@@AppendTo[numberlist,TensorContract[tensorp,listrepeat]]
 ]
 (*convert the symbolic gauge group tensors into numerical ones*)
 Options[Product2ContractV2]={Symb2Num->{}};
-Product2ContractV2[x_,inarglist_,OptionsPattern[]]:=Module[{tensorlist,headlist,arglist,uniquelist,listrepeat,tensorp},
+Product2ContractV2[x_,inarglist_,OptionsPattern[]]:=Module[{num,tensorlist,headlist,arglist,uniquelist,listrepeat,tensorp},
 tensorlist=Sort@Prod2List[x];
+num=Cases[tensorlist,_?NumericQ];
+tensorlist=DeleteCases[tensorlist,_?NumericQ];
 headlist=Head/@tensorlist;
 arglist=Flatten[List@@@tensorlist];
 uniquelist=Union[arglist];
@@ -184,7 +220,14 @@ listrepeat=Select[Flatten/@(Position[arglist,#]&/@uniquelist),Length[#]==2&];
 If[Length[listrepeat]!=0,arglist=Delete[arglist,{#}&/@Flatten[listrepeat]]];
 tensorp=TensorProduct@@headlist/.OptionValue[Symb2Num];
 If[Length[listrepeat]!=0,tensorp=TensorContract[tensorp,listrepeat]];
-Transpose[tensorp,FindPermutation[arglist,inarglist]]
+(Times@@num)*Transpose[tensorp,FindPermutation[arglist,inarglist]]
+]
+
+Product2ContractV3[x_,inarglist_,tval_]:=Module[{},
+Switch[x,_Plus,Return[Plus@@(Product2ContractV2[#,inarglist,Symb2Num->tval]&/@Sum2List[x]
+)];,
+_,Return[Product2ContractV2[x,inarglist,Symb2Num->tval]]];
+result
 ]
 
 
@@ -247,6 +290,7 @@ UnfoldContraction[x_Plus,xmap_,indmap_]:=Plus@@(UnfoldContraction[#,xmap,indmap]
 SetAttributes[UnfoldContraction,HoldRest]
 
 RefineTensor[x_,model_,groupname_,fts_]:=Module[{tempx,flist,tfs,xmap,xposmap,rt,result},
+If[x==0,Return[0]];
 tempx=Expand[Expand[x]/.Power[z_,y_]:>Times@@ConstantArray[z,y]];
 flist=Select[fts,Total[model[#[[1]]][groupname]]!=0&];
 tfs=GenerateFieldTensor[model,groupname,flist,xmap];
@@ -268,7 +312,7 @@ unflatten[result,tdim]
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Symmetrization related*)
 
 
