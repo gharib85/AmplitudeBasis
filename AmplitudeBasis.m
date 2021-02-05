@@ -474,7 +474,7 @@ Options[GaugeBasis]={OutputMode->"indexed"};
 (*]*)
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Analysis*)
 
 
@@ -517,7 +517,7 @@ result=MapThread[Switch[#1,{},{{Total[#2],1}},{__List},ReduceRepProduct[#1,#2]]&
 ]
 GatherPairGauge[model_]:=Module[{particlePairs,pairGauge,allPairGauge,pairs,result=<||>},
 particlePairs=DeleteDuplicates[Tuples[Fields[model],2],Sort[#1]==Sort[Conj/@#2]||Sort[#1]==Sort[#2]&];
-pairGauge=AssociationMap[GaugeJoin[Model,#]&,particlePairs];
+pairGauge=AssociationMap[GaugeJoin[model,#]&,particlePairs];
 allPairGauge=DeleteDuplicates[Catenate[pairGauge][[All,1]]];
 Do[pairs=Position[pairGauge,{rep,_}][[All,1,1]];
 If[MemberQ[Keys[result],RepConj/@rep],result[RepConj/@rep]=result[RepConj/@rep]~Join~Map[Conj,pairs,{2}],

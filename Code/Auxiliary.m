@@ -45,6 +45,12 @@ pos++];
 ]
 basisReduce::input="wrong input matrix: `1`";
 
+LinearIntersection[basisA_,basisB_]:=Module[{basisPlus=Join[basisA,basisB],lA=Length[basisA],sol},sol=NullSpace[Transpose[basisPlus]];
+If[Length[sol]==0,Return[{}]];basisReduce[sol[[All,1;;lA]].basisA]["basis"]
+]
+LinearIntersection[basisA_]:=basisA
+LinearIntersection[basisA_,basisB_,basisX__]:=LinearIntersection[LinearIntersection[basisA,basisB],basisX]
+
 
 (* ::Input::Initialization:: *)
 GatherWeights[listW_,listMult_:1]:=Module[{aux},
