@@ -83,6 +83,20 @@ YO[yng_,pos_:1,otherbasis_:1]:=Generateb[yng][[otherbasis]]/.Cycles[x_]:>Cycles[
 
 
 (* ::Input::Initialization:: *)
+breakCycle[{first_,rest___}]:={first,#}&/@{rest}
+toTranspositions[perm_?PermutationCyclesQ]:=Cycles/@List/@Flatten[breakCycle/@First[perm],1]
+PermRepFromGenerator[gen_,Cycles[{}]]:=gen[[1]].gen[[1]]
+PermRepFromGenerator[gen_,perm:Cycles[{{_,_}}]]:=Module[{P1=gen[[1]],W=gen[[2]],x,y},
+{x,y}=Sort[{perm[[1,1,1]],perm[[1,1,2]]}];
+If[y-x== 1,Nest[W.#.Inverse[W]&,P1,x-1],
+Fold[(#2.#1.#2)&,PermRepFromGenerator[gen,Cycles[{{x,x+1}}]],Table[PermRepFromGenerator[gen,Cycles[{{i,i+1}}]],{i,x+1,y-1}]]
+]
+]
+PermRepFromGenerator[gen_,perm_?PermutationCyclesQ,offset_:0]:=Dot@@PermRepFromGenerator[gen]/@Reverse@toTranspositions[#-offset&/@perm]
+PermRepFromGenerator[gen_]:=PermRepFromGenerator[gen,#]&
+
+
+(* ::Input::Initialization:: *)
 (************* inner product (needs data folder SnMat) *******************)
 
 ReadMatrices[matmap_,n_,dir_]:=Module[{nintpart=Length[IntegerPartitions[n]],ge,mat},ge=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n],"List"];Do[mat=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n]<>"_"<>ToString[i]<>".dat","List"];MapThread[Set,{matmap[i][#]&/@ge,mat}],{i,1,nintpart}]

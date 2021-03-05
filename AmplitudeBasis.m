@@ -266,7 +266,7 @@ sign{deltaB,deltaL}
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Lorentz Basis*)
 
 
@@ -474,7 +474,7 @@ Options[GaugeBasis]={OutputMode->"indexed"};
 (*]*)
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Analysis*)
 
 
