@@ -84,7 +84,10 @@ YO[yng_,pos_:1,otherbasis_:1]:=Generateb[yng][[otherbasis]]/.Cycles[x_]:>Cycles[
 
 (* ::Input::Initialization:: *)
 breakCycle[{first_,rest___}]:={first,#}&/@{rest}
+toTranspositions[Cycles[{}]]:=Cycles[{}]
 toTranspositions[perm_?PermutationCyclesQ]:=Cycles/@List/@Flatten[breakCycle/@First[perm],1]
+
+Clear[PermRepFromGenerator];
 PermRepFromGenerator[gen_,Cycles[{}]]:=gen[[1]].gen[[1]]
 PermRepFromGenerator[gen_,perm:Cycles[{{_,_}}]]:=Module[{P1=gen[[1]],W=gen[[2]],x,y},
 {x,y}=Sort[{perm[[1,1,1]],perm[[1,1,2]]}];
@@ -92,7 +95,10 @@ If[y-x== 1,Nest[W.#.Inverse[W]&,P1,x-1],
 Fold[(#2.#1.#2)&,PermRepFromGenerator[gen,Cycles[{{x,x+1}}]],Table[PermRepFromGenerator[gen,Cycles[{{i,i+1}}]],{i,x+1,y-1}]]
 ]
 ]
-PermRepFromGenerator[gen_,perm_?PermutationCyclesQ,offset_:0]:=Dot@@PermRepFromGenerator[gen]/@Reverse@toTranspositions[#-offset&/@perm]
+PermRepFromGenerator[gen_,perm_?PermutationCyclesQ]:=Dot@@(PermRepFromGenerator[gen]/@Reverse@toTranspositions[perm])
+PermRepFromGenerator[gen_,sym_]:=Module[{},
+sym/.perm_Cycles:>PermRepFromGenerator[gen,perm]
+]
 PermRepFromGenerator[gen_]:=PermRepFromGenerator[gen,#]&
 
 

@@ -165,7 +165,7 @@ LorentzPermGenerator[state_,k_]:=Module[{ybasis,Num=Length[state],hels=Tally[sta
 ybasis=SSYT[state,k,OutMode->"amplitude"];
 ini=Accumulate[Prepend[hels[[;;-2,2]],0]]+1;
 gen1=MapThread[Cycles[{{#1,#2}}]&,{ini,ini+1}];
-gen2=MapThread[Cycles[{Range[#1,#2]}]&,{ini,hels[[All,2]]}];
+gen2=MapThread[Cycles[{Range[#1,#1+#2-1]}]&,{ini,hels[[All,2]]}];
 
 Do[AssociateTo[result,hels[[i,1]]->Table[FindCor[ybasis]/@YPermute[ybasis,gen,Num],{gen,{gen1[[i]],gen2[[i]]}}]],{i,Length[hels]}];
 Return[result]

@@ -41,12 +41,12 @@ tOut[del8n]=PrintTensor[<|"tensor"->"\[Delta]","upind"->{#1,#2}|>]&;
 AppendTo[tAssumptions,fabc\[Element]Arrays[{8,8,8},Reals,Antisymmetric[{1,2,3}]]];
 tRep[fabc]={{1,1},{1,1},{1,1}};
 tOut[fabc]=PrintTensor[<|"tensor"->"f","upind"->{#1,#2,#3}|>]&;
-fG=SymmetrizedArray[-(I/4)Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]-\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]];
+fG=SymmetrizedArray[-(I/4)Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]-\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]]//Normal;
 
 AppendTo[tAssumptions,dabc\[Element]Arrays[{8,8,8},Reals,Symmetric[{1,2,3}]]];
 tRep[dabc]={{1,1},{1,1},{1,1}};
 tOut[dabc]=PrintTensor[<|"tensor"->"d","upind"->{#1,#2,#3}|>]&;
-dG=SymmetrizedArray[1/4 Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]+\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]];
+dG=SymmetrizedArray[1/4 Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]+\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]]//Normal;
 
 
 (* ::Input::Initialization:: *)
@@ -59,8 +59,9 @@ del3n[a_,d_]eps3n[b_,a_,c_]:=eps3n[b,d,c];
 del3n[a_,d_]eps3n[c_,b_,a_]:=eps3n[c,b,d];
 del3n[a_,c_]del3n[a_,b_]:=del3n[c,b];
 SetAttributes[del8n,Orderless];
-eps3a[i_String,j_String,k_String]eps3f[l_String,m_String,n_String]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Intersection@@(First/@Position[INDEXSET,#]&/@{i,j,k,l,m,n})!={};
-eps3a[i:Except[_String],j_,k_]eps3f[l_,m_,n_]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Equal@@DeleteCases[Head/@{i,j,k,l,m,n},dummyIndex];
+(*eps3a[i_String,j_String,k_String]eps3f[l_String,m_String,n_String]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Intersection@@(First/@Position[INDEXSET,#]&/@{i,j,k,l,m,n})!={};
+eps3a[i:Except[_String],j_,k_]eps3f[l_,m_,n_]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Equal@@DeleteCases[Head/@{i,j,k,l,m,n},dummyIndex];*)
+eps3a[i_,j_,k_]eps3f[l_,m_,n_]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}];
 del3[a_,c_]\[Lambda][J_,a_,b_]:=\[Lambda][J,c,b];
 del3[c_,a_]\[Lambda][J_,b_,a_]:=\[Lambda][J,b,c];
 \[Lambda][i_,j_,j_]:=0;
@@ -78,43 +79,8 @@ del8n[a_,d_]dabc[a_,b_,c_]:=dabc[d,b,c];
 del8n[a_,d_]dabc[b_,a_,c_]:=dabc[b,d,c];
 del8n[a_,d_]dabc[c_,b_,a_]:=dabc[c,b,d];
 del8n[a_,c_]del8n[a_,b_]:=del8n[c,b];
-\[Lambda][i_,j_,k_]\[Lambda][l_,k_,m_]:=Module[{},dummyIndexCount++;I fabc[i,l,dummyIndex[dummyIndexCount]]\[Lambda][dummyIndex[dummyIndexCount],j,m]+dabc[i,l,dummyIndex[dummyIndexCount]]\[Lambda][dummyIndex[dummyIndexCount],j,m]+2/3 del8n[i,l]del3[m,j]]
+\[Lambda][i_,j_,k_]\[Lambda][l_,k_,m_]:=Module[{dummy=Unique[]},I fabc[i,l,dummy]\[Lambda][dummy,j,m]+dabc[i,l,dummy]\[Lambda][dummy,j,m]+2/3 del8n[i,l]del3[m,j]]
 ]]
-
-
-(* ::Input:: *)
-(*(* invariant tensor simplification *)*)
-(*Unprotect[Times];*)
-(*Clear[Times];*)
-(*If[!IntegerQ[dummyIndexCount],dummyIndexCount=0];*)
-(*del3[i_,j_]del3[j_,k_]:=del3[i,k];*)
-(*del3[i_,i_]:=3;*)
-(*del8n[i_,i_]:=8;*)
-(*del3n[a_,d_]eps3n[a_,b_,c_]:=eps3n[d,b,c]*)
-(*del3n[a_,d_]eps3n[b_,a_,c_]:=eps3n[b,d,c]*)
-(*del3n[a_,d_]eps3n[c_,b_,a_]:=eps3n[c,b,d]*)
-(*del3n[a_,c_]del3n[a_,b_]:=del3n[c,b]*)
-(*SetAttributes[del8n,Orderless];*)
-(*eps3a[i_,j_,k_]eps3f[l_,m_,n_]=Det@Map[del3@@#&, Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}];*)
-(*del3[a_,c_]\[Lambda][J_,a_,b_]:=\[Lambda][J,c,b];*)
-(*del3[c_,a_]\[Lambda][J_,b_,a_]:=\[Lambda][J,b,c];*)
-(*\[Lambda][i_,j_,j_]:=0;*)
-(*eps3f[i_,j_,k_]del3[i_,l_]:=eps3f[l,j,k];*)
-(*eps3f[i_,j_,k_]del3[j_,l_]:=eps3f[i,l,k];*)
-(*eps3f[i_,j_,k_]del3[k_,l_]:=eps3f[i,j,l];*)
-(*eps3a[i_,j_,k_]del3[l_,i_]:=eps3a[l,j,k];*)
-(*eps3a[i_,j_,k_]del3[l_,j_]:=eps3a[i,l,k];*)
-(*eps3a[i_,j_,k_]del3[l_,k_]:=eps3a[i,j,l];*)
-(*SetAttributes[dabc,Orderless];*)
-(*del8n[a_,d_]fabc[a_,b_,c_]:=fabc[d,b,c]*)
-(*del8n[a_,d_]fabc[b_,a_,c_]:=fabc[b,d,c]*)
-(*del8n[a_,d_]fabc[c_,b_,a_]:=fabc[c,b,d]*)
-(*del8n[a_,d_]dabc[a_,b_,c_]:=dabc[d,b,c]*)
-(*del8n[a_,d_]dabc[b_,a_,c_]:=dabc[b,d,c]*)
-(*del8n[a_,d_]dabc[c_,b_,a_]:=dabc[c,b,d]*)
-(*del8n[a_,c_]del8n[a_,b_]:=del8n[c,b]*)
-(*\[Lambda][i_,j_,k_]\[Lambda][l_,k_,m_]:=Module[{},dummyIndexCount++;(I fabc[i,l,dummyIndex[dummyIndexCount]]+dabc[i,l,dummyIndex[dummyIndexCount]])\[Lambda][dummyIndex[dummyIndexCount],j,m]+2/3 del8n[i,l]del3[m,j]]*)
-(*Protect[Times];*)
 
 
 (* ::Input::Initialization:: *)

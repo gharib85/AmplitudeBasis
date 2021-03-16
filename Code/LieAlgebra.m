@@ -100,7 +100,8 @@ SetAttributes[FillYD,HoldAll];
 
 
 (* ::Input::Initialization:: *)
-LRrule[yt1_,yt2_,fdiag_,n_]:=Module[{fdl={},fdlstr={},ldiag2=Flatten[Table[i&/@yt2[[i]],{i,1,Length[yt2]}]],ldiag2str=Flatten[yt2]},
+LRrule[yt1_,yt2_,fdiag_,n_]:=Module[{fdl={},fdlstr={},ldiag2=Flatten[Table[i&/@yt2[[i]],{i,1,Length[yt2]}]],ldiag2str=Flatten[yt2,1]},
+If[Length[ldiag2str]==0,Return[{yt1}]];
 FillYD[fdl,fdlstr,yt1,yt1,ldiag2,ldiag2str,fdiag,n];fdlstr]
 
 LRTableaux[fytl_,YTlist_,path_,n_]:=Module[{conlist,lYTlist=Length[YTlist],tYTlist},
@@ -138,6 +139,11 @@ ydlist=Table[Map[tindex[fnamenum,i,#]&,standardyt,{2}],{i,numIP}]
 (*ydlist=Table[Map[tindex<>"[ToString["<>ToString[fnamenum]<>"],"<>ToString[i]<>","<>ToString[#]<>"]"&,standardyt,{2}],{i,numIP}]*)
 ]
 
+GaugeTensorFundInd[group_,rep_,label_]:=Module[{n=Length[group]+1,standardyt,partbaserep=Dynk2Yng[rep]/.{0->Nothing}},
+If[MatchQ[rep,Singlet[group]],Return[{{}}]];
+standardyt=MapThread[Range,{Accumulate[partbaserep]-partbaserep+1,Accumulate[partbaserep]}];
+Map[Subscript[label,#]&,standardyt,{2}]]
+
 
 (* ::Input::Initialization:: *)
 GenerateLRT[group_,indmap_,replist_]:=
@@ -153,6 +159,15 @@ tyt1=Flatten[GenerateTYT@@@(Join[#,{index,group}]&/@replist),1]; (* Young tablea
 pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindSingletPath[group,irreplist];
 Do[LRTableaux[result,tyt1,path,Length[group]+1],{path,pathlists}];
 result
+]
+
+GaugeYT[group_,irreplist_]:=Module[{nlist,basereplist,tyt1,pathlists={},result={},indsort},
+nlist=(Total[Dynk2Yng[#]])&/@irreplist;
+(*Generate tensor Young Tableaux*)
+tyt1=MapIndexed[GaugeTensorFundInd[group,#1,First[#2]]&,irreplist]; (* Young tableau of each field *)
+pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindSingletPath[group,irreplist];
+Do[LRTableaux[result,tyt1,path,Length[group]+1],{path,pathlists}];
+Times@@tYDcol[group]@@@Transpose[#]&/@result
 ]
 
 
