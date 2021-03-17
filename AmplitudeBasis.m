@@ -347,7 +347,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Gauge Group Factor*)
 
 
@@ -433,7 +433,7 @@ temp1={#,ReduceRepProduct[group,#[[1;;,1]]]}&/@temp1;
 Cases[temp1,{m__,{___,{ConstantArray[0,Length[group]],y_},___}}:>{m,y}]
 (*Select[Distribute[#[[1;;,1]]&/@temp1,List],Position[ReduceRepProduct[group,#][[1;;,1]],ConstantArray[0,Length[group]]]\[NotEqual]{}&]*)
 ];
-GaugeJBasis[model_,groupname_,type_,parts_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],indexlist,group=CheckGroup[model,groupname],indmap=model["rep2ind"][groupname],SUNreplist,nonsinglets,convertfactor,YDbasisnoConvert,YDbasis,fSUNreplist,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,MbasisAll,tMbasisAll,vMbasisAll,Mbasis,tMbasis,vMbasis,assoSubYTs,qr,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},finalresult={}},
+(*GaugeJBasis[model_,groupname_,type_,parts_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],indexlist,group=CheckGroup[model,groupname],indmap=model["rep2ind"][groupname],SUNreplist,nonsinglets,convertfactor,YDbasisnoConvert,YDbasis,fSUNreplist,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,MbasisAll,tMbasisAll,vMbasisAll,Mbasis,tMbasis,vMbasis,assoSubYTs,qr,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},finalresult={}},
 indexlist=GenerateFieldIndex[model,groupname,flist];
 finalresult={"order"->Flatten@(ConstantArray@@@flist)};
 SUNreplist={#[[2]],model[#[[1]]][groupname],#[[1]]}&/@flist; (* {repeat_num, SUNrep, fieldname} *)
@@ -474,6 +474,59 @@ If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;Break[];,tempresult=Drop[tempr
 AppendTo[coordresult,key->tempresult];
 ,{key,Keys@assoSubYTs}];
 AppendTo[finalresult,"jcoord"->coordresult];
+Association@finalresult
+]*)
+
+
+(* ::Input::Initialization:: *)
+GaugeJBasis[model_,groupname_,type_,parts_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],indexlist,group=CheckGroup[model,groupname],indmap=model["rep2ind"][groupname],SUNreplist,nonsinglets,convertfactor,YDbasisnoConvert,YDbasis,fSUNreplist,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,MbasisAll,tMbasisAll,vMbasisAll,Mbasis,tMbasis,vMbasis,qr,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},finalresult={},ntarget},
+indexlist=GenerateFieldIndex[model,groupname,flist];
+finalresult={"order"->Flatten@(ConstantArray@@@flist)};
+SUNreplist={#[[2]],model[#[[1]]][groupname],#[[1]]}&/@flist; (* {repeat_num, SUNrep, fieldname} *)
+nonsinglets=DeleteCases[SUNreplist,{_,Singlet[group],_}];
+If[nonsinglets=={},AppendTo[finalresult,"basis"->{1}];AppendTo[finalresult,"jcoord"->{{1}}];Return[Association@finalresult]];
+convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);
+(*prepare y- and m- bases*)
+YDbasisnoConvert=Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@GenerateLRT[group,indmap,nonsinglets])];
+YDbasis=Expand[YDbasisnoConvert*convertfactor];
+MbasisAll=SimpGFV2[Expand/@TRefineTensor[YDbasis,model,groupname,flist]];
+tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;
+vMbasisAll=Flatten/@tMbasisAll;
+qr=QRDecomposition[Transpose[vMbasis]];
+MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
+AppendTo[finalresult,"basis"->Mbasis];
+(*Begin Processing J basis related*)
+fSUNreplist=Flatten[ConstantArray[#[[2]],#[[1]]]&/@SUNreplist,1];
+SUNrepPartlist=FindRepPathPartition[group,fSUNreplist,parts];
+nonsingletparts=Select[Keys@SUNrepPartlist[[1,1]],(!MatchQ[fSUNreplist[[#]]&/@#,{Singlet[group]..}])&];
+YTlist=Flatten[GenerateTYT@@@(Join[#,{indmap[Fund[group]],group}]&/@SUNreplist),1];(*Young tableaux for the representation*)
+RepParts=MapAt[fSUNreplist[[#]]&,nonsingletparts,{All,All}];
+YTParts=MapAt[YTlist[[#]]&,nonsingletparts,{All,All}];
+SubYTs=Table[Distribute[GenerateLRTYTs@@@MapThread[{group,#1,#2}&,{SUNrepPartlist[[i,1]][#]&/@nonsingletparts,YTParts}],List],{i,Length[SUNrepPartlist]}];
+(*assoSubYTs=Association@MapThread[Rule,{{MapThread[Rule,{nonsingletparts,#[[1]]}],#[[2]]}&/@SUNrepPartlist,SubYTs}];
+Print["assoSubYTs: ", assoSubYTs];*)
+Do[
+tempresult={};
+ranktemp=0;
+ntarget=SUNrepPartlist[[i,2]];
+Do[
+Do[
+stemp=Expand[RefineTensor[Simplify[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convertfactor],model,groupname,flist]];
+If[stemp==0,Continue[]];
+vtemp=Flatten@Product2ContractV3[stemp,indexlist,tVal[group]];
+coordtemp=Simplify[GetCoord[qr,vtemp]];
+AppendTo[tempresult,coordtemp];
+If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[];];,tempresult=Drop[tempresult,-1];]
+,{YTs,SubYTs[[i]]}
+];
+If[ranktemp==ntarget,Break[];];
+,{ybs,YDbasisnoConvert}
+];
+AppendTo[coordresult,SUNrepPartlist[[i,1]]->tempresult];
+,{i,Length[SUNrepPartlist]}
+];
+AppendTo[finalresult,"jcoord"->coordresult];
+(*AppendTo[finalresult,"qr"\[Rule]qr];*)
 Association@finalresult
 ]
 
