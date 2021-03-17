@@ -313,6 +313,104 @@ unflatten[result,tdim]
 
 
 (* ::Subsubsection:: *)
+(*JBasis related*)
+
+
+(* ::Input::Initialization:: *)
+(*Find the partitions in largest subgroups*)
+UnionFinder[list_]:=Module[{templist=list,templist2={},lpos,i,flag=True},
+If[list=={},Return[{Nothing}],templist=Sort[list,Length[#1]>Length[#2]&];AppendTo[templist2,templist[[1]]];lpos={{1}};];
+For[i=2,i<=Length@templist,i++,
+If[IntersectingQ[templist[[1]],templist[[i]]],
+AppendTo[templist2,templist[[i]]];
+AppendTo[lpos,{i}];
+];
+];
+templist=Delete[templist,lpos];
+Join[{templist2},UnionFinder[templist]]
+]
+SetAttributes[UnionFinder,HoldFirst]
+
+(*Find tree structure for each subgroup*)
+HierarchyFinder[result_,list_]:=Module[{templist,complist,comppos,remain,lpos,i,j,flag=True},
+For[j=1,j<=Length[list],j++,
+(*reset two variables, templist store subsets in the list that are consitutes list[[j]]; 
+flag record wether the number of the subsets is greater than 2*)
+templist={};
+flag=True;
+For[i=j+1,i<=Length[list],i++,
+complist=Complement[list[[j]],list[[i]]];
+If[Length@complist==1,
+result[list[[j]]]={list[[i]],complist};flag=False;Break[];
+];
+comppos=Position[list,complist];
+If[Length@comppos!=0&&comppos[[1,1]]!=j,
+result[list[[j]]]={list[[i]],complist};flag=False;Break[];,
+(*Adding Length@comppos\[Equal]0 in the next line is to avoid the error occurred for part the comppos in comppos[[1,1]]*)
+If[Length@comppos==0||comppos[[1,1]]!=j,AppendTo[templist,list[[i]]];
+]
+];
+];
+If[flag,remain=Complement[list[[j]],Union@@templist];
+If[remain!={},templist=Join[templist,List/@remain]];
+result[list[[j]]]=templist;];
+];
+]
+SetAttributes[HierarchyFinder,HoldFirst]
+
+FindRepPathV2[group_,replist_,partrule_,hierarchy_]:=
+(*Generated the list of possible irreps of next grouping level with corresponding multiplicity;
+group: specifiy the group, e.g. SU3,SU2;
+replist: a list of irreps of all the fields;
+partrule: form of part\[Rule]irreps (e.g. {1,2,3}\[Rule]{0,0} for SU3 group)
+*)
+Module[{parts=hierarchy[partrule[[1]]],disted,trep=partrule[[2]]},disted=Distribute[ReduceRepProduct[group,#]&/@(Part[replist,#]&/@parts),List];
+partrule->MapAt[MapThread[{#1->#2[[1]],#2[[2]]}&,{parts,#}]&,Cases[{#,ReduceRepProduct[group,#[[1;;,1]]]}&/@disted,{x__,{___,{trep,y_},___}}:>{x,y}],{All,1}]
+]
+
+FindRepPathV3[asso_,group_,replist_,partrule_,hierarchy_]:=Module[
+{subparts=hierarchy[partrule[[1]]],subreps,newsubs},
+If[MatchQ[subparts,_Missing|{_}],Return[]];
+subreps=FindRepPathV2[group,replist,partrule,hierarchy];
+newsubs=DeleteDuplicates[Flatten@subreps[[2,1;;,1,1;;,1]]];
+AppendTo[asso,subreps];
+FindRepPathV3[asso,group,replist,#,hierarchy]&/@newsubs;
+]
+SetAttributes[FindRepPathV3,HoldFirst]
+
+AuxResolve[linkedmap_,inputlist_,previouslist_,hierarchy_]:=Module[{temp,temp2},
+temp=Join@@@Distribute[(linkedmap[#][[1;;,1,1;;,1]])&/@inputlist,List];
+temp2=Select[#,!MatchQ[hierarchy[#[[1]]],_Missing|{{_}..}]&]&/@temp;
+MapThread[{#1,#2}&,{Join[previouslist,#]&/@temp,temp2}]
+]
+AuxResolve2[result_,linkedmap_,inputlist_,previouslist_,hierarchy_]:=Module[{temp},
+If[inputlist=={},AppendTo[result,Association@previouslist];Return[]];
+temp=AuxResolve[linkedmap,inputlist,previouslist,hierarchy];
+Do[AuxResolve2[result,linkedmap,item[[2]],item[[1]],hierarchy],{item,temp}]
+]
+SetAttributes[AuxResolve2,HoldFirst]
+AuxNum[group_,part_,chainmap_,hierarchy_]:=Module[{temp},
+If[MatchQ[part,{_}],Return[1],
+temp=Times@@Cases[ReduceRepProduct[group,chainmap/@hierarchy[part]],{chainmap[part],x_}:>x];
+Return[temp*(Times@@(AuxNum[group,#,chainmap,hierarchy]&/@hierarchy[part]))]
+];
+]
+
+FindRepPathPartition[group_,replist_,partition_]:=Module[{hierarchy=<||>,n=Length@replist,temp1,linkedmap=<||>,result={},chainmap},
+temp1=UnionFinder[partition];
+If[Union@@temp1[[1;;,1]]==Range[n],AppendTo[hierarchy,Range[n]->temp1[[1;;,1]]],Print["Not a Good Partition"];Abort[];];
+HierarchyFinder[hierarchy,#]&/@temp1;
+FindRepPathV3[linkedmap,group,replist,Range[n]->Singlet[group],hierarchy];
+AuxResolve2[result,linkedmap,{Range[n]->Singlet[group]},{},hierarchy];
+Do[chainmap=result[[i]];
+MapThread[Set[chainmap[{#1}],#2]&,{Range[n],replist}];
+result[[i]]=result[[i]]->Times@@(AuxNum[group,#,chainmap,hierarchy]&/@temp1[[1;;,1]]);
+,{i,Length@result}];
+result
+]
+
+
+(* ::Subsubsection:: *)
 (*Symmetrization related*)
 
 
