@@ -52,6 +52,18 @@ LinearIntersection[basisA_]:=basisA
 LinearIntersection[basisA_,basisB_,basisX__]:=LinearIntersection[LinearIntersection[basisA,basisB],basisX]
 
 
+
+(* ::Input::Initialization:: *)
+PermuteBasis[y_,YT_]:=Module[{symmetrizer,replacerule,yt=Flatten[YT]},
+(*permute the given basis symbolically given the Young tableaux YT*)
+If[MatchQ[YT,{{_}}]||MatchQ[YT,{{}..}],Return[y]];
+symmetrizer=Prod2List/@Sum2List[Expand[Generateb[Length/@YT][[1]]]];
+replacerule={#[[1]],MapThread[Rule,{yt,Permute[yt,InversePermutation@#[[2]]]}]}&/@symmetrizer;
+Plus@@(Times@@@({#[[1]],y/.#[[2]]}&/@replacerule))
+]
+PermuteYBasis[y_,YTs_]:=Fold[PermuteBasis,y,YTs]
+
+
 (* ::Input::Initialization:: *)
 GatherWeights[listW_,listMult_:1]:=Module[{aux},
 aux=listW/.{rep_List,weight_?NumberQ}:>(rep->weight);

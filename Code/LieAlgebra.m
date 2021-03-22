@@ -111,8 +111,7 @@ If[lYTlist==2,AppendTo[fytl,#]&/@conlist;Return[]];
 Do[
 tYTlist=YTlist[[3;;-1]];
 PrependTo[tYTlist,conlist[[i]]];
-LRTableaux[fytl,tYTlist,path[[2;;-1]],n],{i,1,Length[conlist]}
-]
+LRTableaux[fytl,tYTlist,path[[2;;-1]],n],{i,1,Length[conlist]}]
 ]
 SetAttributes[LRTableaux,HoldFirst]
 
@@ -126,7 +125,9 @@ Drop[(tydlist[[#]]+nl[[#]])&/@Range[1,Length[tydlist]]/.{0->Nothing},1]]
 dummyFund[fundIndex_]:=ToExpression[StringJoin@@ConstantArray[ToString[fundIndex],2]]
 
 GenerateTYT[numIP_,baserep_,fnamenum_,index_,group_]:=GenerateTYT[numIP,baserep,fnamenum,index,group]=Module[{tindex=index,n=Length[group]+1,standardyt,partbaserep=Dynk2Yng[baserep],ydlist,ll,fytl={}},
-If[MatchQ[baserep,Singlet[group]],Return[{{}}]];
+(*If[MatchQ[baserep,Singlet[group]],Return[{{}}]];*)
+(*Haolin Modified to adapt the j-basis*)
+If[MatchQ[baserep,Singlet[group]],Return[ConstantArray[{},numIP]]];
 If[!MatchQ[baserep,Fund[group]],tindex=dummyFund[index]];
 If[Length[StringCases[fnamenum,"\[Dagger]"]]!=0&&baserep=={1},tindex=dummyFund[index]];
 partbaserep=partbaserep/.{0->Nothing};
@@ -170,8 +171,41 @@ Do[LRTableaux[result,tyt1,path,Length[group]+1],{path,pathlists}];
 Times@@tYDcol[group]@@@Transpose[#]&/@result
 ]
 
+GenerateLRTYTs[group_,rep_,YTs_]:=
+(*Get the Target Tableaux of the target Young diagram of representation "rep" given a series of input young tableaux*)
+Module[{nlist,irreplist,basereplist,index=indmap[Fund[group]],tyt1,nonSingletYTs,pathlists={},result={}},
+nonSingletYTs=YTs/.{}->Nothing;
+irreplist=(Length/@#)&/@nonSingletYTs;
+nlist=Total/@irreplist;
+irreplist=Yng2Dynk[group,#]&/@irreplist;
+pathlists=ConvertPathtoYD[nlist,#,Length[group]+1]&/@FindRepPath[group,rep,irreplist];
+Do[LRTableaux[result,nonSingletYTs,path,Length[group]+1],{path,pathlists}];
+result
+]
 
-(* ::Subsubsection::Closed:: *)
+PartitionList[list_,part_]:=Module[{endpoint=Accumulate[part]},list[[#]]&/@MapThread[Span,{endpoint-part+1,endpoint}]];
+FillSSYTSUN[result_,indexmap_,tableaux_,totaln_,N_,n_]:=Module[{temp=tableaux,ttemp},
+Do[
+If[(N-insert)<(Length[tableaux[[indexmap[n][[1]]]]]-indexmap[n][[2]]),Return[]];
+temp[[Sequence@@indexmap[n]]]=insert;
+ttemp=TransposeTableaux[temp];
+If[And@@(OrderedQ/@ttemp)&&And@@(Less@@@(temp/.Infinity->Nothing)),
+If[n==totaln,AppendTo[result,ttemp];,
+FillSSYTSUN[result,indexmap,temp,totaln,N,n+1];
+]
+],{insert,N}]]
+SetAttributes[FillSSYTSUN,HoldAll];
+GetSSYTSUN[partition_,group_]:=Module[{N=Length[group]+1,totaln=Total[partition],tempkeys,temptab,indexmap,initialtab,result={}},
+tempkeys=Range[totaln];
+temptab=TransposeTableaux@PartitionList[tempkeys,partition];
+indexmap=Association@MapThread[Rule,{tempkeys,((Position[temptab,#][[1]]))&/@tempkeys}];
+initialtab=TransposeTableaux@PartitionList[ConstantArray[Infinity,totaln],partition];
+FillSSYTSUN[result,indexmap,initialtab,totaln,N,1];
+result
+];
+
+
+(* ::Subsubsection:: *)
 (*Tensor Reduction related*)
 
 
@@ -190,8 +224,10 @@ Times@@AppendTo[numberlist,TensorContract[tensorp,listrepeat]]
 ]
 (*convert the symbolic gauge group tensors into numerical ones*)
 Options[Product2ContractV2]={Symb2Num->{}};
-Product2ContractV2[x_,inarglist_,OptionsPattern[]]:=Module[{tensorlist,headlist,arglist,uniquelist,listrepeat,tensorp},
+Product2ContractV2[x_,inarglist_,OptionsPattern[]]:=Module[{num,tensorlist,headlist,arglist,uniquelist,listrepeat,tensorp},
 tensorlist=Sort@Prod2List[x];
+num=Cases[tensorlist,_?NumericQ];
+tensorlist=DeleteCases[tensorlist,_?NumericQ];
 headlist=Head/@tensorlist;
 arglist=Flatten[List@@@tensorlist];
 uniquelist=Union[arglist];
@@ -199,7 +235,14 @@ listrepeat=Select[Flatten/@(Position[arglist,#]&/@uniquelist),Length[#]==2&];
 If[Length[listrepeat]!=0,arglist=Delete[arglist,{#}&/@Flatten[listrepeat]]];
 tensorp=TensorProduct@@headlist/.OptionValue[Symb2Num];
 If[Length[listrepeat]!=0,tensorp=TensorContract[tensorp,listrepeat]];
-Transpose[tensorp,FindPermutation[arglist,inarglist]]
+(Times@@num)*Transpose[tensorp,FindPermutation[arglist,inarglist]]
+]
+
+Product2ContractV3[x_,inarglist_,tval_]:=Module[{},
+Switch[x,_Plus,Return[Plus@@(Product2ContractV2[#,inarglist,Symb2Num->tval]&/@Sum2List[x]
+)];,
+_,Return[Product2ContractV2[x,inarglist,Symb2Num->tval]]];
+result
 ]
 
 
@@ -262,6 +305,7 @@ UnfoldContraction[x_Plus,xmap_,indmap_]:=Plus@@(UnfoldContraction[#,xmap,indmap]
 SetAttributes[UnfoldContraction,HoldRest]
 
 RefineTensor[x_,model_,groupname_,fts_]:=Module[{tempx,flist,tfs,xmap,xposmap,rt,result},
+If[x==0,Return[0]];
 tempx=Expand[Expand[x]/.Power[z_,y_]:>Times@@ConstantArray[z,y]];
 flist=Select[fts,Total[model[#[[1]]][groupname]]!=0&];
 tfs=GenerateFieldTensor[model,groupname,flist,xmap];
@@ -283,7 +327,105 @@ unflatten[result,tdim]
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
+(*JBasis related*)
+
+
+(* ::Input::Initialization:: *)
+(*Find the partitions in largest subgroups*)
+UnionFinder[list_]:=Module[{templist=list,templist2={},lpos,i,flag=True},
+If[list=={},Return[{Nothing}],templist=Sort[list,Length[#1]>Length[#2]&];AppendTo[templist2,templist[[1]]];lpos={{1}};];
+For[i=2,i<=Length@templist,i++,
+If[IntersectingQ[templist[[1]],templist[[i]]],
+AppendTo[templist2,templist[[i]]];
+AppendTo[lpos,{i}];
+];
+];
+templist=Delete[templist,lpos];
+Join[{templist2},UnionFinder[templist]]
+]
+SetAttributes[UnionFinder,HoldFirst]
+
+(*Find tree structure for each subgroup*)
+HierarchyFinder[result_,list_]:=Module[{templist,complist,comppos,remain,lpos,i,j,flag=True},
+For[j=1,j<=Length[list],j++,
+(*reset two variables, templist store subsets in the list that are consitutes list[[j]]; 
+flag record wether the number of the subsets is greater than 2*)
+templist={};
+flag=True;
+For[i=j+1,i<=Length[list],i++,
+complist=Complement[list[[j]],list[[i]]];
+If[Length@complist==1,
+result[list[[j]]]={list[[i]],complist};flag=False;Break[];
+];
+comppos=Position[list,complist];
+If[Length@comppos!=0&&comppos[[1,1]]!=j,
+result[list[[j]]]={list[[i]],complist};flag=False;Break[];,
+(*Adding Length@comppos\[Equal]0 in the next line is to avoid the error occurred for part the comppos in comppos[[1,1]]*)
+If[Length@comppos==0||comppos[[1,1]]!=j,AppendTo[templist,list[[i]]];
+]
+];
+];
+If[flag,remain=Complement[list[[j]],Union@@templist];
+If[remain!={},templist=Join[templist,List/@remain]];
+result[list[[j]]]=templist;];
+];
+]
+SetAttributes[HierarchyFinder,HoldFirst]
+
+FindRepPathV2[group_,replist_,partrule_,hierarchy_]:=
+(*Generated the list of possible irreps of next grouping level with corresponding multiplicity;
+group: specifiy the group, e.g. SU3,SU2;
+replist: a list of irreps of all the fields;
+partrule: form of part\[Rule]irreps (e.g. {1,2,3}\[Rule]{0,0} for SU3 group)
+*)
+Module[{parts=hierarchy[partrule[[1]]],disted,trep=partrule[[2]]},disted=Distribute[ReduceRepProduct[group,#]&/@(Part[replist,#]&/@parts),List];
+partrule->MapAt[MapThread[{#1->#2[[1]],#2[[2]]}&,{parts,#}]&,Cases[{#,ReduceRepProduct[group,#[[1;;,1]]]}&/@disted,{x__,{___,{trep,y_},___}}:>{x,y}],{All,1}]
+]
+
+FindRepPathV3[asso_,group_,replist_,partrule_,hierarchy_]:=Module[
+{subparts=hierarchy[partrule[[1]]],subreps,newsubs},
+If[MatchQ[subparts,_Missing|{_}],Return[]];
+subreps=FindRepPathV2[group,replist,partrule,hierarchy];
+newsubs=DeleteDuplicates[Flatten@subreps[[2,1;;,1,1;;,1]]];
+AppendTo[asso,subreps];
+FindRepPathV3[asso,group,replist,#,hierarchy]&/@newsubs;
+]
+SetAttributes[FindRepPathV3,HoldFirst]
+
+AuxResolve[linkedmap_,inputlist_,previouslist_,hierarchy_]:=Module[{temp,temp2},
+temp=Join@@@Distribute[(linkedmap[#][[1;;,1,1;;,1]])&/@inputlist,List];
+temp2=Select[#,!MatchQ[hierarchy[#[[1]]],_Missing|{{_}..}]&]&/@temp;
+MapThread[{#1,#2}&,{Join[previouslist,#]&/@temp,temp2}]
+]
+AuxResolve2[result_,linkedmap_,inputlist_,previouslist_,hierarchy_]:=Module[{temp},
+If[inputlist=={},AppendTo[result,Association@previouslist];Return[]];
+temp=AuxResolve[linkedmap,inputlist,previouslist,hierarchy];
+Do[AuxResolve2[result,linkedmap,item[[2]],item[[1]],hierarchy],{item,temp}]
+]
+SetAttributes[AuxResolve2,HoldFirst]
+AuxNum[group_,part_,chainmap_,hierarchy_]:=Module[{temp},
+If[MatchQ[part,{_}],Return[1],
+temp=Times@@Cases[ReduceRepProduct[group,chainmap/@hierarchy[part]],{chainmap[part],x_}:>x];
+Return[temp*(Times@@(AuxNum[group,#,chainmap,hierarchy]&/@hierarchy[part]))]
+];
+]
+
+FindRepPathPartition[group_,replist_,partition_]:=Module[{hierarchy=<||>,n=Length@replist,temp1,linkedmap=<||>,result={},chainmap},
+temp1=UnionFinder[partition];
+If[Union@@temp1[[1;;,1]]==Range[n],AppendTo[hierarchy,Range[n]->temp1[[1;;,1]]],Print["Not a Good Partition"];Abort[];];
+HierarchyFinder[hierarchy,#]&/@temp1;
+FindRepPathV3[linkedmap,group,replist,Range[n]->Singlet[group],hierarchy];
+AuxResolve2[result,linkedmap,{Range[n]->Singlet[group]},{},hierarchy];
+Do[chainmap=result[[i]];
+MapThread[Set[chainmap[{#1}],#2]&,{Range[n],replist}];
+result[[i]]=result[[i]]->Times@@(AuxNum[group,#,chainmap,hierarchy]&/@temp1[[1;;,1]]);
+,{i,Length@result}];
+result
+]
+
+
+(* ::Subsubsection:: *)
 (*Symmetrization related*)
 
 
