@@ -162,7 +162,7 @@ Return[result];
 YPermute[mlist_List,permutation_,num_]:=YPermute[#,permutation,num]&/@mlist
 
 LorentzPermGenerator[state_,k_]:=Module[{ybasis,Num=Length[state],hels=Tally[state],ini,gen1,gen2,result=<||>},
-ybasis=SSYT[state,k,OutMode->"amplitude"];
+ybasis=SSYT[state,k,OutMode->"amplitude"];Sow[ybasis];
 ini=Accumulate[Prepend[hels[[;;-2,2]],0]]+1;
 gen1=MapThread[Cycles[{{#1,#2}}]&,{ini,ini+1}];
 gen2=MapThread[Cycles[{Range[#1,#1+#2-1]}]&,{ini,hels[[All,2]]}];

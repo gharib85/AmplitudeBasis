@@ -126,7 +126,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Get/@Global`$CodeFiles;
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Input*)
 
 
@@ -495,6 +495,7 @@ vMbasisAll=Flatten/@tMbasisAll;
 qr=QRDecomposition[Transpose[vMbasis]];
 MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
 AppendTo[finalresult,"basis"->Mbasis];
+
 (*Begin Processing J basis related*)
 fSUNreplist=Flatten[ConstantArray[#[[2]],#[[1]]]&/@SUNreplist,1];
 SUNrepPartlist=FindRepPathPartition[group,fSUNreplist,parts];
@@ -802,3 +803,6 @@ GenerateOperatorList[model_,types_List,OptionsPattern[]]:=DeleteCases[<||>]@Asso
 If[Global`$DEBUG,Begin["`Private`"]]
 End[];
 EndPackage[]
+
+
+

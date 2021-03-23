@@ -43,12 +43,12 @@ tOut[del8n]=PrintTensor[<|"tensor"->"\[Delta]","upind"->{#1,#2}|>]&;
 AppendTo[tAssumptions,fabc\[Element]Arrays[{8,8,8},Reals,Antisymmetric[{1,2,3}]]];
 tRep[fabc]={{1,1},{1,1},{1,1}};
 tOut[fabc]=PrintTensor[<|"tensor"->"f","upind"->{#1,#2,#3}|>]&;
-fG=SymmetrizedArray[-(I/4)Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]-\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]]//Normal;
+fG=SymmetrizedArray[-(I/4)Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]-\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]];
 
 AppendTo[tAssumptions,dabc\[Element]Arrays[{8,8,8},Reals,Symmetric[{1,2,3}]]];
 tRep[dabc]={{1,1},{1,1},{1,1}};
 tOut[dabc]=PrintTensor[<|"tensor"->"d","upind"->{#1,#2,#3}|>]&;
-dG=SymmetrizedArray[1/4 Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]+\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]]//Normal;
+dG=SymmetrizedArray[1/4 Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]+\[Lambda]G[[b]].\[Lambda]G[[a]].\[Lambda]G[[c]]],{a,8},{b,8},{c,8}]];
 
 
 (* ::Input::Initialization:: *)
@@ -73,10 +73,12 @@ eps3f[i_,j_,k_]del3[k_,l_]:=eps3f[i,j,l];
 eps3a[i_,j_,k_]del3[l_,i_]:=eps3a[l,j,k];
 eps3a[i_,j_,k_]del3[l_,j_]:=eps3a[i,l,k];
 eps3a[i_,j_,k_]del3[l_,k_]:=eps3a[i,j,l];
-SetAttributes[dabc,Orderless];
+
+fabc[a_,b_,c_]/;!OrderedQ[{a,b,c}]:=Signature[{a,b,c}]fabc@@Sort[{a,b,c}];
 del8n[a_,d_]fabc[a_,b_,c_]:=fabc[d,b,c];
 del8n[a_,d_]fabc[b_,a_,c_]:=fabc[b,d,c];
 del8n[a_,d_]fabc[c_,b_,a_]:=fabc[c,b,d];
+SetAttributes[dabc,Orderless];
 del8n[a_,d_]dabc[a_,b_,c_]:=dabc[d,b,c];
 del8n[a_,d_]dabc[b_,a_,c_]:=dabc[b,d,c];
 del8n[a_,d_]dabc[c_,b_,a_]:=dabc[c,b,d];
