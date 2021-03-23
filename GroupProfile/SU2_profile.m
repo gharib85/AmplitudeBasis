@@ -74,3 +74,8 @@ ConvertToFundamental[model_,groupname_,{0}]:=If[CheckGroup[model,groupname]==SU2
 ConvertToFundamental[model_,groupname_,{1}]:=If[CheckGroup[model,groupname]==SU2,{1,eps2f[a[1],aa[1]]},Message[ConvertToFundamental::name,groupname,{1}]]
 ConvertToFundamental[model_,groupname_,{2}]:=If[CheckGroup[model,groupname]==SU2,dummyIndexCount++;
 \[Tau][A[1],aa[1],dummyIndex[dummyIndexCount]]eps2f[dummyIndex[dummyIndexCount],aa[2]],Message[ConvertToFundamental::name,groupname,{2}]]
+
+CF[{0},num_,ind_]:=1
+CF[{1},num_,ind_]:=del2[ind,Subscript[num, 1]]
+CF[{-1},num_,ind_]:=eps2f[Subscript[num, 1],ind]
+CF[{2},num_,ind_]:=TensorContract[eps2f\[TensorProduct]\[Tau],{{1,6}}][Subscript[num, 1],Subscript[num, 3],ind,Subscript[num, 2]]

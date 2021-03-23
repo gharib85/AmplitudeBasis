@@ -94,3 +94,8 @@ ConvertToFundamental[model_,groupname_,{0,1}]:=If[CheckGroup[model,groupname]==S
 ConvertToFundamental[model_,groupname_,{1,1}]:=If[CheckGroup[model,groupname]==SU3,
 dummyIndexCount++;\[Lambda][B[1],bb[2],dummyIndex[dummyIndexCount]]eps3f[dummyIndex[dummyIndexCount],bb[1],bb[3]],
 Message[ConvertToFundamental::name,groupname,{1,1}]]
+
+CF[{0,0},num_,ind_]:=1
+CF[{1,0},num_,ind_]:=del3[ind,Subscript[num, 1]]
+CF[{0,1},num_,ind_]:=eps3f[Subscript[num, 1],Subscript[num, 2],ind]
+CF[{1,1},num_,ind_]:=TensorContract[eps3f\[TensorProduct]\[Lambda],{{1,6}}][Subscript[num, 1],Subscript[num, 3],ind,Subscript[num, 2]]

@@ -472,7 +472,35 @@ i++;
 result
 ]
 
+GaugePermGenerator[model_,groupname_,replist_]:=Module[{group=CheckGroup[model,groupname],indmap=Model["rep2indOut"][groupname],indexct=AssociationThread[Union@Catenate[model["rep2indOut"]]->0],
+indlist,ybasis,convert,tensorlist,tensorValue,mbasis,result,dummy,dummyPosList,indexcttemp,dummyReplace={},
+tname,slot,indexRepeat},
 
+indlist=IndexIterator[indmap[#],indexct]&/@replist;
+ybasis=GaugeYT[group,replist];If[ybasis=={1},Sow[{1},tl];Return[<||>]];
+convert=MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]];
+indlist=DeleteCases[indlist,0];
+
+tensorlist=SimpGFV2[tReduce@SymbolicTC[UnContract[# Times@@convert,tVal[group]],WithIndex->False]&/@ybasis];tensorValue=tensorlist/.tVal[group];
+mbasis=basisReduce[Flatten/@tensorValue];
+{result,dummy}=Reap[UnContract[Through[tensorlist[[mbasis["pos"]]]@@Sort[indlist]],tVal[group]],d];
+
+If[dummy!={},(* replace dummy index and sow m-basis *)
+Do[dummyPosList=DeleteCases[Position[tensor,#]&/@dummy[[1]],{}];
+If[dummyPosList=={},Continue[]];indexcttemp=indexct;
+Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Extract[tensor,dpos]->IndexIterator[indmap[tRep[tname][[slot]]],indexcttemp]],
+{dpos,dummyPosList[[All,1]]}],
+{tensor,result}];
+];
+Sow[result/.dummyReplace,tl];
+
+indexRepeat=Select[Merge[Thread[DeleteCases[replist,Singlet[group]]->indlist],Identity],Length[#]>1&];
+Map[LinearSolve[mbasis["basis"]\[Transpose],Flatten[#]]&,
+SymbolicTC[{result/.Thread[#->Permute[#,Cycles[{{1,2}}]]],
+result/.Thread[#->Permute[#,Cycles[{Range@Length[#]}]]]},
+WithIndex->False]/.tVal[group],
+{2}]&/@indexRepeat
+]
 
 
 (* ::Subsubsection:: *)
