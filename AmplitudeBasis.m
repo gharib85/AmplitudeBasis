@@ -138,7 +138,9 @@ SingletQ[group_,{rep__List}]:=MemberQ[MyRepProduct[group,{rep}][[All,1]],Constan
 SingletQ[{},{rep__?NumericQ}]:=Plus@@rep==0 (* for Abelian groups *)
 SingletQ[{},0]:=True
 (* get conjugate rep of a given rep *)
-RepConj[rep_List]:=Reverse[rep] (* for non-Abelian reps *)
+RepConj[{1}]:={-1}   (* for su(2) fund *)
+RepConj[{-1}]:={1}   (* for su(2) anti-fund *)
+RepConj[rep_List]:=Reverse[rep] (* for other non-Abelian reps *)
 RepConj[charge_?NumericQ]:=-charge (* for Abelian charges *)
 Conj[realOp_String]:=realOp (* operator names associate to conjugate operators -- themselves by default *)
 realQ[type_]:=Module[{flist=Prod2List[type]},TrueQ[flist==Sort[Conj/@flist]]]
@@ -146,6 +148,7 @@ nonAbelian[groupname_]:=Length[CheckGroup[groupname]]>0 (* judge if a group is n
 Singlet[group_]:=Replace[group,_List->0,{Depth[group]-2}]
 Fund[group_]:=ReplacePart[Singlet[group],1->1]
 AFund[group_]:=ReplacePart[Singlet[group],-1->1]
+
 CheckType[model_,type_,OptionsPattern[]]:=Module[{flist=DeleteCases[Prod2List[type],"D"|_?NumericQ],inModel},
 inModel=KeyExistsQ[model,#]&/@flist;
 If[Nand@@inModel,Message[CheckType::unknown,type];Abort[]];
@@ -210,7 +213,7 @@ If[attribute["stat"]=="fermion" ,AssociateTo[attribute,"chirality"->OptionValue[
 AppendTo[model,field->attribute];
 
 NAgroups=Select[model["Gauge"],nonAbelian];
-shape=MapThread[DimR[#1,#2]&,{CheckGroup/@NAgroups,Cases[Greps,_List]}];
+shape=MapThread[DimR[#1,#2]&,{CheckGroup/@NAgroups,Abs@Cases[Greps,_List]}];
 AppendTo[tAssumptions,ToExpression["t"<>field<>ToString[NAgroups[[#]]]]\[Element]Arrays[{shape[[#]]}]]&/@Range[1,Length[shape]];
 
 If[!OptionValue[Hermitian]&&Last@Characters[field]!="\[Dagger]",AddField[model,field<>"\[Dagger]",-hel,RepConj/@Greps,RepConj/@Globalreps,Flavor->OptionValue[Flavor],Chirality->(OptionValue[Chirality]/.{"left"->"right","right"->"left"})];
@@ -266,13 +269,13 @@ sign{deltaB,deltaL}
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Lorentz Basis*)
 
 
 (* ::Input::Initialization:: *)
 (* Symmetrize the list of amplitudes Mlist according to ALL possible Irreps of permutations for RepFields, and show result under basis StBasis *)
-Options[LorentzBasisAux]={Coord->False};
+Options[LorentzBasisAuxOld]={Coord->False};
 LorentzBasisAuxOld[Mlist_,RepPos_,Num_,OptionsPattern[]]:=LorentzBasisAuxOld[Mlist,RepPos,Num]=
 Module[{depth=Length[RepPos],Dim=Length[Mlist],SymList,yngList,permAmp,permResult=<||>,SnDimlist={},emptySpaceCor,j,ynglist,allbasis,allbasisCor,poslist},
 If[depth==0,Return[<|{}->If[OptionValue[Coord],IdentityMatrix[Length[Mlist]],Mlist]|>]];
@@ -331,10 +334,17 @@ Map[Expand[OpBasis.Inverse[amp2op["Trans"]]\[Transpose].#]&,resultCor,{2+Length[
 ] 
 
 Clear[LorentzBasisAux];
-Options[LorentzBasisAux]={OutMode->"p-basis"};
-LorentzBasisAux[state_,k_,posRepeat_,OptionsPattern[]]:=Module[{lorentzGen,ybasis,shift,yngList,result},
+Options[LorentzBasisAux]={OutMode->"p-basis",OutputFormat->"operator",ReplaceField->{},finalform->True};
+LorentzBasisAux[state_,k_,posRepeat_,OptionsPattern[]]:=Module[{lorentzGen,ybasis,amp2op,mbasis,shift,yngList,result},
 {lorentzGen,ybasis}=Reap@LorentzPermGenerator[state,k];
-result=<|"basis"->ybasis[[1,1]]|>;
+Switch[OptionValue[OutputFormat],
+"amplitude",mbasis=ybasis[[1,1]],
+"operator",amp2op=MonoLorentzBasis[ybasis[[1,1]],Length[state],finalform->False];
+mbasis=transform[amp2op["LorBasis"],ReplaceField->OptionValue[ReplaceField],
+OpenFchain->OptionValue[finalform],ActivatePrintTensor->OptionValue[finalform]];
+lorentzGen=Map[amp2op["Trans"].#.Inverse[amp2op["Trans"]]&,lorentzGen,{2}]
+];
+result=<|"basis"->mbasis|>;
 shift=FirstPosition[PositionIndex[state],First[#]]&/@posRepeat;
 
 Switch[OptionValue[OutMode],
@@ -369,7 +379,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Gauge Group Factor*)
 
 
@@ -424,8 +434,8 @@ nonSingletSN=MapAt[Select[#,model[#[[1]]][groupname]!=Singlet[group]&]&,SNCollec
 
 convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);
 (*Select out nonsinglet fields for constructing singlet*)
-YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@GenerateLRT[group,indmap,nonsinglets])]*convertfactor];Print[YDbasis];
-MbasisAll=SimpGFV2[Expand/@TRefineTensor[YDbasis,model,groupname,flist]];Print[MbasisAll];
+YDbasis=Expand[Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@GenerateLRT[group,indmap,nonsinglets])]*convertfactor];
+MbasisAll=SimpGFV2[Expand/@TRefineTensor[YDbasis,model,groupname,flist]];
 tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;
 vMbasisAll=Flatten/@tMbasisAll;
 MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
@@ -824,7 +834,8 @@ KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]
 
 
 (* ::Input::Initialization:: *)
-GetBasisForType[model_,type_]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,posRepeat,NAgroups=Select[model["Gauge"],nonAbelian],lorBasis,gaugeBasis,factors,ampBasis,generators,yngList,pCoord},
+Clear[GetBasisForType];
+GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,posRepeat,NAgroups=Select[model["Gauge"],nonAbelian],lorBasis,gaugeBasis,factors,opBasis,generators,yngList,pCoord},
 state=model[#]["helicity"]&/@particles;k=Exponent[type,"D"];
 replist=Outer[model[#2][#1]&,NAgroups,particles];
 
@@ -832,16 +843,22 @@ posRepeat=Select[PositionIndex[particles],Length[#]>1&];
 yngList=IntegerPartitions@Length[#]&/@posRepeat;
 yngList=Thread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
 
-lorBasis=LorentzBasisAux[state,k,posRepeat,OutMode->"generator"];
+lorBasis=LorentzBasisAux[state,k,posRepeat,OutMode->"generator",
+OutputFormat->OptionValue[OutputFormat],
+ReplaceField->{model,type,OptionValue[FerCom]},
+finalform->False];
 gaugeBasis=MapThread[GaugeBasisAux[model,#1,#2,posRepeat,OutMode->"generator"]&,{NAgroups,replist}];
 factors=Prepend[gaugeBasis,lorBasis];
 
-ampBasis=Through[(TensorProduct@@factors)["basis"]];
-generators=Merge[Through[factors["generators"]],SparseArray/@Flatten[MapThread[TensorProduct,#],{{1},2Range@Length[factors],2Range@Length[factors]+1}]&];
+opBasis=ContractDelta@Through[(TensorProduct@@factors)["basis"]];
+opBasis=PrintOper[RefineReplace@opBasis]/.listtotime;
+generators=Merge[Through[factors["generators"]],SparseArray/@
+Flatten[MapThread[TensorProduct,#],{{1},2Range@Length[factors],2Range@Length[factors]+1}]&];
 pCoord=AssociationMap[basisReduce[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["basis"]&,yngList];
 
-<|"basis"->Flatten@ampBasis,"p-basis"->DeleteCases[pCoord,{}]|>
+<|"basis"->Flatten@opBasis,"p-basis"->DeleteCases[pCoord,{}]|>
 ]
+Options[GetBasisForType]={OutputFormat->"operator",FerCom->2};
 
 
 (* ::Input::Initialization:: *)

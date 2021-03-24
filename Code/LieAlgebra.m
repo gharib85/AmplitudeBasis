@@ -14,7 +14,7 @@ GellMann[n_]:=GellMann[n]=
 Flatten[Table[(*Symmetric case*)SparseArray[{{j,k}->1,{k,j}->1},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Flatten[Table[(*Antisymmetric case*)SparseArray[{{j,k}->-I,{k,j}->+I},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Table[(*Diagonal case*)Sqrt[2/l/(l+1)] SparseArray[Table[{j,j}->1,{j,1,l}]~Join~{{l+1,l+1}->-l},{n,n}],{l,1,n-1}];
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Littlewood-Richardson related*)
 
 
@@ -205,7 +205,7 @@ result
 ];
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Tensor Reduction related*)
 
 
@@ -327,7 +327,7 @@ unflatten[result,tdim]
 
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*JBasis related*)
 
 
@@ -477,7 +477,7 @@ indlist,ybasis,convert,tensorlist,tensorValue,mbasis,result,dummy,dummyPosList,i
 tname,slot,indexRepeat},
 
 indlist=IndexIterator[indmap[#],indexct]&/@replist;
-ybasis=GaugeYT[group,replist];If[ybasis=={1},Sow[{1},tl];Return[<||>]];
+ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Sow[{1},tl];Return[<||>]];
 convert=MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]];
 indlist=DeleteCases[indlist,0];
 
@@ -503,7 +503,7 @@ WithIndex->False]/.tVal[group],
 ]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Lie Algebra*)
 
 

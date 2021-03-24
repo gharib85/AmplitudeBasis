@@ -601,8 +601,9 @@ Options[MonoLorentzBasis]={finalform->True};
 MonoLorentzBasis[{1},num_Integer,OptionsPattern[]]:=<|"LorBasis"->{OperPoly[1,num]},"Trans"->{{1}}|>
 MonoLorentzBasis[state:{__?NumberQ},k_Integer,OptionsPattern[]]:=MonoLorentzBasis[SSYT[state,k,OutMode->"amplitude"],Length[state],finalform->OptionValue[finalform]]
 MonoLorentzBasis[spinorbasis_List,num_Integer,OptionsPattern[]]:=Module[{operbasis,coefbasis,basispos,transfer,basis},
-operbasis=OperPoly[#,num,Dcontract->False]&/@spinorbasis;operbasis=Flatten[operbasis//.{Plus->List}]//.{Times[_Integer,p__]:>Times[p],Times[_Rational,p__]:>Times[p],Times[_Complex,p__]:>Times[I,p]};coefbasis=FindCor[reduce[#,num],spinorbasis]&/@(Amp/@operbasis);basispos=Subsets[coefbasis,{Length[spinorbasis]}];Do[If[MatrixRank[basispos[[ii]]]===Length[spinorbasis],transfer=basispos[[ii]];Break[]],{ii,Length[basispos]}];
-basispos=Flatten[Position[coefbasis,#][[1]]&/@transfer];
-basis=operbasis[[basispos]];
-<|"LorBasis"->basis,"Trans"->transfer|>
+operbasis=OperPoly[#,num,Dcontract->False]&/@spinorbasis;operbasis=Flatten[operbasis//.{Plus->List}]//.{Times[_Integer,p__]:>Times[p],Times[_Rational,p__]:>Times[p],Times[_Complex,p__]:>Times[I,p]};coefbasis=FindCor[reduce[#,num],spinorbasis]&/@(Amp/@operbasis);(*basispos=Subsets[coefbasis,{Length[spinorbasis]}];Do[If[MatrixRank[basispos[[ii]]]===Length[spinorbasis],transfer=basispos[[ii]];Break[]],{ii,Length[basispos]}];*)
+basis=basisReduce[coefbasis];
+(*basispos=Flatten[Position[coefbasis,#][[1]]&/@transfer];
+basis=operbasis[[basis["pos"]]];*)
+<|"LorBasis"->operbasis[[basis["pos"]]],"Trans"->basis["basis"]|>
 ]
