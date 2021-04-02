@@ -205,7 +205,7 @@ result
 ];
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Tensor Reduction related*)
 
 
@@ -472,10 +472,11 @@ i++;
 result
 ]
 
-GaugePermGenerator[model_,groupname_,replist_]:=Module[{group=CheckGroup[model,groupname],indmap=Model["rep2indOut"][groupname],indexct=AssociationThread[Union@Catenate[model["rep2indOut"]]->0],
+GaugePermGenerator[group_,replist_,indmap_]:=Module[{indexct,
 indlist,ybasis,convert,tensorlist,tensorValue,mbasis,result,dummy,dummyPosList,indexcttemp,dummyReplace={},
 tname,slot,indexRepeat},
 
+indexct=AssociationThread[Union@Values[indmap]->0];
 indlist=IndexIterator[indmap[#],indexct]&/@replist;
 ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Sow[{1},tl];Return[<||>]];
 convert=MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]];

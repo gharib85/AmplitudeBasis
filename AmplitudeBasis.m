@@ -269,7 +269,7 @@ sign{deltaB,deltaL}
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Lorentz Basis*)
 
 
@@ -340,25 +340,27 @@ LorentzBasisAux[state_,k_,posRepeat_,OptionsPattern[]]:=Module[{lorentzGen,ybasi
 Switch[OptionValue[OutputFormat],
 "amplitude",mbasis=ybasis[[1,1]],
 "operator",amp2op=MonoLorentzBasis[ybasis[[1,1]],Length[state],finalform->False];
-mbasis=transform[amp2op["LorBasis"],ReplaceField->OptionValue[ReplaceField],
-OpenFchain->OptionValue[finalform],ActivatePrintTensor->OptionValue[finalform]];
+mbasis=amp2op["LorBasis"];
+(*transform[amp2op["LorBasis"],ReplaceField->OptionValue[ReplaceField],
+OpenFchain->OptionValue[finalform],ActivatePrintTensor->OptionValue[finalform]];*)
 lorentzGen=Map[amp2op["Trans"].#.Inverse[amp2op["Trans"]]&,lorentzGen,{2}]
 ];
 result=<|"basis"->mbasis|>;
 shift=FirstPosition[PositionIndex[state],First[#]]&/@posRepeat;
 
-Switch[OptionValue[OutMode],
-"p-basis",
+Switch[Head[posRepeat],
+Association,
 yngList=IntegerPartitions@Length[#]&/@posRepeat;
 yngList=AssociationThread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
 Append[result,"p-basis"->
 DeleteCases[Association@Map[Normal[#]->
 basisReduce[Dot@@KeyValueMap[PermRepFromGenerator[lorentzGen[[shift[#1][[1]]]],YO[#2,shift[#1][[2]]]]&,#]]["basis"]&,yngList],{}]],
 
-"generator",
+List,
 Append[result,"generators"->
-MapThread[Function[gen,PermRepFromGenerator[lorentzGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+#2-1]}]}&,
-{shift,Length/@posRepeat}]]
+Association@MapThread[
+#2->Function[gen,PermRepFromGenerator[lorentzGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,
+{shift,posRepeat}]]
 ]
 ]
 
@@ -459,15 +461,15 @@ Options[GaugeBasis]={OutputMode->"indexed"};
 
 (* ::Input::Initialization:: *)
 Options[GaugeBasisAux]={OutMode->"p-basis"};
-GaugeBasisAux[model_,groupname_,replist_,posRepeat_,OptionsPattern[]]:=Module[{group=CheckGroup[groupname],shift,yngList,gaugeGen,mbasis,trivial=False,result},
+GaugeBasisAux[group_,replist_,posRepeat_,indmap_,OptionsPattern[]]:=Module[{shift,yngList,gaugeGen,mbasis,trivial=False,result},
 If[posRepeat==<||>,trivial=True]; (* no repeated fields *)
-{gaugeGen,mbasis}=Reap[GaugePermGenerator[model,groupname,replist],tl];
+{gaugeGen,mbasis}=Reap[GaugePermGenerator[group,replist,indmap],tl];
 If[gaugeGen==<||>,trivial=True]; (* all singlets *)
 result=<|"basis"->mbasis[[1,1]]|>;
 shift=FirstPosition[PositionIndex[replist],First[#]]&/@posRepeat;
 
-Switch[OptionValue[OutMode],
-"p-basis",
+Switch[Head[posRepeat],
+Association,
 If[trivial,Return[Append[result,"p-basis"-><|{}->IdentityMatrix[Length[mbasis[[1,1]]]]|>]]];
 yngList=IntegerPartitions@Length[#]&/@posRepeat;
 yngList=AssociationThread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
@@ -475,11 +477,12 @@ Append[result,"p-basis"->
 DeleteCases[Association@Map[Normal[#]->
 basisReduce[Dot@@KeyValueMap[PermRepFromGenerator[gaugeGen[[shift[#1][[1]]]],YO[#2,shift[#1][[2]]]]&,#]]["basis"]&,yngList],{}]],
 
-"generator",
-If[trivial,Return[Append[result,"generators"->MapThread[{{{1}},{{1}}}&,{shift,Length/@posRepeat}]]]];
+List,
+If[trivial,Return[Append[result,"generators"-><|#->{{{1}},{{1}}}&/@posRepeat|>]]];
 Append[result,"generators"->
-MapThread[Function[gen,PermRepFromGenerator[gaugeGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+#2-1]}]}&,
-{shift,Length/@posRepeat}]]
+Association@MapThread[
+#2->Function[gen,PermRepFromGenerator[gaugeGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,
+{shift,posRepeat}]]
 ]
 ]
 
@@ -842,13 +845,15 @@ replist=Outer[model[#2][#1]&,NAgroups,particles];
 posRepeat=Select[PositionIndex[particles],Length[#]>1&];
 yngList=IntegerPartitions@Length[#]&/@posRepeat;
 yngList=Thread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
+posRepeat=Values[posRepeat];
 
-lorBasis=LorentzBasisAux[state,k,posRepeat,OutMode->"generator",
-OutputFormat->OptionValue[OutputFormat],
-ReplaceField->{model,type,OptionValue[FerCom]},
-finalform->False];
-gaugeBasis=MapThread[GaugeBasisAux[model,#1,#2,posRepeat,OutMode->"generator"]&,{NAgroups,replist}];
-factors=Prepend[gaugeBasis,lorBasis];
+lorBasis=LorentzBasisAux[state,k,posRepeat,OutputFormat->OptionValue[OutputFormat]];
+Switch[OptionValue[OutputFormat],
+"operator",lorBasis=MapAt[transform[#,ReplaceField->{model,type,OptionValue[FerCom]},OpenFchain->False,ActivatePrintTensor->False]&,lorBasis,Key["basis"]],
+"amplitude",lorBasis=MapAt[Ampform,lorBasis,Key["basis"]]
+];
+gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,model["rep2indOut"][#1],OutMode->"generator"]&,{NAgroups,replist}];
+factors=MapAt[KeyMap[particles[[First[#]]]&],Prepend[gaugeBasis,lorBasis],{All,Key["generators"]}];
 
 opBasis=ContractDelta@Through[(TensorProduct@@factors)["basis"]];
 opBasis=PrintOper[RefineReplace@opBasis]/.listtotime;
