@@ -205,7 +205,7 @@ result
 ];
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Tensor Reduction related*)
 
 

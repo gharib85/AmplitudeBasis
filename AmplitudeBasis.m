@@ -41,7 +41,7 @@ BeginPackage["AmplitudeBasis`"]
 {tAssumptions,tRep,tOut,tVal,tYDcol,tSimp,dummyIndexCount,GellMann,ConvertToFundamental,PrintTensor};
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Help Text*)
 
 
@@ -269,7 +269,7 @@ sign{deltaB,deltaL}
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Lorentz Basis*)
 
 
@@ -540,56 +540,113 @@ Association@finalresult
 ]*)
 
 
+(* ::Input:: *)
+(*GaugeJBasis[model_,groupname_,type_,parts_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],indexlist,group=CheckGroup[model,groupname],indmap=model["rep2ind"][groupname],SUNreplist,nonsinglets,convertfactor,YDbasisnoConvert,YDbasis,fSUNreplist,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,MbasisAll,tMbasisAll,vMbasisAll,Mbasis,tMbasis,vMbasis,qr,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},finalresult={},ntarget},*)
+(*indexlist=GenerateFieldIndex[model,groupname,flist];*)
+(*finalresult={"order"->Flatten@(ConstantArray@@@flist)};*)
+(*SUNreplist={#[[2]],model[#[[1]]][groupname],#[[1]]}&/@flist; (* {repeat_num, SUNrep, fieldname} *)*)
+(*nonsinglets=DeleteCases[SUNreplist,{_,Singlet[group],_}];*)
+(*If[nonsinglets=={},AppendTo[finalresult,"basis"->{1}];AppendTo[finalresult,"jcoord"->{{1}}];Return[Association@finalresult]];*)
+(*convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);*)
+(*(*prepare y- and m- bases*)*)
+(*YDbasisnoConvert=Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@GenerateLRT[group,indmap,nonsinglets])];Print[YDbasisnoConvert];*)
+(*YDbasis=Expand[YDbasisnoConvert*convertfactor];*)
+(*MbasisAll=SimpGFV2[Expand/@TRefineTensor[YDbasis,model,groupname,flist]];*)
+(*tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;*)
+(*vMbasisAll=Flatten/@tMbasisAll;*)
+(*qr=QRDecomposition[Transpose[vMbasis]];*)
+(*MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];*)
+(*AppendTo[finalresult,"basis"->Mbasis];*)
+(**)
+(*(*Begin Processing J basis related*)*)
+(*fSUNreplist=Flatten[ConstantArray[#[[2]],#[[1]]]&/@SUNreplist,1];*)
+(*SUNrepPartlist=FindRepPathPartition[group,fSUNreplist,parts];*)
+(*nonsingletparts=Select[Keys@SUNrepPartlist[[1,1]],(!MatchQ[fSUNreplist[[#]]&/@#,{Singlet[group]..}])&];*)
+(*YTlist=Flatten[GenerateTYT@@@(Join[#,{indmap[Fund[group]],group}]&/@SUNreplist),1];(*Young tableaux for the representation*)Print[YTlist];*)
+(*RepParts=MapAt[fSUNreplist[[#]]&,nonsingletparts,{All,All}];*)
+(*YTParts=MapAt[YTlist[[#]]&,nonsingletparts,{All,All}];*)
+(*SubYTs=Table[Distribute[GenerateLRTYTs@@@MapThread[{group,#1,#2}&,{SUNrepPartlist[[i,1]][#]&/@nonsingletparts,YTParts}],List],{i,Length[SUNrepPartlist]}];*)
+(*(*assoSubYTs=Association@MapThread[Rule,{{MapThread[Rule,{nonsingletparts,#[[1]]}],#[[2]]}&/@SUNrepPartlist,SubYTs}];*)
+(*Print["assoSubYTs: ", assoSubYTs];*)*)
+(*Do[*)
+(*tempresult={};*)
+(*ranktemp=0;*)
+(*ntarget=SUNrepPartlist[[i,2]];*)
+(*Do[*)
+(*Do[*)
+(*stemp=Expand[RefineTensor[Simplify[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convertfactor],model,groupname,flist]];*)
+(*If[stemp==0,Continue[]];*)
+(*vtemp=Flatten@Product2ContractV3[stemp,indexlist,tVal[group]];*)
+(*coordtemp=Simplify[GetCoord[qr,vtemp]];*)
+(*AppendTo[tempresult,coordtemp];*)
+(*If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[];];,tempresult=Drop[tempresult,-1];]*)
+(*,{YTs,SubYTs[[i]]}*)
+(*];*)
+(*If[ranktemp==ntarget,Break[];];*)
+(*,{ybs,YDbasisnoConvert}*)
+(*];*)
+(*AppendTo[coordresult,SUNrepPartlist[[i,1]]->tempresult];*)
+(*,{i,Length[SUNrepPartlist]}*)
+(*];*)
+(*AppendTo[finalresult,"jcoord"->coordresult];*)
+(*(*AppendTo[finalresult,"qr"\[Rule]qr];*)*)
+(*Association@finalresult*)
+(*]*)
+
+
 (* ::Input::Initialization:: *)
-GaugeJBasis[model_,groupname_,type_,parts_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],indexlist,group=CheckGroup[model,groupname],indmap=model["rep2ind"][groupname],SUNreplist,nonsinglets,convertfactor,YDbasisnoConvert,YDbasis,fSUNreplist,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,MbasisAll,tMbasisAll,vMbasisAll,Mbasis,tMbasis,vMbasis,qr,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},finalresult={},ntarget},
-indexlist=GenerateFieldIndex[model,groupname,flist];
-finalresult={"order"->Flatten@(ConstantArray@@@flist)};
-SUNreplist={#[[2]],model[#[[1]]][groupname],#[[1]]}&/@flist; (* {repeat_num, SUNrep, fieldname} *)
-nonsinglets=DeleteCases[SUNreplist,{_,Singlet[group],_}];
-If[nonsinglets=={},AppendTo[finalresult,"basis"->{1}];AppendTo[finalresult,"jcoord"->{{1}}];Return[Association@finalresult]];
-convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);
-(*prepare y- and m- bases*)
-YDbasisnoConvert=Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@GenerateLRT[group,indmap,nonsinglets])];
-YDbasis=Expand[YDbasisnoConvert*convertfactor];
-MbasisAll=SimpGFV2[Expand/@TRefineTensor[YDbasis,model,groupname,flist]];
-tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;
-vMbasisAll=Flatten/@tMbasisAll;
-qr=QRDecomposition[Transpose[vMbasis]];
-MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];
-AppendTo[finalresult,"basis"->Mbasis];
+GaugeJBasis[group_,replist_,parts_,indmap_,OptionsPattern[]]:=Module[{nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},finalresult={},ntarget,
+indexct,indlist,ybasis,convert,tensorlist,tensorValue,mbasis,result,dummy,dummyPosList,indexcttemp,dummyReplace={}},
+
+indexct=AssociationThread[Union@Values[indmap]->0];
+indlist=IndexIterator[indmap[#],indexct]&/@replist;
+ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}|>]];
+convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]],tVal[group]];
+indlist=DeleteCases[indlist,0];
+
+tensorlist=SimpGFV2[tReduce@SymbolicTC[Expand[# convert],WithIndex->False]&/@ybasis];
+tensorValue=tensorlist/.tVal[group];
+mbasis=basisReduce[Flatten/@tensorValue];
+{result,dummy}=Reap[UnContract[Through[tensorlist[[mbasis["pos"]]]@@Sort[indlist]],tVal[group]],d];
+
+If[dummy!={},(* replace dummy index and sow m-basis *)
+Do[dummyPosList=DeleteCases[Position[tensor,#]&/@dummy[[1]],{}];
+If[dummyPosList=={},Continue[]];indexcttemp=indexct;
+Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Extract[tensor,dpos]->IndexIterator[indmap[tRep[tname][[slot]]],indexcttemp]],
+{dpos,dummyPosList[[All,1]]}],
+{tensor,result}];
+];
+finalresult={"basis"->result/.dummyReplace};
 
 (*Begin Processing J basis related*)
-fSUNreplist=Flatten[ConstantArray[#[[2]],#[[1]]]&/@SUNreplist,1];
-SUNrepPartlist=FindRepPathPartition[group,fSUNreplist,parts];
-nonsingletparts=Select[Keys@SUNrepPartlist[[1,1]],(!MatchQ[fSUNreplist[[#]]&/@#,{Singlet[group]..}])&];
-YTlist=Flatten[GenerateTYT@@@(Join[#,{indmap[Fund[group]],group}]&/@SUNreplist),1];(*Young tableaux for the representation*)
-RepParts=MapAt[fSUNreplist[[#]]&,nonsingletparts,{All,All}];
-YTParts=MapAt[YTlist[[#]]&,nonsingletparts,{All,All}];
+SUNrepPartlist=FindRepPathPartition[group,replist,parts];
+nonsingletparts=Select[Keys@SUNrepPartlist[[1,1]],(!MatchQ[replist[[#]]&/@#,{Singlet[group]..}])&];
+YTlist=MapIndexed[DeleteCases[{}]@FoldPairList[TakeDrop,Table[Subscript[#2[[1]], i],{i,Total@Dynk2Yng[#1]}],Dynk2Yng[#1]]&,replist]; (*Young tableaux for the representation*)
+RepParts=Map[replist[[#]]&,nonsingletparts,{2}];
+YTParts=Map[YTlist[[#]]&,nonsingletparts,{2}];
 SubYTs=Table[Distribute[GenerateLRTYTs@@@MapThread[{group,#1,#2}&,{SUNrepPartlist[[i,1]][#]&/@nonsingletparts,YTParts}],List],{i,Length[SUNrepPartlist]}];
-(*assoSubYTs=Association@MapThread[Rule,{{MapThread[Rule,{nonsingletparts,#[[1]]}],#[[2]]}&/@SUNrepPartlist,SubYTs}];
-Print["assoSubYTs: ", assoSubYTs];*)
+
 Do[
 tempresult={};
 ranktemp=0;
 ntarget=SUNrepPartlist[[i,2]];
 Do[
 Do[
-stemp=Expand[RefineTensor[Simplify[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convertfactor],model,groupname,flist]];
+stemp=Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert];
 If[stemp==0,Continue[]];
-vtemp=Flatten@Product2ContractV3[stemp,indexlist,tVal[group]];
-coordtemp=Simplify[GetCoord[qr,vtemp]];
+vtemp=SymbolicTC[stemp,WithIndex->False]/.tVal[group];
+coordtemp=LinearSolve[mbasis["basis"]\[Transpose],Flatten[vtemp]];
 AppendTo[tempresult,coordtemp];
 If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[];];,tempresult=Drop[tempresult,-1];]
 ,{YTs,SubYTs[[i]]}
 ];
 If[ranktemp==ntarget,Break[];];
-,{ybs,YDbasisnoConvert}
+,{ybs,ybasis}
 ];
 AppendTo[coordresult,SUNrepPartlist[[i,1]]->tempresult];
 ,{i,Length[SUNrepPartlist]}
 ];
 AppendTo[finalresult,"jcoord"->coordresult];
-(*AppendTo[finalresult,"qr"\[Rule]qr];*)
 Association@finalresult
 ]
 
@@ -864,6 +921,29 @@ pCoord=AssociationMap[basisReduce[Dot@@Merge[{generators,#},PermRepFromGenerator
 <|"basis"->Flatten@opBasis,"p-basis"->DeleteCases[pCoord,{}]|>
 ]
 Options[GetBasisForType]={OutputFormat->"operator",FerCom->2};
+
+
+GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Gauge"],nonAbelian],lorBasis,gaugeBasis,
+factors,basis,jCoord,result=<||>},
+state=(model[#1]["helicity"]&)/@particles;k=Exponent[type,"D"];
+replist=Outer[model[#2][#1]&,NAgroups,particles];
+
+Switch[OptionValue[OutputFormat],
+"amplitude",lorBasis=LorentzJBasis[state,k,partition],
+"operator",lorBasis=MapAt[MonoLorentzBasis[#,Length[state],finalform->False]["LorBasis"]&,
+LorentzJBasis[state,k,partition],Key["basis"]];
+lorBasis["basis"]=transform[lorBasis["basis"],ReplaceField->{model,type,OptionValue[FerCom]},
+OpenFchain->False,ActivatePrintTensor->False];
+];
+gaugeBasis=MapThread[GaugeJBasis[CheckGroup[#1],#2,partition,#3]&,{NAgroups,replist,model["rep2indOut"]/@NAgroups}];
+
+factors=Merge[Prepend[gaugeBasis,lorBasis],Identity];
+basis=TensorProduct@@factors["basis"];
+If[OptionValue[OutputFormat]=="operator",basis=PrintOper[RefineReplace@ContractDelta@basis]//.listtotime];
+jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2]],List])&/@Distribute[factors["jcoord"],List];
+Return[<|"basis"->Flatten[basis],"j-basis"->jCoord|>];
+]
+Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2};
 
 
 (* ::Input::Initialization:: *)

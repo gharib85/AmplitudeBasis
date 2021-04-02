@@ -149,7 +149,7 @@ Map[Fold[Partition,#,Reverse[Rest[listdim]]]&,result,{4}]
 (********************** Young tableau related *******************)
 TransposeYng[yng_]:=Length/@TransposeTableaux[Range/@yng]
 
-Dynk2Yng[rep_]:=Reverse@Accumulate@Reverse[rep]
+Dynk2Yng[rep_]:=Reverse@Accumulate@Reverse@Abs[rep]
 Yng2Dynk[group_,yng_]:=-Differences@PadRight[yng,Length[group]+1]
 
 
