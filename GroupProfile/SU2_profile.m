@@ -44,10 +44,11 @@ tOut[eps3n]=PrintTensor[<|"tensor"->"\[Epsilon]","upind"->{#1,#2,#3}|>]&;
 
 (* ::Input::Initialization:: *)
 tSimp[SU2]=Hold[Block[{},
-eps2a[x_,y_] eps2f[z_,y_]:=del2[x,z];
+(*eps2a[x_,y_] eps2f[z_,y_]:=del2[x,z];
 eps2a[x_,y_] eps2f[y_,z_]:=-del2[x,z];
 eps2a[x_String,y_String] eps2f[w_String,z_String]:=del2[x,w] del2[y,z]-del2[x,z] del2[y,w]/;Intersection@@(First/@Position[INDEXSET,#]&/@{x,y,w,z})!={};
-eps2a[x:Except[_String],y_] eps2f[w_,z_]:=del2[x,w] del2[y,z]-del2[x,z] del2[y,w]/;Equal@@Head/@{x,y,w,z};
+eps2a[x:Except[_String],y_] eps2f[w_,z_]:=del2[x,w] del2[y,z]-del2[x,z] del2[y,w]/;Equal@@Head/@{x,y,w,z};*)
+eps2a[x_,y_] eps2f[w_,z_]:=del2[x,w] del2[y,z]-del2[x,z] del2[y,w];
 
 del2[i_,j_]del2[j_,k_]:=del2[i,k];
 del2[i_,i_]:=2;
@@ -78,4 +79,4 @@ ConvertToFundamental[model_,groupname_,{2}]:=If[CheckGroup[model,groupname]==SU2
 CF[{0},num_,ind_]:=1
 CF[{1},num_,ind_]:=del2[ind,Subscript[num, 1]]
 CF[{-1},num_,ind_]:=eps2f[Subscript[num, 1],ind]
-CF[{2},num_,ind_]:=TensorContract[eps2f\[TensorProduct]\[Tau],{{1,6}}][Subscript[num, 1],Subscript[num, 3],ind,Subscript[num, 2]]
+CF[{2},num_,ind_]:=TensorContract[eps2f\[TensorProduct]\[Tau],{{1,5}}][Subscript[num, 1],ind,Subscript[num, 2]]

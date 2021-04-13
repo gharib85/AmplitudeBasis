@@ -41,7 +41,7 @@ BeginPackage["AmplitudeBasis`"]
 {tAssumptions,tRep,tOut,tVal,tYDcol,tSimp,dummyIndexCount,GellMann,ConvertToFundamental,PrintTensor};
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Help Text*)
 
 
@@ -191,8 +191,9 @@ AddField[model,field<>"L",-1,Freps,Globalreps,Hermitian->True];
 AddField[model,field<>"R",1,Freps,Globalreps,Hermitian->True]; (* add gauge bosons *)
 Conj[field<>"L"]=field<>"R";
 Conj[field<>"R"]=field<>"L"; (* define special conjugation relation (not denoted by \[Dagger]) for gauge boson names *)
-AssociateTo[model["rep2ind"],groupname->First/@ind]; (* define abstract working index names for all reps of the new group *)
-AssociateTo[model["rep2indOut"],groupname->Last/@ind]; (* define list of specific indices for all reps of the new group *)
+(*AssociateTo[model["rep2ind"],groupname->First/@ind];*) (* define abstract working index names for all reps of the new group *)
+AssociateTo[model["rep2indOut"],groupname->ind]; (* define list of specific indices for all reps of the new group *)
+If[!KeyExistsQ[ind,Singlet[group]],AssociateTo[model["rep2indOut"][groupname],Singlet[group]->{}]];
 SetSimplificationRule[model] (* define simplification rules for all gauge groups *)
 ]
 AddGroup::profile="Profile for group `1` not found.";
@@ -269,7 +270,7 @@ sign{deltaB,deltaL}
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Lorentz Basis*)
 
 
@@ -601,13 +602,13 @@ indexct,indlist,ybasis,convert,tensorlist,tensorValue,mbasis,result,dummy,dummyP
 indexct=AssociationThread[Union@Values[indmap]->0];
 indlist=IndexIterator[indmap[#],indexct]&/@replist;
 ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}|>]];
-convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]],tVal[group]];
+convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];
 indlist=DeleteCases[indlist,0];
 
 tensorlist=SimpGFV2[tReduce@SymbolicTC[Expand[# convert],WithIndex->False]&/@ybasis];
 tensorValue=tensorlist/.tVal[group];
 mbasis=basisReduce[Flatten/@tensorValue];
-{result,dummy}=Reap[UnContract[Through[tensorlist[[mbasis["pos"]]]@@Sort[indlist]],tVal[group]],d];
+{result,dummy}=Reap[UnContract[Through[tensorlist[[mbasis["pos"]]]@@Sort[indlist]]],d];
 
 If[dummy!={},(* replace dummy index and sow m-basis *)
 Do[dummyPosList=DeleteCases[Position[tensor,#]&/@dummy[[1]],{}];
@@ -619,7 +620,7 @@ Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Ext
 finalresult={"basis"->result/.dummyReplace};
 
 (*Begin Processing J basis related*)
-SUNrepPartlist=FindRepPathPartition[group,replist,parts];
+SUNrepPartlist=FindRepPathPartition[group,Abs@replist,parts];
 nonsingletparts=Select[Keys@SUNrepPartlist[[1,1]],(!MatchQ[replist[[#]]&/@#,{Singlet[group]..}])&];
 YTlist=MapIndexed[DeleteCases[{}]@FoldPairList[TakeDrop,Table[Subscript[#2[[1]], i],{i,Total@Dynk2Yng[#1]}],Dynk2Yng[#1]]&,replist]; (*Young tableaux for the representation*)
 RepParts=Map[replist[[#]]&,nonsingletparts,{2}];
@@ -894,8 +895,12 @@ KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]
 
 
 (* ::Input::Initialization:: *)
-Clear[GetBasisForType];
-GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,posRepeat,NAgroups=Select[model["Gauge"],nonAbelian],lorBasis,gaugeBasis,factors,opBasis,generators,yngList,pCoord},
+basisReduceByFirst[tensor_,len_]:=Module[{pos},
+pos=basisReduce[Extract[tensor,ConstantArray[1,len]]]["pos"];
+Map[Part[#,pos]&,tensor,{len}]
+]
+
+GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Gauge"],nonAbelian],posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,generators,pCoord},
 state=model[#]["helicity"]&/@particles;k=Exponent[type,"D"];
 replist=Outer[model[#2][#1]&,NAgroups,particles];
 
@@ -903,6 +908,7 @@ posRepeat=Select[PositionIndex[particles],Length[#]>1&];
 yngList=IntegerPartitions@Length[#]&/@posRepeat;
 yngList=Thread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
 posRepeat=Values[posRepeat];
+len=Length[posRepeat];
 
 lorBasis=LorentzBasisAux[state,k,posRepeat,OutputFormat->OptionValue[OutputFormat]];
 Switch[OptionValue[OutputFormat],
@@ -913,16 +919,29 @@ gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,model["rep2
 factors=MapAt[KeyMap[particles[[First[#]]]&],Prepend[gaugeBasis,lorBasis],{All,Key["generators"]}];
 
 opBasis=ContractDelta@Through[(TensorProduct@@factors)["basis"]];
-opBasis=PrintOper[RefineReplace@opBasis]/.listtotime;
+opBasis=PrintOper[RefineReplace@opBasis]//.listtotime;
+If[Length[posRepeat]==0,Return[<|"basis"->Flatten@opBasis|>]];
 generators=Merge[Through[factors["generators"]],SparseArray/@
 Flatten[MapThread[TensorProduct,#],{{1},2Range@Length[factors],2Range@Length[factors]+1}]&];
-pCoord=AssociationMap[basisReduce[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["basis"]&,yngList];
 
-<|"basis"->Flatten@opBasis,"p-basis"->DeleteCases[pCoord,{}]|>
+Switch[OptionValue[TakeFirstBasis],
+True,pCoord=AssociationMap[
+basisReduce[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["basis"]&,
+yngList];
+pCoord=DeleteCases[pCoord,{}],
+False,pCoord=AssociationMap[
+basisReduceByFirst[Outer[Dot,##,1]&@@Merge[{generators,#},Table[PermRepFromGenerator[#[[1]],YO[#[[2]],1,i]],{i,SnIrrepDim[#[[2]]]}]&],len]&,
+yngList];
+pCoord=DeleteCases[pCoord,Nest[List,{},len]]
+];
+pCoord=KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]&/@#&,pCoord];
+
+<|"basis"->Flatten@opBasis,"p-basis"->pCoord,"Kpy"->Partition[Flatten@Values[pCoord],Length[Flatten@opBasis]]|>
 ]
-Options[GetBasisForType]={OutputFormat->"operator",FerCom->2};
+Options[GetBasisForType]={OutputFormat->"operator",FerCom->2,TakeFirstBasis->True};
 
 
+(* ::Input::Initialization:: *)
 GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Gauge"],nonAbelian],lorBasis,gaugeBasis,
 factors,basis,jCoord,result=<||>},
 state=(model[#1]["helicity"]&)/@particles;k=Exponent[type,"D"];
@@ -941,9 +960,10 @@ factors=Merge[Prepend[gaugeBasis,lorBasis],Identity];
 basis=TensorProduct@@factors["basis"];
 If[OptionValue[OutputFormat]=="operator",basis=PrintOper[RefineReplace@ContractDelta@basis]//.listtotime];
 jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2]],List])&/@Distribute[factors["jcoord"],List];
+jCoord=MapAt[KeyMap[Map["\!\(\*SubscriptBox[\("<>Part[particles,#]<>"\), \("<>ToString[#]<>"\)]\)"&]],jCoord,{All,1}];
 Return[<|"basis"->Flatten[basis],"j-basis"->jCoord|>];
 ]
-Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2};
+Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2,};
 
 
 (* ::Input::Initialization:: *)
