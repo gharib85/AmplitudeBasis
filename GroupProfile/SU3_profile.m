@@ -62,7 +62,7 @@ del3n[a_,d_]eps3n[c_,b_,a_]:=eps3n[c,b,d];
 del3n[a_,c_]del3n[a_,b_]:=del3n[c,b];
 SetAttributes[del8n,Orderless];
 eps3a[i_String,j_String,k_String]eps3f[l_String,m_String,n_String]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Intersection@@(First/@Position[INDEXSET,#]&/@{i,j,k,l,m,n})!={};
-eps3a[i:Except[_String],j_,k_]eps3f[l_,m_,n_]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Equal@@DeleteCases[Head/@{i,j,k,l,m,n},dummyIndex];
+eps3a[i:Except[_String],j_,k_]eps3f[l_,m_,n_]:= Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Equal@@DeleteCases[Head/@{i,j,k,l,m,n},dummyIndex];
 del3[a_,c_]\[Lambda][J_,a_,b_]:=\[Lambda][J,c,b];
 del3[c_,a_]\[Lambda][J_,b_,a_]:=\[Lambda][J,b,c];
 \[Lambda][i_,j_,j_]:=0;
@@ -86,7 +86,7 @@ del8n[a_,c_]del8n[a_,b_]:=del8n[c,b];
 
 (* ::Input:: *)
 (*(* invariant tensor simplification *)*)
-(*Unprotect[Times];*)
+(*(*Unprotect[Times];*)
 (*Clear[Times];*)
 (*If[!IntegerQ[dummyIndexCount],dummyIndexCount=0];*)
 (*del3[i_,j_]del3[j_,k_]:=del3[i,k];*)
@@ -116,7 +116,7 @@ del8n[a_,c_]del8n[a_,b_]:=del8n[c,b];
 (*del8n[a_,d_]dabc[c_,b_,a_]:=dabc[c,b,d]*)
 (*del8n[a_,c_]del8n[a_,b_]:=del8n[c,b]*)
 (*\[Lambda][i_,j_,k_]\[Lambda][l_,k_,m_]:=Module[{},dummyIndexCount++;(I fabc[i,l,dummyIndex[dummyIndexCount]]+dabc[i,l,dummyIndex[dummyIndexCount]])\[Lambda][dummyIndex[dummyIndexCount],j,m]+2/3 del8n[i,l]del3[m,j]]*)
-(*Protect[Times];*)
+(*Protect[Times];*)*)
 
 
 (* ::Input::Initialization:: *)

@@ -294,7 +294,7 @@ If[x==0,Return[0]];
 tempx=Expand[Expand[x]/.Power[z_,y_]:>Times@@ConstantArray[z,y]];
 flist=Select[fts,Total[model[#[[1]]][groupname]]!=0&];
 tfs=GenerateFieldTensor[model,groupname,flist,xmap];
-rt=tReduce[Plus@@(Product2Contract/@(Flatten[{Expand[tempx]}/.Plus->List]*tfs))];
+rt=tReduce[Plus@@(Product2Contract/@(Flatten[{Expand[tempx*tfs]}/.Plus->List]))];
 UnfoldContraction[rt,xmap,model["rep2ind"][groupname]]
 ]
 SetAttributes[RefineTensor,HoldFirst]
