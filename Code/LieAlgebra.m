@@ -14,7 +14,7 @@ GellMann[n_]:=GellMann[n]=
 Flatten[Table[(*Symmetric case*)SparseArray[{{j,k}->1,{k,j}->1},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Flatten[Table[(*Antisymmetric case*)SparseArray[{{j,k}->-I,{k,j}->+I},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Table[(*Diagonal case*)Sqrt[2/l/(l+1)] SparseArray[Table[{j,j}->1,{j,1,l}]~Join~{{l+1,l+1}->-l},{n,n}],{l,1,n-1}];
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Littlewood-Richardson related*)
 
 
@@ -327,7 +327,7 @@ unflatten[result,tdim]
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*JBasis related*)
 
 
@@ -572,6 +572,10 @@ Return[result];
 (*Assign to some variables the groups' Cartan matrix*)
 
 Do[
+Evaluate[ToExpression["SU"<>ToString[i]]]=CartanMatrix["SU",i];
+,{i,2,10}]
+
+(*Do[
 Evaluate[ToExpression["SU"<>ToString[i]]]=Evaluate[ToExpression["Su"<>ToString[i]]]=Evaluate[ToExpression["su"<>ToString[i]]]=CartanMatrix["SU",i];
 ,{i,2,32}]
 Do[
@@ -580,6 +584,7 @@ Evaluate[ToExpression["SO"<>ToString[i]]]=Evaluate[ToExpression["So"<>ToString[i
 Do[
 Evaluate[ToExpression["SP"<>ToString[i]]]=Evaluate[ToExpression["Sp"<>ToString[i]]]=Evaluate[ToExpression["sp"<>ToString[i]]]=CartanMatrix["SP",i];
 ,{i,2,32,2}]
+*)
 SO3=So3=so3=CartanMatrix["SO",3];
 
 E6=e6=CartanMatrix["E",6];

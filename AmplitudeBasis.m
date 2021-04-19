@@ -1,5 +1,6 @@
 (* ::Package:: *)
 
+If[$DEBUG=!=True,$DEBUG=False];
 $AmplitudeBasisDir = FileNameDrop[$InputFileName,-1];
 $CodeFiles=FileNames[__~~".m",FileNameJoin[{$AmplitudeBasisDir,"Code"}]];
 
@@ -123,7 +124,7 @@ FLAVOR={"p","r","s","t","u","v"};
 
 (* ::Input::Initialization:: *)
 If[!Global`$DEBUG,Begin["`Private`"]]
-Get/@Global`$CodeFiles;
+Do[Get[file],{file,Global`$CodeFiles}];
 
 
 (* ::Subsection::Closed:: *)
@@ -963,7 +964,7 @@ jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2
 jCoord=MapAt[KeyMap[Map["\!\(\*SubscriptBox[\("<>Part[particles,#]<>"\), \("<>ToString[#]<>"\)]\)"&]],jCoord,{All,1}];
 Return[<|"basis"->Flatten[basis],"j-basis"->jCoord|>];
 ]
-Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2,};
+Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2};
 
 
 (* ::Input::Initialization:: *)

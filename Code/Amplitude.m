@@ -18,30 +18,31 @@ s[i_,j_]:=ab[i,j]sb[j,i];
 
 (* ::Input::Initialization:: *)
 (* Rules for Reduction of Amplitudes into Standard From *)
-ruleP1[Num_]:={sb[1,i_]ab[1,j_]:> Table[-sb[k,i]ab[k,j],{k,2,Num}],
-sb[1,i_]^m_ ab[1,j_]:> Table[-sb[1,i]^(m-1)sb[k,i]ab[k,j],{k,2,Num}],
-sb[1,i_]ab[1,j_]^n_:> Table[-ab[1,j]^(n-1)sb[k,i]ab[k,j],{k,2,Num}],
-sb[1,i_]^m_ ab[1,j_]^n_:> Table[-sb[1,i]^(m-1) ab[1,j]^(n-1) sb[k,i]ab[k,j],{k,2,Num}]};
-ruleP2[Num_]:={sb[1,2]ab[2,i_/;i>2]:> Table[-sb[1,k]ab[k,i],{k,3,Num}],
-sb[1,2]^m_ ab[2,i_/;i>2]:> Table[-sb[1,2]^(m-1)sb[1,k]ab[k,i],{k,3,Num}],
-sb[1,2]ab[2,i_/;i>2]^n_:> Table[-ab[2,i]^(n-1)sb[1,k]ab[k,i],{k,3,Num}],
-sb[1,2]^m_ ab[2,i_/;i>2]^n_:> Table[-sb[1,2]^(m-1) ab[2,i]^(n-1) sb[1,k]ab[k,i],{k,3,Num}],
-sb[2,i_/;i>2]ab[1,2]:> Table[-sb[k,i]ab[1,k],{k,3,Num}],
-sb[2,i_/;i>2]^m_ ab[1,2]:> Table[-sb[2,i]^(m-1)sb[k,i]ab[1,k],{k,3,Num}],
-sb[2,i_/;i>2]ab[1,2]^n_:>Table[-ab[1,2]^(n-1)sb[k,i]ab[1,k],{k,3,Num}],
-sb[2,i_/;i>2]^m_ ab[1,2]^n_:> Table[-sb[2,i]^(m-1) ab[1,2]^(n-1) sb[k,i]ab[1,k],{k,3,Num}],sb[1,3]ab[2,3]:> Table[-sb[1,i]ab[2,i],{i,4,Num}],
-sb[1,3]^m_ ab[2,3]:> Table[-sb[1,3]^(m-1)sb[1,i]ab[2,i],{i,4,Num}],
-sb[1,3]ab[2,3]^n_:> Table[-ab[2,3]^(n-1)sb[1,i]ab[2,i],{i,4,Num}],
-sb[1,3]^m_ ab[2,3]^n_:> Table[-sb[1,3]^(m-1) ab[2,3]^(n-1) sb[1,i]ab[2,i],{i,4,Num}],
-sb[2,3]ab[1,3]:> Table[-sb[2,i]ab[1,i],{i,4,Num}],
-sb[2,3]^m_ ab[1,3]:> Table[-sb[2,3]^(m-1)sb[2,i]ab[1,i],{i,4,Num}],
-sb[2,3]ab[1,3]^n_:> Table[-ab[1,3]^(n-1)sb[2,i]ab[1,i],{i,4,Num}],
-sb[2,3]^m_ ab[1,3]^n_:> Table[-sb[2,3]^(m-1) ab[1,3]^(n-1) sb[2,i]ab[1,i],{i,4,Num}]
+ruleP1[Num_]:={sb[1,i_]ab[1,j_]:> Table[-sb[k,i]ab[k,j],{k,2,Num}]~Join~{-esb[i]ab[i,j],sb[j,i]eab[j]},
+sb[1,i_]^m_ ab[1,j_]:> Table[-sb[1,i]^(m-1)sb[k,i]ab[k,j],{k,2,Num}]~Join~{-sb[1,i]^(m-1)esb[i]ab[i,j],-sb[1,i]^(m-1)sb[j,i]eab[j]},
+sb[1,i_]ab[1,j_]^n_:> Table[-ab[1,j]^(n-1)sb[k,i]ab[k,j],{k,2,Num}]~Join~{-ab[1,j]^(n-1)esb[i]ab[i,j],-ab[1,j]^(n-1)sb[j,i]eab[j]},
+sb[1,i_]^m_ ab[1,j_]^n_:> Table[-sb[1,i]^(m-1) ab[1,j]^(n-1) sb[k,i]ab[k,j],{k,2,Num}]~Join~{-sb[1,i]^(m-1) ab[1,j]^(n-1)esb[i]ab[i,j],-sb[1,i]^(m-1) ab[1,j]^(n-1)sb[j,i]eab[j]}};
+ruleP2[Num_]:={sb[1,2]ab[2,i_/;i>2]:> Table[-sb[1,k]ab[k,i],{k,3,Num}]~Join~{-esb[1]ab[1,i],-sb[1,i]eab[i]},
+sb[1,2]^m_ ab[2,i_/;i>2]:> Table[-sb[1,2]^(m-1)sb[1,k]ab[k,i],{k,3,Num}]~Join~{-sb[1,2]^(m-1)esb[1]ab[1,i],-sb[1,2]^(m-1)sb[1,i]eab[i]},
+sb[1,2]ab[2,i_/;i>2]^n_:> Table[-ab[2,i]^(n-1)sb[1,k]ab[k,i],{k,3,Num}]~Join~{-ab[2,i]^(n-1)esb[1]ab[1,i],-ab[2,i]^(n-1)sb[1,i]eab[i]},
+sb[1,2]^m_ ab[2,i_/;i>2]^n_:> Table[-sb[1,2]^(m-1) ab[2,i]^(n-1) sb[1,k]ab[k,i],{k,3,Num}]~Join~{-sb[1,2]^(m-1) ab[2,i]^(n-1)esb[1]ab[1,i],-sb[1,2]^(m-1) ab[2,i]^(n-1)sb[1,i]eab[i]},
+sb[2,i_/;i>2]ab[1,2]:> Table[-sb[k,i]ab[1,k],{k,3,Num}]~Join~{-esb[i]ab[1,i],-sb[1,i]eab[1]},
+sb[2,i_/;i>2]^m_ ab[1,2]:> Table[-sb[2,i]^(m-1)sb[k,i]ab[1,k],{k,3,Num}]~Join~{-sb[2,i]^(m-1)esb[i]ab[1,i],-sb[2,i]^(m-1)sb[1,i]eab[1]},
+sb[2,i_/;i>2]ab[1,2]^n_:>Table[-ab[1,2]^(n-1)sb[k,i]ab[1,k],{k,3,Num}]~Join~{-ab[1,2]^(n-1)esb[i]ab[1,i],-ab[1,2]^(n-1)sb[1,i]eab[1]},
+sb[2,i_/;i>2]^m_ ab[1,2]^n_:> Table[-sb[2,i]^(m-1) ab[1,2]^(n-1) sb[k,i]ab[1,k],{k,3,Num}]~Join~{-sb[2,i]^(m-1) ab[1,2]^(n-1)esb[i]ab[1,i],-sb[2,i]^(m-1) ab[1,2]^(n-1)sb[1,i]eab[1]},
+sb[1,3]ab[2,3]:> Table[-sb[1,i]ab[2,i],{i,4,Num}]~Join~{-esb[1]ab[2,1],-sb[1,2]eab[2]},
+sb[1,3]^m_ ab[2,3]:> Table[-sb[1,3]^(m-1)sb[1,i]ab[2,i],{i,4,Num}]~Join~{-sb[1,3]^(m-1)esb[1]ab[2,1],-sb[1,3]^(m-1)sb[1,2]eab[2]},
+sb[1,3]ab[2,3]^n_:> Table[-ab[2,3]^(n-1)sb[1,i]ab[2,i],{i,4,Num}]~Join~{-ab[2,3]^(n-1)esb[1]ab[2,1],-ab[2,3]^(n-1)sb[1,2]eab[2]},
+sb[1,3]^m_ ab[2,3]^n_:> Table[-sb[1,3]^(m-1) ab[2,3]^(n-1) sb[1,i]ab[2,i],{i,4,Num}]~Join~{-sb[1,3]^(m-1) ab[2,3]^(n-1)esb[1]ab[2,1],-sb[1,3]^(m-1) ab[2,3]^(n-1)sb[1,2]eab[2]},
+sb[2,3]ab[1,3]:> Table[-sb[2,i]ab[1,i],{i,4,Num}]~Join~{-esb[2]ab[1,2],-sb[2,1]eab[1]},
+sb[2,3]^m_ ab[1,3]:> Table[-sb[2,3]^(m-1)sb[2,i]ab[1,i],{i,4,Num}]~Join~{-sb[2,3]^(m-1)esb[2]ab[1,2],-sb[2,3]^(m-1)sb[2,1]eab[1]},
+sb[2,3]ab[1,3]^n_:> Table[-ab[1,3]^(n-1)sb[2,i]ab[1,i],{i,4,Num}]~Join~{-ab[1,3]^(n-1)esb[2]ab[1,2],-ab[1,3]^(n-1)sb[2,1]eab[1]},
+sb[2,3]^m_ ab[1,3]^n_:> Table[-sb[2,3]^(m-1) ab[1,3]^(n-1) sb[2,i]ab[1,i],{i,4,Num}]~Join~{-sb[2,3]^(m-1) ab[1,3]^(n-1)esb[2]ab[1,2],-sb[2,3]^(m-1) ab[1,3]^(n-1)sb[2,1]eab[1]}
 };
-ruleP3[Num_]:={sb[2,3]ab[2,3]:> Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}],
-sb[2,3]^m_ ab[2,3]:> sb[2,3]^(m-1) Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}],
-sb[2,3]ab[2,3]^n_:> ab[2,3]^(n-1) Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}],
-sb[2,3]^m_ ab[2,3]^n_:>sb[2,3]^(m-1) ab[2,3]^(n-1) Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}]};
+ruleP3[Num_]:={sb[2,3]ab[2,3]:> Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}]~Join~{-2esb[1]eab[1]}~Join~Table[esb[i]eab[i],{i,Num}],
+sb[2,3]^m_ ab[2,3]:> sb[2,3]^(m-1) Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}]~Join~{-2sb[2,3]^(m-1)esb[1]eab[1]}~Join~Table[sb[2,3]^(m-1)esb[i]eab[i],{i,Num}], 
+sb[2,3]ab[2,3]^n_:> ab[2,3]^(n-1) Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}]~Join~{-2ab[2,3]^(n-1)esb[1]eab[1]}~Join~Table[ab[2,3]^(n-1)esb[i]eab[i],{i,Num}],
+sb[2,3]^m_ ab[2,3]^n_:>sb[2,3]^(m-1) ab[2,3]^(n-1) Table[s[i,j],{i,2,Num},{j,Max[i+1,4],Num}]~Join~{-2sb[2,3]^(m-1) ab[2,3]^(n-1)esb[1]eab[1]}~Join~Table[sb[2,3]^(m-1) ab[2,3]^(n-1)esb[i]eab[i],{i,Num}]};
 ruleSchA={ab[i_,l_]ab[j_,k_]/;i<j<k<l:>{-ab[i,j]ab[k,l],ab[i,k]ab[j,l]},
 ab[i_,l_]^m_ ab[j_,k_]/;i<j<k<l:>ab[i,l]^(m-1) {-ab[i,j]ab[k,l],ab[i,k]ab[j,l]},
 ab[i_,l_]ab[j_,k_]^n_/;i<j<k<l:>ab[j,k]^(n-1) {-ab[i,j]ab[k,l],ab[i,k]ab[j,l]},
@@ -49,18 +50,19 @@ ab[i_,l_]^m_ ab[j_,k_]^n_/;i<j<k<l:>ab[i,l]^(m-1) ab[j,k]^(n-1) {-ab[i,j]ab[k,l]
 ruleSchS=ruleSchA/.ab->sb;
 rule[Num_]:=Join[ruleP1[Num],ruleP2[Num],ruleP3[Num],ruleSchA,ruleSchS];
 
-SetMaxTry[x_]:=Block[{},maxTry=x;]
+Clear[reduce];
+SetMaxTry[x_]:=maxTry=x;
 reduce::overflow="time of reductions exceeds `1`\n 
 please use option MaxTry for reduce[] or use SetMaxTry[] to change the limit of time of reduction.";
 Options[reduce]={MaxTry->maxTry};
-reduce[Amp_,Num_,OptionsPattern[]]:=reduce[Amp,Num]=
+reduce[Amp_,Num_,EOMreplace_:{esb->(0&),eab->(0&)}]:=reduce[Amp,Num,EOMreplace]=
 Module[{F=Sum2List@Expand[Amp],F1,iter=1},
 While[True,
 F1=Sum2List[Plus@@Flatten[F/.rule[Num]]]; (* replace and combine *)
 If[F1===F,Break[],F=F1];
 If[iter>=OptionValue[MaxTry],Message[reduce::overflow,OptionValue[MaxTry]];Abort[],iter++]
 ];
-Plus@@F
+Plus@@F/.EOMreplace
 ]
 reduce[Num_]:=reduce[#,Num]&
 
