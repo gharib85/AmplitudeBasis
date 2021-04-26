@@ -337,7 +337,7 @@ Map[Expand[OpBasis.Inverse[amp2op["Trans"]]\[Transpose].#]&,resultCor,{2+Length[
 
 Clear[LorentzBasisAux];
 Options[LorentzBasisAux]={OutMode->"p-basis",OutputFormat->"operator",ReplaceField->{},finalform->True};
-LorentzBasisAux[state_,k_,posRepeat_,OptionsPattern[]]:=Module[{lorentzGen,ybasis,amp2op,mbasis,shift,yngList,result},
+LorentzBasisAux[state_,k_,posRepeat_,OptionsPattern[]]:=Module[{lorentzGen,ybasis,amp2op,mbasis,shift,yngList,result,grassmann},
 {lorentzGen,ybasis}=Reap@LorentzPermGenerator[state,k];
 Switch[OptionValue[OutputFormat],
 "amplitude",mbasis=ybasis[[1,1]],
@@ -349,6 +349,7 @@ lorentzGen=Map[amp2op["Trans"].#.Inverse[amp2op["Trans"]]&,lorentzGen,{2}]
 ];
 result=<|"basis"->mbasis|>;
 shift=FirstPosition[PositionIndex[state],First[#]]&/@posRepeat;
+grassmann=If[IntegerQ[state[[First[#]]]],{1,1},{-1,(-1)^(1+Length[#])}]&/@posRepeat;Print[grassmann];
 
 Switch[Head[posRepeat],
 Association,
@@ -358,11 +359,11 @@ Append[result,"p-basis"->
 DeleteCases[Association@Map[Normal[#]->
 basisReduce[Dot@@KeyValueMap[PermRepFromGenerator[lorentzGen[[shift[#1][[1]]]],YO[#2,shift[#1][[2]]]]&,#]]["basis"]&,yngList],{}]],
 
-List,
+List,Print[{shift,posRepeat,grassmann}];
 Append[result,"generators"->
 Association@MapThread[
-#2->Function[gen,PermRepFromGenerator[lorentzGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,
-{shift,posRepeat}]]
+#2->#3 Function[gen,PermRepFromGenerator[lorentzGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,
+{shift,posRepeat,grassmann}]]
 ]
 ]
 
@@ -935,7 +936,7 @@ basisReduceByFirst[Outer[Dot,##,1]&@@Merge[{generators,#},Table[PermRepFromGener
 yngList];
 pCoord=DeleteCases[pCoord,Nest[List,{},len]]
 ];
-pCoord=KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]&/@#&,pCoord];
+(*pCoord=KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]&/@#&,pCoord];*)
 
 <|"basis"->Flatten@opBasis,"p-basis"->pCoord,"Kpy"->Partition[Flatten@Values[pCoord],Length[Flatten@opBasis]]|>
 ]
