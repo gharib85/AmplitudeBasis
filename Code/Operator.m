@@ -35,7 +35,7 @@ Switch[l\[Psi]-l\[Psi]b,
 0,Switch[l\[Psi],
 0,ans=Subscript[\[Phi], i],
 1,ans1[[0]]=\[Psi];ans2[[0]]=\[Psi];ans=\[Psi][ans1,ans2];ans[[0]]=("\[Sigma]"^su2l[[iGreek]]);ans=ans (Subscript[Subscript[D, i], su2l[[iGreek]]] Subscript[h2f[0], i]);iGreek++,
-_,Do[ans=ans Subscript[Subscript[D, i], su2l[[iGreek]]]("\[Sigma]"^su2l[[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans Subscript[h2f, i]
+_,Do[ans=ans Subscript[Subscript[D, i], su2l[[iGreek]]]("\[Sigma]"^su2l[[iGreek]])[ans1[[a,1]],ans1[[a,2]],ans2[[a,1]],ans2[[a,2]]];iGreek++,{a,l\[Psi]}];ans=ans Subscript[h2f[0], i]
 ],
 
 1,Switch[l\[Psi]b,
