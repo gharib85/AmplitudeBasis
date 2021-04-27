@@ -337,8 +337,11 @@ Map[Expand[OpBasis.Inverse[amp2op["Trans"]]\[Transpose].#]&,resultCor,{2+Length[
 
 Clear[LorentzBasisAux];
 Options[LorentzBasisAux]={OutMode->"p-basis",OutputFormat->"operator",ReplaceField->{},finalform->True};
-LorentzBasisAux[state_,k_,posRepeat_,OptionsPattern[]]:=Module[{lorentzGen,ybasis,amp2op,mbasis,shift,yngList,result,grassmann},
-{lorentzGen,ybasis}=Reap@LorentzPermGenerator[state,k];
+LorentzBasisAux[state_,k_,posRepeat_,OptionsPattern[]]:=Module[{Num=Length[state],flip=False,lorentzGen,ybasis,amp2op,mbasis,shift,yngList,result,grassmann},
+If[{Num-2,2}.yngShape[state,k]>{Num-2,2}.yngShape[-state,k],flip=True];
+{lorentzGen,ybasis}=Reap@LorentzPermGenerator[If[flip,-1,1]*state,k];
+If[flip,ybasis=ybasis/.{ab->sb,sb->ab};lorentzGen=KeyMap[-1#&,lorentzGen]];
+
 Switch[OptionValue[OutputFormat],
 "amplitude",mbasis=ybasis[[1,1]],
 "operator",amp2op=MonoLorentzBasis[ybasis[[1,1]],Length[state],finalform->False];
@@ -349,7 +352,7 @@ lorentzGen=Map[amp2op["Trans"].#.Inverse[amp2op["Trans"]]&,lorentzGen,{2}]
 ];
 result=<|"basis"->mbasis|>;
 shift=FirstPosition[PositionIndex[state],First[#]]&/@posRepeat;
-grassmann=If[IntegerQ[state[[First[#]]]],{1,1},{-1,(-1)^(1+Length[#])}]&/@posRepeat;Print[grassmann];
+grassmann=If[IntegerQ[state[[First[#]]]],{1,1},{-1,(-1)^(1+Length[#])}]&/@posRepeat;
 
 Switch[Head[posRepeat],
 Association,
@@ -359,7 +362,7 @@ Append[result,"p-basis"->
 DeleteCases[Association@Map[Normal[#]->
 basisReduce[Dot@@KeyValueMap[PermRepFromGenerator[lorentzGen[[shift[#1][[1]]]],YO[#2,shift[#1][[2]]]]&,#]]["basis"]&,yngList],{}]],
 
-List,Print[{shift,posRepeat,grassmann}];
+List,
 Append[result,"generators"->
 Association@MapThread[
 #2->#3 Function[gen,PermRepFromGenerator[lorentzGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,
@@ -384,7 +387,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Gauge Group Factor*)
 
 
@@ -703,7 +706,7 @@ Association@finalresult
 (*]*)
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Analysis*)
 
 
@@ -918,7 +921,7 @@ Switch[OptionValue[OutputFormat],
 "amplitude",lorBasis=MapAt[Ampform,lorBasis,Key["basis"]]
 ];
 gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,model["rep2indOut"][#1],OutMode->"generator"]&,{NAgroups,replist}];
-factors=MapAt[KeyMap[particles[[First[#]]]&],Prepend[gaugeBasis,lorBasis],{All,Key["generators"]}];
+factors=MapAt[KeyMap[particles[[First[#]]]&],Append[gaugeBasis,lorBasis],{All,Key["generators"]}];
 
 opBasis=ContractDelta@Through[(TensorProduct@@factors)["basis"]];
 opBasis=PrintOper[RefineReplace@opBasis]//.listtotime;
