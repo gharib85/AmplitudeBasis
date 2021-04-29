@@ -947,10 +947,14 @@ Options[GetBasisForType]={OutputFormat->"operator",FerCom->2,TakeFirstBasis->Tru
 
 
 (* ::Input::Initialization:: *)
-GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Gauge"],nonAbelian],lorBasis,gaugeBasis,
+GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,abreplist,NAgroups=Select[model["Gauge"],nonAbelian],Agroups = Select[model["Gauge"], (! nonAbelian[#]) &],lorBasis,gaugeBasis,
 factors,basis,jCoord,result=<||>},
 state=(model[#1]["helicity"]&)/@particles;k=Exponent[type,"D"];
 replist=Outer[model[#2][#1]&,NAgroups,particles];
+abreplist = Outer[model[#2][#1] &, Agroups, particles];
+abreplist = 
+  Transpose@
+   Table[Total@Part[item, #] & /@ partition, {item, abreplist}];
 
 Switch[OptionValue[OutputFormat],
 "amplitude",lorBasis=LorentzJBasis[state,k,partition],
@@ -965,6 +969,12 @@ factors=Merge[Prepend[gaugeBasis,lorBasis],Identity];
 basis=TensorProduct@@factors["basis"];
 If[OptionValue[OutputFormat]=="operator",basis=PrintOper[RefineReplace@ContractDelta@basis]//.listtotime];
 jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2]],List])&/@Distribute[factors["jcoord"],List];
+jCoord = MapAt[
+   Function[x, 
+    Association@
+     MapThread[
+      Rule[#1[[1]], Join[#1[[2]], #2]] &, {Normal@x, abreplist}]], 
+   jCoord, {All, 1}];
 jCoord=MapAt[KeyMap[Map["\!\(\*SubscriptBox[\("<>Part[particles,#]<>"\), \("<>ToString[#]<>"\)]\)"&]],jCoord,{All,1}];
 Return[<|"basis"->Flatten[basis],"j-basis"->jCoord|>];
 ]
