@@ -496,7 +496,7 @@ Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Ext
 Sow[result/.dummyReplace,tl];
 
 indexRepeat=Select[Merge[Thread[DeleteCases[replist,Singlet[group]]->indlist],Identity],Length[#]>1&];
-result=(Map[LinearSolve[Transpose[mbasis["basis"]],Flatten[#1]]&,SymbolicTC[{result/. Thread[#1->Permute[#1,Cycles[{{1,2}}]]],result/. Thread[#1->Permute[#1,Cycles[{Range[Length[#1]]}]]]},WithIndex->False]/. tVal[group],{2}]&)/@indexRepeat;
+result=(Map[LinearSolve[Transpose[mbasis["basis"]],Flatten[#1]]&,SymbolicTC[{result/. IndexInvPermute[Cycles[{{1,2}}],#1],result/. IndexInvPermute[Cycles[{Range[Length[#1]]}],#1]},WithIndex->False]/. tVal[group],{2}]&)/@indexRepeat;
 If[Count[replist,Singlet[group]]>1,AssociateTo[result,Singlet[group]->ConstantArray[IdentityMatrix[Length[mbasis["basis"]]],2]]];
 Return[result];
 ]
