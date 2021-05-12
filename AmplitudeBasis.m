@@ -127,7 +127,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Do[Get[file],{file,Global`$CodeFiles}];
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Input*)
 
 
@@ -176,6 +176,9 @@ Protect[Times]
 
 
 (* ::Input::Initialization:: *)
+SetAttributes[ModelIni,HoldFirst];
+ModelIni[model_]:=model=<|"Gauge"->{},"Global"->{},"rep2indOut"-><||>|>
+
 SetAttributes[{AddGroup,AddField},HoldFirst];
 (* Adding new Gauge Group to a Model *)
 AddGroup[model_,groupname_String,field_String,Globalreps_List,ind_Association]:=Module[{profile,group=ToExpression@StringDrop[groupname,-1],Freps},
@@ -271,7 +274,7 @@ sign{deltaB,deltaL}
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Lorentz Basis*)
 
 
@@ -706,7 +709,7 @@ Association@finalresult
 (*]*)
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Analysis*)
 
 
@@ -796,7 +799,9 @@ Print["number of real operators"->nOpersR];
 rule=Rule@@@(Reverse/@Sort/@Cases[List@@in,Alternatives@@(Construct[#,x__]&/@delTlist) :>{x}]);
 in/.Thread[delTlist->(1&)]/.rule
 ]*)
-ContractDelta[in_Times]:=Module[{delTlist=Select[Keys[tOut], StringMatchQ[ToString[#],"del"~~__]&],map,result,pos},
+ContractDelta[in_Times]:=Module[{delTlist,map,result,pos},
+If[Length[tOut]==0,Return[in]];
+delTlist=Select[Keys[tOut], StringMatchQ[ToString[#],"del"~~__]&];
 map=Association[Rule@@@(Reverse/@Sort/@Cases[List@@in,Alternatives@@(Construct[#,x__]&/@delTlist) :>{x}])];
 result=in/.Thread[delTlist->(1&)];
 Do[pos=Cases[Position[result,dum],{___,Key["upind"]|Key["downind"],_}];
@@ -912,6 +917,7 @@ replist=Outer[model[#2][#1]&,NAgroups,particles];
 posRepeat=Select[PositionIndex[particles],Length[#]>1&];
 yngList=IntegerPartitions@Length[#]&/@posRepeat;
 yngList=Thread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
+If[OptionValue[NfSelect],yngList=Select[yngList,And@@(SQ[model]@@@#)&]];
 posRepeat=Values[posRepeat];
 len=Length[posRepeat];
 
@@ -921,29 +927,24 @@ Switch[OptionValue[OutputFormat],
 "amplitude",lorBasis=MapAt[Ampform,lorBasis,Key["basis"]]
 ];
 gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,model["rep2indOut"][#1],OutMode->"generator"]&,{NAgroups,replist}];
-factors=MapAt[KeyMap[particles[[First[#]]]&],Append[gaugeBasis,lorBasis],{All,Key["generators"]}];
+factors=Merge[Append[gaugeBasis,lorBasis],Identity];
+factors=MapAt[KeyMap[particles[[First[#]]]&],factors,{Key["generators"],All}];
 
-opBasis=ContractDelta@Through[(TensorProduct@@factors)["basis"]];
+opBasis=TensorProduct@@factors["basis"]//ContractDelta;
 opBasis=PrintOper[RefineReplace@opBasis]//.listtotime;
 If[Length[posRepeat]==0,Return[<|"basis"->Flatten@opBasis|>]];
-generators=Merge[Through[factors["generators"]],SparseArray/@
-Flatten[MapThread[TensorProduct,#],{{1},2Range@Length[factors],2Range@Length[factors]+1}]&];
+generators=Merge[factors["generators"],SparseArray/@
+Flatten[MapThread[TensorProduct,#],{{1},2Range[Length[NAgroups]+1],2Range[Length[NAgroups]+1]+1}]&];
 
 Switch[OptionValue[TakeFirstBasis],
-True,pCoord=AssociationMap[
-basisReduce[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["basis"]&,
-yngList];
-pCoord=DeleteCases[pCoord,{}],
-False,pCoord=AssociationMap[
-basisReduceByFirst[Outer[Dot,##,1]&@@Merge[{generators,#},Table[PermRepFromGenerator[#[[1]],YO[#[[2]],1,i]],{i,SnIrrepDim[#[[2]]]}]&],len]&,
-yngList];
-pCoord=DeleteCases[pCoord,Nest[List,{},len]]
+True,pCoord=AssociationMap[basisReduce[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["basis"]&,yngList],
+False,pCoord=AssociationMap[basisReduceByFirst[Outer[Dot,##,1]&@@Merge[{generators,#},Table[PermRepFromGenerator[#[[1]],YO[#[[2]],1,i]],{i,SnIrrepDim[#[[2]]]}]&],len]&,yngList]
 ];
-(*pCoord=KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]&/@#&,pCoord];*)
+pCoord=Select[pCoord,Flatten[#]!={}&];
 
 <|"basis"->Flatten@opBasis,"p-basis"->pCoord,"Kpy"->Partition[Flatten@Values[pCoord],Length[Flatten@opBasis]]|>
 ]
-Options[GetBasisForType]={OutputFormat->"operator",FerCom->2,TakeFirstBasis->True};
+Options[GetBasisForType]={OutputFormat->"operator",FerCom->2,NfSelect->True,TakeFirstBasis->True};
 
 
 (* ::Input::Initialization:: *)
@@ -951,10 +952,11 @@ GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=Ch
 factors,basis,jCoord,result=<||>},
 state=(model[#1]["helicity"]&)/@particles;k=Exponent[type,"D"];
 replist=Outer[model[#2][#1]&,NAgroups,particles];
+If[Agroups=={},abreplist=ConstantArray[{},Length[partition]],
 abreplist = Outer[model[#2][#1] &, Agroups, particles];
 abreplist = 
   Transpose@
-   Table[Total@Part[item, #] & /@ partition, {item, abreplist}];
+   Table[Total@Part[item, #] & /@ partition, {item, abreplist}]];
 
 Switch[OptionValue[OutputFormat],
 "amplitude",lorBasis=LorentzJBasis[state,k,partition],

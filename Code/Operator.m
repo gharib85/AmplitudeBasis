@@ -1,8 +1,8 @@
 (* ::Package:: *)
 
 (* ::Input::Initialization:: *)
-su2l=Append[Alphabet["Greek"],Append[StringJoin[#,"1"]&/@Alphabet["Greek"],StringJoin[#,"2"]&/@Alphabet["Greek"]]]//Flatten;
-su2r=Append[Alphabet[],Append[StringJoin[#,"1"]&/@Alphabet[],StringJoin[#,"2"]&/@Alphabet[]]]//Flatten;
+su2l=Append[StringJoin[#,"1"]&/@Alphabet["Greek"],StringJoin[#,"2"]&/@Alphabet["Greek"]]//Flatten;
+su2r=Append[StringJoin[#,"1"]&/@Alphabet[],StringJoin[#,"2"]&/@Alphabet[]]//Flatten;
 SetAttributes[{\[Psi]},Flat];\[Psi][a_*b_]:=\[Psi][a,b];
 (* Change Amplitude to \[Psi]'s Combination *)
 (* input all the angular bracket then obtain \[Psi]'s Combination *)

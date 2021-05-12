@@ -55,10 +55,10 @@ SetMaxTry[x_]:=maxTry=x;
 reduce::overflow="time of reductions exceeds `1`\n 
 please use option MaxTry for reduce[] or use SetMaxTry[] to change the limit of time of reduction.";
 Options[reduce]={MaxTry->maxTry};
-reduce[Amp_,Num_,EOMreplace_:{esb->(0&),eab->(0&)}]:=reduce[Amp,Num,EOMreplace]=
+reduce[Amp_,Num_,EOMreplace_:{esb->(0&),eab->(0&)},OptionsPattern[]]:=reduce[Amp,Num,EOMreplace]=
 Module[{F=Sum2List@Expand[Amp],F1,iter=1},
 While[True,
-F1=Sum2List[Plus@@Flatten[F/.rule[Num]]]; (* replace and combine *)
+F1=Sum2List[Plus@@Flatten[F/.rule[Num]]]/.EOMreplace; (* replace and combine *)
 If[F1===F,Break[],F=F1];
 If[iter>=OptionValue[MaxTry],Message[reduce::overflow,OptionValue[MaxTry]];Abort[],iter++]
 ];

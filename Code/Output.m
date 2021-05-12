@@ -15,8 +15,9 @@ SetAttributes[AddIndex,HoldFirst];
 (******************* Group tensor formating **********************)
 
 Sortarg[asTlist_]:= #[y__] :> Signature[#[y]]Sort[#[y]]& /@ asTlist 
-RefineReplace[x_,OptionsPattern[]]:=Module[{asTlist=Select[Keys@tOut,MatchQ[tSymmetry[#],_Antisymmetric]&],printreplace},
-printreplace=If[OptionValue[ActivatePrintTensor],tOut,Inactivate[#,PrintTensor]&/@tOut];
+RefineReplace[x_,OptionsPattern[]]:=Module[{asTlist,printreplace},
+If[Length[tOut]==0,Return[x]];
+asTlist=Select[Keys[tOut],MatchQ[tSymmetry[#],_Antisymmetric]&];printreplace=If[OptionValue[ActivatePrintTensor],tOut,Inactivate[#,PrintTensor]&/@tOut];
 Return[x/.Sortarg[asTlist]/.printreplace]
 ]
 SetAttributes[RefineReplace,Listable];
