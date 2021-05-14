@@ -481,11 +481,9 @@ indlist=IndexIterator[indmap[#],indexct]&/@replist;
 ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Sow[{1},tl];Return[<||>]];
 convert=MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]];
 indlist=DeleteCases[indlist,0];
-
 tensorlist=SimpGFV2[tReduce@SymbolicTC[UnContract[# Times@@convert],WithIndex->False]&/@ybasis];tensorValue=tensorlist/.tVal[group];
 mbasis=basisReduce[Flatten/@tensorValue];
 {result,dummy}=Reap[UnContract[Through[tensorlist[[mbasis["pos"]]]@@Sort[indlist]]],d];
-
 If[dummy!={},(* replace dummy index and sow m-basis *)
 Do[dummyPosList=DeleteCases[Position[tensor,#]&/@dummy[[1]],{}];
 If[dummyPosList=={},Continue[]];indexcttemp=indexct;

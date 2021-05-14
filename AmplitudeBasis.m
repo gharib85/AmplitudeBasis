@@ -169,9 +169,10 @@ state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
 
 Fields[model_]:=DeleteCases[Keys@Select[model,MatchQ[#,_Association]&],"rep2ind"|"rep2indOut"]
 SetSimplificationRule[model_]:=Module[{group,indexset=Catenate@model["rep2indOut"]},
-Unprotect[Times];Clear[Times];
+Unprotect[Times,Power];
+Clear[Times,Power];
 Do[group=CheckGroup[model,groupname];Check[tSimp[group]/.{INDEXSET->indexset}//ReleaseHold,"simplification rule for "<>ToString[groupname]<>" not found"],{groupname,model["Gauge"]}];
-Protect[Times]
+Protect[Times,Power]
 ]
 
 

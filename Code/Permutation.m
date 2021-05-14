@@ -87,19 +87,26 @@ breakCycle[{first_,rest___}]:={first,#}&/@{rest}
 toTranspositions[Cycles[{}]]:=Cycles[{}]
 toTranspositions[perm_?PermutationCyclesQ]:=Cycles/@List/@Flatten[breakCycle/@First[perm],1]
 
+ResetPermRep[]:=Block[{},
 Clear[PermRepFromGenerator];
-PermRepFromGenerator[gen_,Cycles[{}]]:=IdentityMatrix[Length[gen[[1]]]]
-PermRepFromGenerator[gen_,perm:Cycles[{{_,_}}]]:=Module[{P1=gen[[1]]\[Transpose],W=gen[[2]]\[Transpose],x,y},
+PermRepFromGenerator[{P1_,W_},Cycles[{}]]:=P1.P1;
+(*PermRepFromGenerator[gen_,perm:Cycles[{{_,_}}]]:=Module[{P1=gen[[1]]\[Transpose],W=gen[[2]]\[Transpose],x,y},
 {x,y}=Sort[{perm[[1,1,1]],perm[[1,1,2]]}];
 If[y-x==1,Nest[W.#.Inverse[W]&,P1,x-1]\[Transpose],
 Fold[(#2.#1.#2)&,PermRepFromGenerator[gen,Cycles[{{x,x+1}}]],Table[PermRepFromGenerator[gen,Cycles[{{i,i+1}}]],{i,x+1,y-1}]]
 ]
-]
-PermRepFromGenerator[gen_,perm_?PermutationCyclesQ]:=Dot@@(PermRepFromGenerator[gen]/@toTranspositions[perm])
+]*)
+PermRepFromGenerator[{P1_,W_},Cycles[{{1,2}}]]:=P1;
+PermRepFromGenerator[{P1_,W_},Cycles[{{x_,y_}}]]/;y-x==1:=PermRepFromGenerator[{P1,W},Cycles[{{x,y}}]]=Inverse[W].PermRepFromGenerator[{P1,W},Cycles[{{x-1,y-1}}]].W;
+PermRepFromGenerator[{P1_,W_},Cycles[{{x_,y_}}]]/;y-x>1:=PermRepFromGenerator[{P1,W},Cycles[{{x,y}}]]=#2.#1.#2&@@{PermRepFromGenerator[{P1,W},Cycles[{{x,y-1}}]],PermRepFromGenerator[{P1,W},Cycles[{{y-1,y}}]]};
+
+PermRepFromGenerator[gen_,perm_?PermutationCyclesQ]:=Dot@@(PermRepFromGenerator[gen]/@toTranspositions[perm]);
 PermRepFromGenerator[gen_,sym_]:=Module[{},
 sym/.perm_Cycles:>PermRepFromGenerator[gen,perm]
+];
+PermRepFromGenerator[gen_]:=PermRepFromGenerator[gen,#]&;
 ]
-PermRepFromGenerator[gen_]:=PermRepFromGenerator[gen,#]&
+ResetPermRep[]
 
 
 (* ::Input::Initialization:: *)
@@ -175,7 +182,7 @@ SNirrep=Table[Cases[PlethysmsNlist[[i]],{IrrepListAmongNIP[[#]][[i]],x_,y_}:>{x,
 ]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Permutation Group*)
 
 

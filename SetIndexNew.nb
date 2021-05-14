@@ -1,0 +1,152 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      4870,        142]
+NotebookOptionsPosition[      4520,        128]
+NotebookOutlinePosition[      4916,        144]
+CellTagsIndexPosition[      4873,        141]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetIndex", "[", 
+   RowBox[{
+   "model_", ",", "field_", ",", "label_", ",", "indexct_", ",", "flavorct_", 
+    ",", 
+    RowBox[{"OptionsPattern", "[", "]"}]}], "]"}], ":=", 
+  RowBox[{"Module", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"hel", "=", 
+       RowBox[{
+        RowBox[{"model", "[", "field", "]"}], "[", "\"\<helicity\>\"", 
+        "]"}]}], ",", 
+      RowBox[{"fieldname", "=", 
+       RowBox[{"ToExpression", "@", "field"}]}], ",", 
+      RowBox[{"head", "=", "Identity"}], ",", 
+      RowBox[{"su2antiflag", "=", "False"}], ",", "irrep", ",", "group", ",", 
+      "indexList", ",", "index", ",", "tensorform"}], "}"}], ",", 
+    RowBox[{
+     RowBox[{"If", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{
+         RowBox[{
+          RowBox[{"model", "[", "field", "]"}], "[", "\"\<stat\>\"", "]"}], 
+         "\[Equal]", "\"\<fermion\>\""}], "&&", 
+        RowBox[{"MemberQ", "[", 
+         RowBox[{
+          RowBox[{"OptionValue", "[", "FieldRename", "]"}], ",", 
+          "\"\<set chirality\>\""}], "]"}]}], ",", 
+       RowBox[{
+        RowBox[{"fieldname", "=", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"model", "[", "field", "]"}], "[", "\"\<chirality\>\"", 
+           "]"}], "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}]}], 
+        ";", 
+        RowBox[{"head", "=", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"model", "[", "field", "]"}], "[", "\"\<chirality\>\"", 
+           "]"}], "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}]}], 
+        ";", 
+        RowBox[{"If", "[", 
+         RowBox[{
+          RowBox[{"head", "\[Equal]", "\"\<right\>\""}], ",", 
+          RowBox[{"fieldname", "=", 
+           RowBox[{"OverBar", "[", "fieldname", "]"}]}]}], "]"}]}]}], "]"}], 
+     ";", 
+     RowBox[{"If", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{
+         RowBox[{"model", "[", "field", "]"}], "[", "\"\<nfl\>\"", "]"}], "==",
+         "1"}], ",", 
+       RowBox[{"tensorform", "=", "fieldname"}], ",", 
+       RowBox[{"tensorform", "=", 
+        RowBox[{"Subscript", "[", 
+         RowBox[{"fieldname", ",", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"model", "[", "field", "]"}], "[", "\"\<indfl\>\"", "]"}],
+            "\[LeftDoubleBracket]", 
+           RowBox[{"++", "flavorct"}], "\[RightDoubleBracket]"}]}], "]"}]}]}],
+       "]"}], ";", 
+     RowBox[{"Do", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"irrep", "=", 
+         RowBox[{
+          RowBox[{"model", "[", "field", "]"}], "[", "groupname", "]"}]}], 
+        ";", 
+        RowBox[{"group", "=", 
+         RowBox[{"CheckGroup", "[", 
+          RowBox[{"model", ",", "groupname"}], "]"}]}], ";", 
+        RowBox[{"indexList", "=", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"model", "[", "\"\<rep2indOut\>\"", "]"}], "[", 
+           "groupname", "]"}], "[", "irrep", "]"}]}], ";", 
+        RowBox[{"If", "[", 
+         RowBox[{
+          RowBox[{"indexList", "\[Equal]", 
+           RowBox[{"{", "}"}]}], ",", 
+          RowBox[{
+           RowBox[{"tensorform", "=", 
+            RowBox[{"tensorform", "[", "]"}]}], ";", 
+           RowBox[{"Continue", "[", "]"}]}]}], "]"}], ";", 
+        RowBox[{"index", "=", 
+         RowBox[{"IndexIterator", "[", 
+          RowBox[{"indexList", ",", "indexct"}], "]"}]}], ";", 
+        "\[IndentingNewLine]", 
+        RowBox[{"tensorform", "=", 
+         RowBox[{"tensorform", "[", "index", "]"}]}]}], ",", 
+       RowBox[{"{", 
+        RowBox[{"groupname", ",", 
+         RowBox[{"Select", "[", 
+          RowBox[{
+           RowBox[{"model", "[", "\"\<Gauge\>\"", "]"}], ",", "nonAbelian"}], 
+          "]"}]}], "}"}]}], "]"}], ";", 
+     RowBox[{
+      SubscriptBox[
+       RowBox[{"h2f", "[", "hel", "]"}], "label"], "\[Rule]", 
+      RowBox[{"head", "[", "tensorform", "]"}]}]}]}], "]"}]}]], "Input",Expres\
+sionUUID->"4e5da845-36aa-43c1-b914-535f81dbbf19"]
+},
+WindowSize->{639, 757},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+FrontEndVersion->"12.1 for Microsoft Windows (64-bit) (June 19, 2020)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"e279886b-7dbe-4bda-9d96-f65122a2e7ac"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 3958, 106, 397, "Input",ExpressionUUID->"4e5da845-36aa-43c1-b914-535f81dbbf19"]
+}
+]
+*)
+
+(* End of internal cache information *)
+
