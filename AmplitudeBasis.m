@@ -800,11 +800,13 @@ Print["number of real operators"->nOpersR];
 rule=Rule@@@(Reverse/@Sort/@Cases[List@@in,Alternatives@@(Construct[#,x__]&/@delTlist) :>{x}]);
 in/.Thread[delTlist->(1&)]/.rule
 ]*)
-ContractDelta[in_Times]:=Module[{delTlist,map,result,pos},
+Options[ContractDelta]={Working->False};
+ContractDelta[in_Times,OptionsPattern[]]:=Module[{delTlist,map,result,pos},
 If[Length[tOut]==0,Return[in]];
 delTlist=Select[Keys[tOut], StringMatchQ[ToString[#],"del"~~__]&];
 map=Association[Rule@@@(Reverse/@Sort/@Cases[List@@in,Alternatives@@(Construct[#,x__]&/@delTlist) :>{x}])];
 result=in/.Thread[delTlist->(1&)];
+If[OptionValue[Working],Return[result/.map]];
 Do[pos=Cases[Position[result,dum],{___,Key["upind"]|Key["downind"],_}];
 result=ReplacePart[result,pos->map[dum]],{dum,Keys[map]}];
 Return[result]
@@ -931,21 +933,23 @@ gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,model["rep2
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 factors=MapAt[KeyMap[particles[[First[#]]]&],factors,{Key["generators"],All}];
 
-opBasis=TensorProduct@@factors["basis"]//ContractDelta;
-opBasis=PrintOper[RefineReplace@opBasis]//.listtotime;
+opBasis=ContractDelta[TensorProduct@@factors["basis"],Working->OptionValue[Working]];
+If[!OptionValue[Working],opBasis=PrintOper[RefineReplace@opBasis]];
+opBasis=opBasis//.listtotime;
 If[Length[posRepeat]==0,Return[<|"basis"->Flatten@opBasis|>]];
 generators=Merge[factors["generators"],SparseArray/@
 Flatten[MapThread[TensorProduct,#],{{1},2Range[Length[NAgroups]+1],2Range[Length[NAgroups]+1]+1}]&];
-
+If[OptionValue[DeSym],
+pCoord=AssociationMap[basisReduce[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["pos"]&,yngList];
+Map[Part[Flatten[opBasis],#]&,pCoord,{2}],
 Switch[OptionValue[TakeFirstBasis],
 True,pCoord=AssociationMap[basisReduce[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["basis"]&,yngList],
 False,pCoord=AssociationMap[basisReduceByFirst[Outer[Dot,##,1]&@@Merge[{generators,#},Table[PermRepFromGenerator[#[[1]],YO[#[[2]],1,i]],{i,SnIrrepDim[#[[2]]]}]&],len]&,yngList]
 ];
 pCoord=Select[pCoord,Flatten[#]!={}&];
-
-<|"basis"->Flatten@opBasis,"p-basis"->pCoord,"Kpy"->Partition[Flatten@Values[pCoord],Length[Flatten@opBasis]]|>
+<|"basis"->Flatten@opBasis,"p-basis"->pCoord,"Kpy"->Partition[Flatten@Values[pCoord],Length[Flatten@opBasis]]|>]
 ]
-Options[GetBasisForType]={OutputFormat->"operator",FerCom->2,NfSelect->True,TakeFirstBasis->True};
+Options[GetBasisForType]={OutputFormat->"operator",Working->False,FerCom->2,NfSelect->True,DeSym->False,TakeFirstBasis->True};
 
 
 (* ::Input::Initialization:: *)

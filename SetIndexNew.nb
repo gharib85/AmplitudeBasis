@@ -10,15 +10,15 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[      4870,        142]
-NotebookOptionsPosition[      4520,        128]
-NotebookOutlinePosition[      4916,        144]
-CellTagsIndexPosition[      4873,        141]
+NotebookDataLength[      5295,        153]
+NotebookOptionsPosition[      4941,        139]
+NotebookOutlinePosition[      5341,        155]
+CellTagsIndexPosition[      5298,        152]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell[BoxData[
+Cell[BoxData[{
  RowBox[{
   RowBox[{"SetIndex", "[", 
    RowBox[{
@@ -73,8 +73,8 @@ Cell[BoxData[
       RowBox[{
        RowBox[{
         RowBox[{
-         RowBox[{"model", "[", "field", "]"}], "[", "\"\<nfl\>\"", "]"}], "==",
-         "1"}], ",", 
+         RowBox[{"model", "[", "field", "]"}], "[", "\"\<nfl\>\"", "]"}], "==", \
+"1"}], ",", 
        RowBox[{"tensorform", "=", "fieldname"}], ",", 
        RowBox[{"tensorform", "=", 
         RowBox[{"Subscript", "[", 
@@ -123,11 +123,22 @@ Cell[BoxData[
      RowBox[{
       SubscriptBox[
        RowBox[{"h2f", "[", "hel", "]"}], "label"], "\[Rule]", 
-      RowBox[{"head", "[", "tensorform", "]"}]}]}]}], "]"}]}]], "Input",Expres\
-sionUUID->"4e5da845-36aa-43c1-b914-535f81dbbf19"]
+      RowBox[{"head", "[", "tensorform", "]"}]}]}]}], 
+   "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"FtoTensor", ":=", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"F_", "[", 
+     RowBox[{"_", ",", "a_", ",", "_", ",", "b_"}], "]"}], "\[RuleDelayed]", 
+    RowBox[{"F", "[", 
+     RowBox[{"a", ",", "b"}], "]"}]}], "}"}]}]}], "Input",
+ CellChangeTimes->{{3.8301375009079237`*^9, 3.830137506824383*^9}, {
+  3.830137539306796*^9, 3.8301375673969736`*^9}, {3.830137597521154*^9, 
+  3.830137622002069*^9}},ExpressionUUID->"4e5da845-36aa-43c1-b914-\
+535f81dbbf19"]
 },
-WindowSize->{639, 757},
-WindowMargins->{{0, Automatic}, {Automatic, 0}},
+WindowSize->{931, 757},
+WindowMargins->{{Automatic, 461}, {285, Automatic}},
 FrontEndVersion->"12.1 for Microsoft Windows (64-bit) (June 19, 2020)",
 StyleDefinitions->"Default.nb",
 ExpressionUUID->"e279886b-7dbe-4bda-9d96-f65122a2e7ac"
@@ -143,10 +154,8 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 3958, 106, 397, "Input",ExpressionUUID->"4e5da845-36aa-43c1-b914-535f81dbbf19"]
+Cell[558, 20, 4379, 117, 353, "Input",ExpressionUUID->"4e5da845-36aa-43c1-b914-535f81dbbf19"]
 }
 ]
 *)
-
-(* End of internal cache information *)
 
