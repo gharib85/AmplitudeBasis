@@ -208,13 +208,29 @@ Return[prefactor(Mandelstam[Ind] (sf*(Times@@sblist)+(Times@@ablist)*sg)+ sfg)//
 
 
 (* ::Input::Initialization:: *)
+W2Check[amp_,num_,ch_,j_]:=
+reduce[W2[amp,ch],num]==-j(j+1) reduce[amp Mandelstam[ch],num]//Simplify//TrueQ
+
+
+(* ::Input::Initialization:: *)
 Options[W2Diagonalize]={OutputFormat->"print"};
 W2Diagonalize[state_,k_,Ind_,OptionsPattern[]]:=
 Module[{Num=Length[state],iniBasis=SSYT[state,k,OutMode->"amplitude"],stBasis=SSYT[state,k+2,OutMode->"amplitude"],
-W2Basis,W2result,eigensys,result},
-W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));
-eigensys=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result]//Eigensystem;
-result=<|"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>;
+W2Basis,W2result,W2resultA,eigensys,result,embed,sel},Off[LinearSolve::sqmat1];
+W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));
+W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));
+zeros=NullSpace[W2result\[Transpose]];
+W2resultA=LinearIntersection[W2Basis,W2result];
+If[W2resultA=={},result=<|"j"->ConstantArray[0,Length[zeros]],"transfer"->zeros,"j-basis"->zeros.iniBasis|>,
+embed=LinearSolve[W2Basis\[Transpose]]/@W2resultA;
+sel=LinearSolve[W2result\[Transpose]]/@W2resultA;
+eigensys=LinearSolve[sel\[Transpose]]/@embed//Transpose//Eigensystem;
+eigensys[[1]]=eigensys[[1]]~Join~ConstantArray[0,Length[zeros]];
+eigensys[[2]]=eigensys[[2]].sel~Join~zeros;
+(*eigensys=LinearSolve[W2Basis\[Transpose]]/@W2result//Transpose//Eigensystem;*)
+result=<|"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>
+];
+If[And@@MapThread[W2Check[#1,Length[state],Ind,#2]&,result/@{"j-basis","j"}],Print["eigen equation verified"]];
 
 Switch[OptionValue[OutputFormat],
 "working",result,
@@ -236,8 +252,3 @@ Do[AppendTo[jEigen,Map[Part[jB["transfer"],#]&,PositionIndex[jB["j"]],{2}]],{jB,
 jcomb=Thread[partition->#]&/@Distribute[Keys/@jEigen,List];
 Append[result,"jcoord"->Normal@DeleteCases[AssociationMap[LinearIntersection@@MapThread[#1[#2[[2]]]&,{jEigen,#}]&,jcomb],{}]]
 ]
-
-
-(* ::Input::Initialization:: *)
-W2Check[amp_,num_,ch_,j_]:=
-reduce[W2[amp,ch],num]==-j(j+1)reduce[amp Mandelstam[ch],num]//Simplify
