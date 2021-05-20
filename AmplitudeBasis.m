@@ -9,7 +9,7 @@ $CodeFiles=FileNames[__~~".m",FileNameJoin[{$AmplitudeBasisDir,"Code"}]];
 BeginPackage["AmplitudeBasis`"]
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Declaration*)
 
 
@@ -42,7 +42,7 @@ BeginPackage["AmplitudeBasis`"]
 {tAssumptions,tRep,tOut,tVal,tYDcol,tSimp,dummyIndexCount,GellMann,ConvertToFundamental,PrintTensor};
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Help Text*)
 
 
@@ -275,7 +275,7 @@ sign{deltaB,deltaL}
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Lorentz Basis*)
 
 
@@ -310,7 +310,7 @@ Return[#.Mlist&/@permResult] (* return the amplitudes *)
 ]; 
 ]
 
-Options[LorentzBasis]={OutputFormat->"operator",Coord->False,FerCom->2,OpenFchain->True,ActivatePrintTensor->True};
+Options[LorentzBasis]={OutputFormat->"operator",Coord->False,FerCom->2,OpenFchain->True,ActivatePrintTensor->True,Working->False};
 LorentzBasis[model_,type_,OptionsPattern[]]:=Module[{particles,fieldsReplace,k,state,RepFields,Num,Mlist,resultCor,amp2op,OpBasis,flip=False},
 k=Exponent[type,"D"];
 particles=CheckType[model,type,Counting->False];
@@ -331,7 +331,7 @@ Switch[OptionValue[OutputFormat],
 Map[#.Mlist&,resultCor,{2+Length[RepFields]}]],  
 (* Output operator basis *)
 "operator",amp2op=MonoLorentzBasis[Mlist,Num,finalform->False];
-OpBasis=transform[amp2op["LorBasis"],ReplaceField->{model,type,OptionValue[FerCom]},OpenFchain->OptionValue[OpenFchain],ActivatePrintTensor->OptionValue[ActivatePrintTensor]];
+OpBasis=transform[amp2op["LorBasis"],ReplaceField->{model,type,OptionValue[FerCom]},OpenFchain->OptionValue[OpenFchain],ActivatePrintTensor->OptionValue[ActivatePrintTensor],Working->OptionValue[Working]];
 If[OptionValue[Coord],
 <|"basis"->OpBasis,"coord"->Map[Inverse[amp2op["Trans"]]\[Transpose].#&,resultCor,{2+Length[RepFields]}]|>, (* output <|basis, coord|> *)
 Map[Expand[OpBasis.Inverse[amp2op["Trans"]]\[Transpose].#]&,resultCor,{2+Length[RepFields]}] (* output basis.coord *)
@@ -926,16 +926,18 @@ len=Length[posRepeat];
 
 lorBasis=LorentzBasisAux[state,k,posRepeat,OutputFormat->OptionValue[OutputFormat]];
 Switch[OptionValue[OutputFormat],
-"operator",lorBasis=MapAt[transform[#,ReplaceField->{model,type,OptionValue[FerCom]},OpenFchain->False,ActivatePrintTensor->False]&,lorBasis,Key["basis"]],
+"operator",lorBasis=MapAt[transform[#,ReplaceField->{model,type,OptionValue[FerCom]},OpenFchain->False,ActivatePrintTensor->False,Working->OptionValue[Working]]&,lorBasis,Key["basis"]],
 "amplitude",lorBasis=MapAt[Ampform,lorBasis,Key["basis"]]
 ];
 gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,model["rep2indOut"][#1],OutMode->"generator"]&,{NAgroups,replist}];
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 factors=MapAt[KeyMap[particles[[First[#]]]&],factors,{Key["generators"],All}];
 
+If[OptionValue[OutputFormat]=="operator",
 opBasis=ContractDelta[TensorProduct@@factors["basis"],Working->OptionValue[Working]];
 If[!OptionValue[Working],opBasis=PrintOper[RefineReplace@opBasis]];
-opBasis=opBasis//.listtotime;
+opBasis=opBasis//.listtotime];
+
 If[Length[posRepeat]==0,Return[<|"basis"->Flatten@opBasis|>]];
 generators=Merge[factors["generators"],SparseArray/@
 Flatten[MapThread[TensorProduct,#],{{1},2Range[Length[NAgroups]+1],2Range[Length[NAgroups]+1]+1}]&];
@@ -954,7 +956,7 @@ Options[GetBasisForType]={OutputFormat->"operator",Working->False,FerCom->2,NfSe
 
 (* ::Input::Initialization:: *)
 GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,abreplist,NAgroups=Select[model["Gauge"],nonAbelian],Agroups = Select[model["Gauge"], (! nonAbelian[#]) &],lorBasis,gaugeBasis,
-factors,basis,jCoord,result=<||>},
+factors,opBasis,jCoord,result=<||>},
 state=(model[#1]["helicity"]&)/@particles;k=Exponent[type,"D"];
 replist=Outer[model[#2][#1]&,NAgroups,particles];
 If[Agroups=={},abreplist=ConstantArray[{},Length[partition]],
@@ -968,13 +970,16 @@ Switch[OptionValue[OutputFormat],
 "operator",lorBasis=MapAt[MonoLorentzBasis[#,Length[state],finalform->False]["LorBasis"]&,
 LorentzJBasis[state,k,partition],Key["basis"]];
 lorBasis["basis"]=transform[lorBasis["basis"],ReplaceField->{model,type,OptionValue[FerCom]},
-OpenFchain->False,ActivatePrintTensor->False];
+OpenFchain->False,ActivatePrintTensor->False,Working->OptionValue[Working]];
 ];
 gaugeBasis=MapThread[GaugeJBasis[CheckGroup[#1],#2,partition,#3]&,{NAgroups,replist,model["rep2indOut"]/@NAgroups}];
+factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 
-factors=Merge[Prepend[gaugeBasis,lorBasis],Identity];
-basis=TensorProduct@@factors["basis"];
-If[OptionValue[OutputFormat]=="operator",basis=PrintOper[RefineReplace@ContractDelta@basis]//.listtotime];
+If[OptionValue[OutputFormat]=="operator",
+opBasis=ContractDelta[TensorProduct@@factors["basis"],Working->OptionValue[Working]];
+If[!OptionValue[Working],opBasis=PrintOper[RefineReplace@opBasis]];
+opBasis=opBasis//.listtotime];
+
 jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2]],List])&/@Distribute[factors["jcoord"],List];
 jCoord = MapAt[
    Function[x, 
@@ -983,9 +988,9 @@ jCoord = MapAt[
       Rule[#1[[1]], Join[#1[[2]], #2]] &, {Normal@x, abreplist}]], 
    jCoord, {All, 1}];
 jCoord=MapAt[KeyMap[Map["\!\(\*SubscriptBox[\("<>Part[particles,#]<>"\), \("<>ToString[#]<>"\)]\)"&]],jCoord,{All,1}];
-Return[<|"basis"->Flatten[basis],"j-basis"->jCoord|>];
+Return[<|"basis"->Flatten[opBasis],"j-basis"->jCoord|>];
 ]
-Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2};
+Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2,Working->False};
 
 
 (* ::Input::Initialization:: *)

@@ -73,10 +73,14 @@ _,PrintTensor[changebracket[lor]]]
 
 (* ::Input::Initialization:: *)
 (* Operator formating *)
-SetAttributes[SetIndex,HoldAll]; 
-Options[SetIndex]={FieldRename->{}};
-Options[groupindex]={FieldRename->{}};
-SetIndex[model_, field_, label_,indexct_,flavorct_,OptionsPattern[]] :=
+SetAttributes[{SetIndex1,SetIndex2},HoldAll]; 
+Options[SetIndex1]={FieldRename->{}};
+Options[SetIndex2]={FieldRename->{}};
+Options[groupindex1]={FieldRename->{}};
+Options[groupindex2]={FieldRename->{}};
+SetIndex1[model_,field_,label_,indexct_,flavorct_,OptionsPattern[]]:=Module[{hel=model[field]["helicity"],fieldname=ToExpression@field,head=Identity,su2antiflag=False,irrep,group,indexList,index,tensorform},If[model[field]["stat"]=="fermion"&&MemberQ[OptionValue[FieldRename],"set chirality"],fieldname=model[field]["chirality"][[1]];head=model[field]["chirality"][[2]];If[head=="right",fieldname=OverBar[fieldname]]];If[model[field]["nfl"]==1,tensorform=fieldname,tensorform=Subscript[fieldname,model[field]["indfl"][[++flavorct]]]];Do[irrep=model[field][groupname];group=CheckGroup[model,groupname];indexList=model["rep2indOut"][groupname][irrep];If[indexList=={},tensorform=tensorform[];Continue[]];index=IndexIterator[indexList,indexct];
+tensorform=tensorform[index],{groupname,Select[model["Gauge"],nonAbelian]}];Subscript[h2f[hel], label]->head[tensorform]]
+SetIndex2[model_, field_, label_,indexct_,flavorct_,OptionsPattern[]] :=
 Module[{hel=model[field]["helicity"],fieldname=field,head=Identity,su2antiflag = False,irrep,group,indexList,index,tensorform}, 
 If[model[field]["stat"]=="fermion"&&MemberQ[OptionValue[FieldRename],"set chirality"],
 fieldname=model[field]["chirality"][[1]];
@@ -104,9 +108,13 @@ AddIndex[tensorform,"upind"->{index}]],
 {groupname,Select[model["Gauge"],nonAbelian]}];
 Subscript[h2f[hel], label] -> head[Inactive[PrintTensor]@tensorform]
 ]
-groupindex[model_, flistexpand_,OptionsPattern[]] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
+groupindex1[model_, flistexpand_,OptionsPattern[]] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
 indexct=AssociationThread[Union@Catenate[model["rep2indOut"]]->0];
-MapThread[SetIndex[model, #1, #2,indexct,flavorct,FieldRename->OptionValue[FieldRename]] & , {flistexpand,Range[n]}]
+MapThread[SetIndex1[model, #1, #2,indexct,flavorct,FieldRename->OptionValue[FieldRename]] & , {flistexpand,Range[n]}]
+]
+groupindex2[model_, flistexpand_,OptionsPattern[]] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
+indexct=AssociationThread[Union@Catenate[model["rep2indOut"]]->0];
+MapThread[SetIndex2[model, #1, #2,indexct,flavorct,FieldRename->OptionValue[FieldRename]] & , {flistexpand,Range[n]}]
 ]
 
 spinorH2C={ch\[Psi]["left"[f1_],q_,"left"[f2_]]:>ch\[Psi][f1,"C",q,f2],
@@ -131,7 +139,8 @@ ch\[Psi]["right"[f1_],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][f1,q,ch[p2,f2]],
 ch\[Psi][ch[p1__,"right"[f1_]],q_,ch[p2__,"left"[f2_]]]:>ch\[Psi][ch[p1,f1],q,ch[p2,f2]]};
 
 listtotime={ch[p__]:>HoldForm[Times[p]],ch\[Psi][p__]:>HoldForm[Times[p]]};
-FtoTensor:=Inactivate[{F_["down",a_,"down",b_]:>PrintTensor[<|"tensor"->F,"downind"->{a,b}|>],
+FtoTensor1:={F_[_,a_,_,b_]:>F[a,b]}
+FtoTensor2:=Inactivate[{F_["down",a_,"down",b_]:>PrintTensor[<|"tensor"->F,"downind"->{a,b}|>],
 F_["down",a_,"up",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"downind"->a|>],"upind"->b|>],
 F_["up",a_,"down",b_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->F,"upind"->a|>],"downind"->b|>],
 F_["up",a_,"up",b_]:>PrintTensor[<|"tensor"->F,"upind"->{a,b}|>],CL_["down",a_,"down",b_,"down",c_,"down",d_]:>PrintTensor[<|"tensor"->CL,"downind"->{a,b,c,d}|>],
@@ -150,23 +159,25 @@ CL_["down",a_,"up",b_,"up",c_,"up",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"t
 CL_["up",a_,"down",b_,"up",c_,"up",d_]:>PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->PrintTensor[<|"tensor"->CL,"upind"->a|>],"downind"->b|>],"upind"->{c,d}|>],
 CL_["up",a_,"up",b_,"up",c_,"up",d_]:>PrintTensor[<|"tensor"->CL,"upind"->{a,b,c,d}|>]},PrintTensor];
 
-transform[ope_, OptionsPattern[]] := Module[{result=ope,model, type, fer, fieldlist,Dcon={},fchain={},l2t={}, fieldrename={}},
+transform[ope_, OptionsPattern[]] := Module[{result=ope,model, type, fer, fieldlist,Dcon={},fchain={},l2t={},f2t={},gind={},fieldrename={}},
 If[OptionValue[Dcontract],Dcon=Flatten[{Dcontract1, Dcontract2}]];
 If[OptionValue[OpenFchain],l2t=listtotime];
-If[OptionValue[ReplaceField] === {},Return[result//.Dcon/.FtoTensor//.l2t]]; (* abstract operators *)
+If[OptionValue[Working],f2t=FtoTensor1,f2t=FtoTensor2];
+If[OptionValue[ReplaceField] === {},Return[result//.Dcon/.f2t//.l2t]]; (* abstract operators *)
 {model, type, fer} = OptionValue[ReplaceField];
 fieldlist = CheckType[model,type,Counting->False];
+If[OptionValue[Working],gind=groupindex1[model,fieldlist,FieldRename->fieldrename],gind=groupindex2[model,fieldlist,FieldRename->fieldrename]];
 If[fer==4,AppendTo[fieldrename,"set chirality"]; (* rename fermion due to conventional chirality *)
 result=result//.{\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[\[Sigma] |  OverBar[\[Sigma]], a_] :> Subscript[\[Gamma], a], Superscript[\[Sigma] | OverBar[\[Sigma]],a_] :> Superscript[\[Gamma], a]}
 //. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}; (* change \[Sigma] matrices to \[Gamma] matrices *)
 fchain=spinorH2C
 ];
-result=result//.Dcon/.FtoTensor/.groupindex[model,fieldlist,FieldRename->fieldrename];
+result=result//.Dcon/.f2t/.gind;
 (*result=result/.Activate[groupindex[model,fieldlist,FieldRename->fieldrename],If[OptionValue[ActivatePrintTensor],PrintTensor,Null]];*)
 If[OptionValue[ActivatePrintTensor],result=Map[Activate,result,\[Infinity]]];
 result/.fchain//.l2t
 ]
-Options[transform] = {OpenFchain->True,ActivatePrintTensor->True,Dcontract -> True, ReplaceField -> {}}; 
+Options[transform] = {OpenFchain->True,ActivatePrintTensor->True,Dcontract -> True, ReplaceField -> {},Working->False}; 
 
 
 (* ::Input::Initialization:: *)

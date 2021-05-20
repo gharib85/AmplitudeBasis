@@ -250,6 +250,6 @@ DeleteCases[AssociationMap[LinearIntersection@@MapThread[#1[#2]&,{jEigen,#}]&,jc
 LorentzJBasis[state_,k_,partition_]:=Module[{jEigen={},jbasisAll,jcomb,result=<|"basis"->SSYT[state,k,OutMode->"amplitude"]|>},
 jbasisAll=W2Diagonalize[state,k,#,OutputFormat->"working"]&/@partition;
 Do[AppendTo[jEigen,Map[Part[jB["transfer"],#]&,PositionIndex[jB["j"]],{2}]],{jB,jbasisAll}];
-jcomb=Thread[partition->#]&/@Distribute[Keys/@jEigen,List];(*Scan[Print[LinearIntersection@@MapThread[#1[#2[[2]]]&,{jEigen,#}]]&,jcomb];*)
-Append[result,"jcoord"->Normal@DeleteCases[AssociationMap[LinearIntersection@@MapThread[#1[#2[[2]]]&,{jEigen,#}]&,jcomb],{}]]
+jcomb=AssociationThread[partition->#]&/@Distribute[Keys/@jEigen,List];
+Append[result,"jcoord"->Normal@DeleteCases[AssociationMap[LinearIntersection@@MapThread[#1[#2]&,{jEigen,Values[#]}]&,jcomb],{}]]
 ]
