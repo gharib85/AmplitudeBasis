@@ -42,7 +42,7 @@ BeginPackage["AmplitudeBasis`"]
 {tAssumptions,tRep,tOut,tVal,tYDcol,tSimp,dummyIndexCount,GellMann,ConvertToFundamental,PrintTensor};
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Help Text*)
 
 
@@ -127,7 +127,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Do[Get[file],{file,Global`$CodeFiles}];
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Input*)
 
 
@@ -160,56 +160,73 @@ Return[flist];
 Options[CheckType]={Sorted->True, Counting->True};
 CheckType::unknown="unrecognized fields in type `1`";
 
-CheckGroup[model_Association,groupname_String]:=Module[{group=ToExpression@StringDrop[groupname,-1]},If[MemberQ[groupList,group]&&MemberQ[model["Gauge"],groupname],group,Message[CheckGroup::ndef,groupname]]]
-CheckGroup[groupname_String]:=Module[{group=ToExpression@StringDrop[groupname,-1]},If[MemberQ[groupList,group],group,Message[CheckGroup::ndef,groupname]]]
+CheckGroup[model_Association,groupname_String]:=Module[{group=ToExpression@StringDrop[groupname,-1]},If[MemberQ[groupList,StringDrop[groupname,-1]]&&MemberQ[model["Groups"],groupname],group,Message[CheckGroup::ndef,groupname]]]
+CheckGroup[groupname_String]:=Module[{group=ToExpression@StringDrop[groupname,-1]},If[MemberQ[groupList,StringDrop[groupname,-1]],group,Message[CheckGroup::ndef,groupname]]]
 CheckGroup::ndef="Group `1` not defined.";
 
 (* Names for Abstract Fields *)
 state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
 
 Fields[model_]:=DeleteCases[Keys@Select[model,MatchQ[#,_Association]&],"rep2ind"|"rep2indOut"]
-SetSimplificationRule[model_]:=Module[{group,indexset=Catenate@model["rep2indOut"]},
+
+Clear[SetSimplificationRule];
+SetSimplificationRule[group_List]:=Module[{},
 Unprotect[Times,Power];
 Clear[Times,Power];
-Do[group=CheckGroup[model,groupname];Check[tSimp[group]/.{INDEXSET->indexset}//ReleaseHold,"simplification rule for "<>ToString[groupname]<>" not found"],{groupname,model["Gauge"]}];
+Check[tSimp[group]//ReleaseHold,"simplification rule not found"];
+Protect[Times,Power]
+]
+SetSimplificationRule[model_Association]:=Module[{group(*,indexset=Catenate@model["rep2indOut"]*)},
+Unprotect[Times,Power];
+Clear[Times,Power];
+Do[group=CheckGroup[groupname];Check[tSimp[group](*/.{INDEXSET->indexset}*)//ReleaseHold,"simplification rule for "<>groupname<>" not found"],{groupname,model["Groups"]}];
 Protect[Times,Power]
 ]
 
 
 (* ::Input::Initialization:: *)
 SetAttributes[ModelIni,HoldFirst];
-ModelIni[model_]:=model=<|"Gauge"->{},"Global"->{},"rep2indOut"-><||>|>
+ModelIni[model_]:=model=<|"Groups"->{},"rep2indOut"-><||>|>
+LoadGroup[groupname_]:=Module[{profile},
+If[!MemberQ[groupList,groupname],
+profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile", groupname<>"_profile.m"}];
+If[FileExistsQ[profile],Get[profile],Message[LoadGroup::profile,groupname];Abort[]]]]
+LoadGroup::profile="Profile for group `1` not found.";
 
+Clear[AddGroup];
 SetAttributes[{AddGroup,AddField},HoldFirst];
 (* Adding new Gauge Group to a Model *)
-AddGroup[model_,groupname_String,field_String,Globalreps_List,ind_Association]:=Module[{profile,group=ToExpression@StringDrop[groupname,-1],Freps},
+Options[AddGroup]={GaugeBoson->None,Index->"default"};
+AddGroup[model_,groupname_String,OptionsPattern[]]:=Module[{group=ToExpression@StringDrop[groupname,-1],fieldname=OptionValue[GaugeBoson],ind},
 (* read group info from profile *)
-If[!MemberQ[groupList,group],
-profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile",StringDrop[groupname,-1]<>"_profile.m"}];
-If[FileExistsQ[profile],Get[profile],Message[AddGroup::profile,StringDrop[groupname,-1]];Abort[]];
-];
+LoadGroup[StringDrop[groupname,-1]];
 
-model=Merge[{model,<|"Gauge"->{groupname}|>},Apply[Join]]; (* add gauge group to the model *)
+AppendTo[model["Groups"],groupname];(* add gauge group to the model *)
+(*model=Merge[{model,<|"Groups"->{groupname}|>},Apply[Join]]; *)
 AssociateTo[model[#],groupname->Singlet[group]]&/@Fields[model]; (* pre-existing fields set to singlet by default *)
-Freps=MapAt[Adjoint,MapAt[Singlet,CheckGroup/@model["Gauge"],{;;-2}],-1]; (* gauge boson representations under all groups *)
-AddField[model,field<>"L",-1,Freps,Globalreps,Hermitian->True];
-AddField[model,field<>"R",1,Freps,Globalreps,Hermitian->True]; (* add gauge bosons *)
-Conj[field<>"L"]=field<>"R";
-Conj[field<>"R"]=field<>"L"; (* define special conjugation relation (not denoted by \[Dagger]) for gauge boson names *)
-(*AssociateTo[model["rep2ind"],groupname->First/@ind];*) (* define abstract working index names for all reps of the new group *)
+
+(* Add Gauge Boson, otherwise a global sym *)
+If[fieldname=!=None,
+(*Freps=MapAt[Adjoint,MapAt[Singlet,CheckGroup/@model["Groups"],{;;-2}],-1];*) (* gauge boson representations under all groups *)
+AddField[model,fieldname<>"L",-1,{groupname->Adjoint[group]},Hermitian->True];
+AddField[model,fieldname<>"R",1,{groupname->Adjoint[group]},Hermitian->True]; (* add gauge bosons *)
+Conj[fieldname<>"L"]=fieldname<>"R";
+Conj[fieldname<>"R"]=fieldname<>"L"]; (* define special conjugation relation (not denoted by \[Dagger]) for gauge boson names *)
+
+If[nonAbelian[groupname],If[OptionValue[Index]=="default",ind=INDEX[group],ind=OptionValue[Index]];
 AssociateTo[model["rep2indOut"],groupname->ind]; (* define list of specific indices for all reps of the new group *)
-If[!KeyExistsQ[ind,Singlet[group]],AssociateTo[model["rep2indOut"][groupname],Singlet[group]->{}]];
+AssociateTo[model["rep2indOut"][groupname],Singlet[group]->{}]];
+
 SetSimplificationRule[model] (* define simplification rules for all gauge groups *)
 ]
-AddGroup::profile="Profile for group `1` not found.";
 
 (* Adding New Field to a Model *)
 AddField::overh="helicity of `1` is neither integer nor half-integer.";
 Options[AddField]={Flavor->1,Dim->"default",Hermitian->False,Chirality->{}};
-AddField[model_,field_String,hel_,Greps_List,Globalreps_List,OptionsPattern[]]:=Module[{attribute=<||>,flavor=OptionValue[Flavor],NAgroups,shape,dim=OptionValue[Dim]},
+AddField[model_,field_String,hel_,Greps_List,OptionsPattern[]]:=Module[{attribute=<||>,flavor=OptionValue[Flavor],NAgroups,shape,dim=OptionValue[Dim]},
 If[IntegerQ[2hel],AppendTo[attribute,"helicity"->hel],Message[AddField::overh,field]];
-AssociateTo[attribute,Thread[model["Gauge"]->Greps]];
-AssociateTo[attribute,Thread[model["Global"]->Globalreps]];
+AssociateTo[attribute,AssociationMap[Singlet[CheckGroup[#]]&,model["Groups"]]];
+AssociateTo[attribute,Greps];
 AssociateTo[attribute,"dim"->If[NumericQ[dim],dim,1+Abs[hel]]];
 Switch[flavor,
 _Integer|_Symbol,AssociateTo[attribute,{"nfl"->flavor,"indfl"->FLAVOR}],
@@ -218,11 +235,11 @@ AssociateTo[attribute,"stat"->If[IntegerQ[hel],"boson","fermion"]];
 If[attribute["stat"]=="fermion" ,AssociateTo[attribute,"chirality"->OptionValue[Chirality]]];
 AppendTo[model,field->attribute];
 
-NAgroups=Select[model["Gauge"],nonAbelian];
-shape=MapThread[DimR[#1,#2]&,{CheckGroup/@NAgroups,Abs@Cases[Greps,_List]}];
+NAgroups=Select[model["Groups"],nonAbelian];
+shape=MapThread[DimR[#1,#2]&,{CheckGroup/@NAgroups,Abs[attribute/@NAgroups]}];
 AppendTo[tAssumptions,ToExpression["t"<>field<>ToString[NAgroups[[#]]]]\[Element]Arrays[{shape[[#]]}]]&/@Range[1,Length[shape]];
 
-If[!OptionValue[Hermitian]&&Last@Characters[field]!="\[Dagger]",AddField[model,field<>"\[Dagger]",-hel,RepConj/@Greps,RepConj/@Globalreps,Flavor->OptionValue[Flavor],Chirality->(OptionValue[Chirality]/.{"left"->"right","right"->"left"})];
+If[!OptionValue[Hermitian]&&Last@Characters[field]!="\[Dagger]",AddField[model,field<>"\[Dagger]",-hel,MapAt[RepConj,Greps,{All,2}],Flavor->OptionValue[Flavor],Chirality->(OptionValue[Chirality]/.{"left"->"right","right"->"left"})];
 Conj[field]=field<>"\[Dagger]";
 Conj[field<>"\[Dagger]"]=field;
 ];
@@ -238,11 +255,11 @@ Join@@MapThread[ConstantArray,{fieldlist,#}]&/@list
 ]
 GaugeClass[model_,type:(_Times|_Power)]:=GaugeClass[model,CheckType[model,type,Counting->False]]
 GaugeClass[model_,fields_List]:=Module[{greps},
-greps=model[#]/@model["Gauge"]&/@fields\[Transpose];
+greps=model[#]/@model["Groups"]&/@fields\[Transpose];
 greps=Replace[Sort/@greps,{x__?NumericQ}:>Plus[x],1];
 If[MemberQ[greps,x_?NumericQ/;x!=0],False,greps]
 ]
-state2type[model_,state_,k_]:=Module[{comblist,combindexed,singletcomb,groups=CheckGroup/@model["Gauge"]},
+state2type[model_,state_,k_]:=Module[{comblist,combindexed,singletcomb,groups=CheckGroup/@model["Groups"]},
 (* field combinations in the model with given helicities *)
 comblist=Join@@@Distribute[CombList[Select[Keys[model],helicityQ[model,#1]],#2]&@@@Tally[state],List];
 (*comblist=DeleteDuplicatesBy[Distribute[(Select[Keys[model],helicityQ[model,#]]&/@state),List],Sort];*)
@@ -275,7 +292,7 @@ sign{deltaB,deltaL}
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Lorentz Basis*)
 
 
@@ -391,7 +408,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Gauge Group Factor*)
 
 
@@ -470,34 +487,6 @@ Options[GaugeBasis]={OutputMode->"indexed"};
 
 
 (* ::Input::Initialization:: *)
-Options[GaugeBasisAux]={OutMode->"p-basis"};
-GaugeBasisAux[group_,replist_,posRepeat_,indmap_,OptionsPattern[]]:=Module[{shift,yngList,gaugeGen,mbasis,trivial=False,result},
-If[posRepeat==<||>,trivial=True]; (* no repeated fields *)
-{gaugeGen,mbasis}=Reap[GaugePermGenerator[group,replist,indmap],tl];
-If[gaugeGen==<||>,trivial=True]; (* all singlets *)
-result=<|"basis"->mbasis[[1,1]]|>;
-shift=FirstPosition[PositionIndex[replist],First[#]]&/@posRepeat;
-
-Switch[Head[posRepeat],
-Association,
-If[trivial,Return[Append[result,"p-basis"-><|{}->IdentityMatrix[Length[mbasis[[1,1]]]]|>]]];
-yngList=IntegerPartitions@Length[#]&/@posRepeat;
-yngList=AssociationThread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
-Append[result,"p-basis"->
-DeleteCases[Association@Map[Normal[#]->
-basisReduce[Dot@@KeyValueMap[PermRepFromGenerator[gaugeGen[[shift[#1][[1]]]],YO[#2,shift[#1][[2]]]]&,#]]["basis"]&,yngList],{}]],
-
-List,
-If[trivial,Return[Append[result,"generators"-><|#->{{{1}},{{1}}}&/@posRepeat|>]]];
-Append[result,"generators"->
-Association@MapThread[
-#2->Function[gen,PermRepFromGenerator[gaugeGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,
-{shift,posRepeat}]]
-]
-]
-
-
-(* ::Input::Initialization:: *)
 GetComb[group_,list_]:=Module[{temp1,temp2},
 temp1=ReduceRepProduct[group,#]&/@list;
 temp1=Distribute[#&/@temp1,List];
@@ -550,63 +539,11 @@ Association@finalresult
 ]*)
 
 
-(* ::Input:: *)
-(*GaugeJBasis[model_,groupname_,type_,parts_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],indexlist,group=CheckGroup[model,groupname],indmap=model["rep2ind"][groupname],SUNreplist,nonsinglets,convertfactor,YDbasisnoConvert,YDbasis,fSUNreplist,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,MbasisAll,tMbasisAll,vMbasisAll,Mbasis,tMbasis,vMbasis,qr,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},finalresult={},ntarget},*)
-(*indexlist=GenerateFieldIndex[model,groupname,flist];*)
-(*finalresult={"order"->Flatten@(ConstantArray@@@flist)};*)
-(*SUNreplist={#[[2]],model[#[[1]]][groupname],#[[1]]}&/@flist; (* {repeat_num, SUNrep, fieldname} *)*)
-(*nonsinglets=DeleteCases[SUNreplist,{_,Singlet[group],_}];*)
-(*If[nonsinglets=={},AppendTo[finalresult,"basis"->{1}];AppendTo[finalresult,"jcoord"->{{1}}];Return[Association@finalresult]];*)
-(*convertfactor=Times@@(ConvertFactor[model,groupname,#]&/@flist);*)
-(*(*prepare y- and m- bases*)*)
-(*YDbasisnoConvert=Flatten[((Times@@(tYDcol[group]@@@Transpose[#]))&/@GenerateLRT[group,indmap,nonsinglets])];Print[YDbasisnoConvert];*)
-(*YDbasis=Expand[YDbasisnoConvert*convertfactor];*)
-(*MbasisAll=SimpGFV2[Expand/@TRefineTensor[YDbasis,model,groupname,flist]];*)
-(*tMbasisAll=Product2ContractV2[#,indexlist,Symb2Num->tVal[group]]&/@MbasisAll;*)
-(*vMbasisAll=Flatten/@tMbasisAll;*)
-(*qr=QRDecomposition[Transpose[vMbasis]];*)
-(*MapThread[Set,{{Mbasis,tMbasis,vMbasis},FindIndependentMbasis[MbasisAll,tMbasisAll,vMbasisAll]}];*)
-(*AppendTo[finalresult,"basis"->Mbasis];*)
-(**)
-(*(*Begin Processing J basis related*)*)
-(*fSUNreplist=Flatten[ConstantArray[#[[2]],#[[1]]]&/@SUNreplist,1];*)
-(*SUNrepPartlist=FindRepPathPartition[group,fSUNreplist,parts];*)
-(*nonsingletparts=Select[Keys@SUNrepPartlist[[1,1]],(!MatchQ[fSUNreplist[[#]]&/@#,{Singlet[group]..}])&];*)
-(*YTlist=Flatten[GenerateTYT@@@(Join[#,{indmap[Fund[group]],group}]&/@SUNreplist),1];(*Young tableaux for the representation*)Print[YTlist];*)
-(*RepParts=MapAt[fSUNreplist[[#]]&,nonsingletparts,{All,All}];*)
-(*YTParts=MapAt[YTlist[[#]]&,nonsingletparts,{All,All}];*)
-(*SubYTs=Table[Distribute[GenerateLRTYTs@@@MapThread[{group,#1,#2}&,{SUNrepPartlist[[i,1]][#]&/@nonsingletparts,YTParts}],List],{i,Length[SUNrepPartlist]}];*)
-(*(*assoSubYTs=Association@MapThread[Rule,{{MapThread[Rule,{nonsingletparts,#[[1]]}],#[[2]]}&/@SUNrepPartlist,SubYTs}];*)
-(*Print["assoSubYTs: ", assoSubYTs];*)*)
-(*Do[*)
-(*tempresult={};*)
-(*ranktemp=0;*)
-(*ntarget=SUNrepPartlist[[i,2]];*)
-(*Do[*)
-(*Do[*)
-(*stemp=Expand[RefineTensor[Simplify[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convertfactor],model,groupname,flist]];*)
-(*If[stemp==0,Continue[]];*)
-(*vtemp=Flatten@Product2ContractV3[stemp,indexlist,tVal[group]];*)
-(*coordtemp=Simplify[GetCoord[qr,vtemp]];*)
-(*AppendTo[tempresult,coordtemp];*)
-(*If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[];];,tempresult=Drop[tempresult,-1];]*)
-(*,{YTs,SubYTs[[i]]}*)
-(*];*)
-(*If[ranktemp==ntarget,Break[];];*)
-(*,{ybs,YDbasisnoConvert}*)
-(*];*)
-(*AppendTo[coordresult,SUNrepPartlist[[i,1]]->tempresult];*)
-(*,{i,Length[SUNrepPartlist]}*)
-(*];*)
-(*AppendTo[finalresult,"jcoord"->coordresult];*)
-(*(*AppendTo[finalresult,"qr"\[Rule]qr];*)*)
-(*Association@finalresult*)
-(*]*)
-
-
 (* ::Input::Initialization:: *)
-GaugeJBasis[group_,replist_,parts_,indmap_,OptionsPattern[]]:=Module[{nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},finalresult={},ntarget,
-indexct,indlist,ybasis,convert,tensorlist,tensorValue,mbasis,result,dummy,dummyPosList,indexcttemp,dummyReplace={}},
+Options[GaugeJBasis]={Index->"default"};
+GaugeJBasis[group_,replist_,parts_,OptionsPattern[]]:=Module[{indmap,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},result,ntarget,
+indexct,indlist,ybasis,convert,tensorlist,tensorValue,mbasis,finalresult,dummy,dummyPosList,indexcttemp,dummyReplace={}},
+If[OptionValue[Index]==="default",indmap=INDEX[group],indmap=OptionValue[Index]];
 
 indexct=AssociationThread[Union@Values[indmap]->0];
 indlist=IndexIterator[indmap[#],indexct]&/@replist;
@@ -626,7 +563,7 @@ Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Ext
 {dpos,dummyPosList[[All,1]]}],
 {tensor,result}];
 ];
-finalresult={"basis"->result/.dummyReplace};
+finalresult=<|"basis"->result/.dummyReplace|>;
 
 (*Begin Processing J basis related*)
 SUNrepPartlist=FindRepPathPartition[group,Abs@replist,parts];
@@ -635,79 +572,22 @@ YTlist=MapIndexed[DeleteCases[{}]@FoldPairList[TakeDrop,Table[Subscript[#2[[1]],
 RepParts=Map[replist[[#]]&,nonsingletparts,{2}];
 YTParts=Map[YTlist[[#]]&,nonsingletparts,{2}];
 SubYTs=Table[Distribute[GenerateLRTYTs@@@MapThread[{group,#1,#2}&,{SUNrepPartlist[[i,1]][#]&/@nonsingletparts,YTParts}],List],{i,Length[SUNrepPartlist]}];
-
-Do[
-tempresult={};
-ranktemp=0;
+Do[tempresult={};ranktemp=0;
 ntarget=SUNrepPartlist[[i,2]];
-Do[
-Do[
-stemp=Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert];
+Do[Do[stemp=2Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]//Expand;
 If[stemp==0,Continue[]];
 vtemp=SymbolicTC[stemp,WithIndex->False]/.tVal[group];
-coordtemp=LinearSolve[mbasis["basis"]\[Transpose],Flatten[vtemp]];
+coordtemp=LinearSolve[mbasis["basis"]\[Transpose],Flatten[vtemp/2]];
 AppendTo[tempresult,coordtemp];
 If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[];];,tempresult=Drop[tempresult,-1];]
-,{YTs,SubYTs[[i]]}
-];
+,{YTs,SubYTs[[i]]}];
 If[ranktemp==ntarget,Break[];];
-,{ybs,ybasis}
-];
+,{ybs,ybasis}];
 AppendTo[coordresult,SUNrepPartlist[[i,1]]->tempresult];
 ,{i,Length[SUNrepPartlist]}
 ];
-AppendTo[finalresult,"jcoord"->coordresult];
-Association@finalresult
+AppendTo[finalresult,"jcoord"->coordresult]
 ]
-
-
-(* ::Subsection::Closed:: *)
-(*W2 Operator*)
-
-
-(* ::Input:: *)
-(*BridgeQ[I_,i_,j_]:=MemberQ[I,i]\[Xor]MemberQ[I,j]*)
-(*BridgeQ[I_]:=BridgeQ[I,##]&*)
-(*BridgeSign[I_,i_,j_]:=If[BridgeQ[I,i,j],1,-1]*)
-(*MM[I_,i_,j_,k_,l_]:=-BridgeSign[I,i,k](ab[i,l]ab[j,k]+ab[i,k]ab[j,l])/4;*)
-(*MbMb[I_,i_,j_,k_,l_]:=-BridgeSign[I,i,k](sb[i,l]sb[j,k]+sb[i,k]sb[j,l])/4;*)
-(*MMb[I_,i_,j_,k_,l_]:=BridgeSign[I,i,k]Sum[(ab[m,i]ab[j,n]+ab[m,j]ab[i,n])(sb[m,k]sb[l,n]+sb[m,l]sb[k,n]),{m,I},{n,I}]/4//Simplify;*)
-(*Mandelstam[I_]:=(1/2)Sum[s[i,j],{i,I},{j,I}]*)
-(**)
-(*W2[Ind_List]:=W2[#,Ind]&*)
-(*W2[Amp_Plus,Ind_List]:=W2[Ind]/@Amp*)
-(*W2[Amp:Except[Plus],Ind_List]:=Module[*)
-(*{list=Prod2List[Amp],ablist={},sblist={},prefactor=1,sf,sg,sfg},*)
-(*(* find bridges *)*)
-(*Map[Switch[Head[#],*)
-(*ab,If[BridgeQ[Ind]@@#,AppendTo[ablist,#],prefactor*=#],*)
-(*sb,If[BridgeQ[Ind]@@#,AppendTo[sblist,#],prefactor*=#],*)
-(*_,prefactor*=# (* other factors *)*)
-(*]&,list];*)
-(*(* calculations *)*)
-(*sf=-(3/4)Length[ablist]Times@@ablist+2Sum[MM[Ind,ablist[[i,1]],ablist[[i,2]],ablist[[j,1]],ablist[[j,2]]]Times@@Delete[ablist,{{i},{j}}],{j,Length[ablist]},{i,j-1}];*)
-(*sg=-(3/4)Length[sblist]Times@@sblist+2Sum[MbMb[Ind,sblist[[i,1]],sblist[[i,2]],sblist[[j,1]],sblist[[j,2]]]Times@@Delete[sblist,{{i},{j}}],{j,Length[sblist]},{i,j-1}];*)
-(*sfg=Sum[MMb[Ind,ablist[[i,1]],ablist[[i,2]],sblist[[j,1]],sblist[[j,2]]]Times@@Delete[ablist,i]Times@@Delete[sblist,j],{i,Length[ablist]},{j,Length[sblist]}];*)
-(**)
-(*Return[prefactor(Mandelstam[Ind] (sf*(Times@@sblist)+(Times@@ablist)*sg)+ sfg)//Simplify]*)
-(*]*)
-
-
-(* ::Input:: *)
-(*Options[W2Diagonalize]={OutputFormat->"print"};*)
-(*W2Diagonalize[state_,k_,Ind_,OptionsPattern[]]:=*)
-(*Module[{Num=Length[state],iniBasis=SSYT[state,k,OutMode->"amplitude"],stBasis=SSYT[state,k+2,OutMode->"amplitude"],*)
-(*W2Basis,W2result,eigensys,result},*)
-(*W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));*)
-(*eigensys=Transpose[LinearSolve[Transpose[W2Basis],#]&/@W2result]//Eigensystem;*)
-(*result=<|"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>;*)
-(**)
-(*Switch[OptionValue[OutputFormat],*)
-(*"working",result,*)
-(*"print",result=MapAt[Ampform,result,{Key["j-basis"],All}];*)
-(*result=MapAt[MatrixForm,result,Key["transfer"]]*)
-(*]*)
-(*]*)
 
 
 (* ::Subsection:: *)
@@ -746,8 +626,8 @@ GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
 
 
 (* ::Input::Initialization:: *)
-GaugeJoin[model_,particles_]:=Module[{groups=CheckGroup/@model["Gauge"],reps,result},
-reps=(model[#]/@model["Gauge"])&/@particles;
+GaugeJoin[model_,particles_]:=Module[{groups=CheckGroup/@model["Groups"],reps,result},
+reps=(model[#]/@model["Groups"])&/@particles;
 result=MapThread[Switch[#1,{},{{Total[#2],1}},{__List},ReduceRepProduct[#1,#2]]&,{groups,reps\[Transpose]}];
 {#[[All,1]],Times@@#[[All,2]]}&/@Distribute[result,List]
 ]
@@ -854,7 +734,7 @@ SQ[model_]:=Not@TrueQ[model[#1]["nfl"]<Length[#2]]&
 (* ::Input::Initialization:: *)
 Options[Type2TermsPro]={OutputFormat->"operator",Basis->"p-basis",FerCom->2,deSym->True,flavorTensor->True,fullform->False,AddFlavor->True,TakeFirstBasis->True,OperAbbreviation->{}};
 (* RENAME: ? *)
-Type2TermsPro[model_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],NAgroups=Select[model["Gauge"],nonAbelian],
+Type2TermsPro[model_,type_,OptionsPattern[]]:=Module[{flist=CheckType[model,type],NAgroups=Select[model["Groups"],nonAbelian],
 len,nFac,lorentzB,groupB,basisTotal,
 SymComb,pCoord,indexCG,indexFac,cols},
 len=Count[flist,{_String,_?(#>1&)}];(*num of repeated fields*)
@@ -898,7 +778,7 @@ SnDecompose[replist_]:=Join@@MapThread[ConstantArray,{IntegerPartitions[Total@Fi
 Type2TermsCount[model_,type_]:=Module[{len,lorentzB,groupB,nFac,SymComb,terms,pairContraction},
 lorentzB=LorentzCount[model,type];
 len=Length[Keys[lorentzB][[1]]]; (* num of repeated fields *)
-groupB=GaugeCount[model,#,type]&/@Select[model["Gauge"],nonAbelian];
+groupB=GaugeCount[model,#,type]&/@Select[model["Groups"],nonAbelian];
 nFac=Length[groupB]+1; (* number of factors to do Inner Product Decomposition for Sn groups *)
 SymComb=Distribute[Normal/@Prepend[groupB,lorentzB],List];
 terms=Join@@(ConstantArray[Merge[Keys[#],SnDecompose],Times@@Values[#]]&/@SymComb);
@@ -913,7 +793,7 @@ pos=basisReduce[Extract[tensor,ConstantArray[1,len]]]["pos"];
 Map[Part[#,pos]&,tensor,{len}]
 ]
 
-GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Gauge"],nonAbelian],posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,generators,pCoord},
+GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,generators,pCoord},
 state=model[#]["helicity"]&/@particles;k=Exponent[type,"D"];
 replist=Outer[model[#2][#1]&,NAgroups,particles];
 
@@ -929,7 +809,7 @@ Switch[OptionValue[OutputFormat],
 "operator",lorBasis=MapAt[transform[#,ReplaceField->{model,type,OptionValue[FerCom]},OpenFchain->False,ActivatePrintTensor->False,Working->OptionValue[Working]]&,lorBasis,Key["basis"]],
 "amplitude",lorBasis=MapAt[Ampform,lorBasis,Key["basis"]]
 ];
-gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,model["rep2indOut"][#1],OutMode->"generator"]&,{NAgroups,replist}];
+gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,Index->model["rep2indOut"][#1],OutMode->"generator"]&,{NAgroups,replist}];
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 factors=MapAt[KeyMap[particles[[First[#]]]&],factors,{Key["generators"],All}];
 
@@ -955,15 +835,15 @@ Options[GetBasisForType]={OutputFormat->"operator",Working->False,FerCom->2,NfSe
 
 
 (* ::Input::Initialization:: *)
-GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,abreplist,NAgroups=Select[model["Gauge"],nonAbelian],Agroups = Select[model["Gauge"], (! nonAbelian[#]) &],lorBasis,gaugeBasis,
+GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,abreplist,NAgroups=Select[model["Groups"],nonAbelian],Agroups = OptionValue[Charges],lorBasis,gaugeBasis,
 factors,opBasis,jCoord,result=<||>},
 state=(model[#1]["helicity"]&)/@particles;k=Exponent[type,"D"];
 replist=Outer[model[#2][#1]&,NAgroups,particles];
+
 If[Agroups=={},abreplist=ConstantArray[{},Length[partition]],
 abreplist = Outer[model[#2][#1] &, Agroups, particles];
-abreplist = 
-  Transpose@
-   Table[Total@Part[item, #] & /@ partition, {item, abreplist}]];
+abreplist = Merge[Table[AssociationMap[Total@Part[item, #] &, partition], {item, abreplist}],Identity]
+];
 
 Switch[OptionValue[OutputFormat],
 "amplitude",lorBasis=LorentzJBasis[state,k,partition],
@@ -972,7 +852,7 @@ LorentzJBasis[state,k,partition],Key["basis"]];
 lorBasis["basis"]=transform[lorBasis["basis"],ReplaceField->{model,type,OptionValue[FerCom]},
 OpenFchain->False,ActivatePrintTensor->False,Working->OptionValue[Working]];
 ];
-gaugeBasis=MapThread[GaugeJBasis[CheckGroup[#1],#2,partition,#3]&,{NAgroups,replist,model["rep2indOut"]/@NAgroups}];
+gaugeBasis=MapThread[GaugeJBasis[CheckGroup[#1],#2,partition,Index->model["rep2indOut"][#1]]&,{NAgroups,replist}];
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 
 If[OptionValue[OutputFormat]=="operator",
@@ -981,16 +861,11 @@ If[!OptionValue[Working],opBasis=PrintOper[RefineReplace@opBasis]];
 opBasis=opBasis//.listtotime];
 
 jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2]],List])&/@Distribute[factors["jcoord"],List];
-jCoord = MapAt[
-   Function[x, 
-    Association@
-     MapThread[
-      Rule[#1[[1]], Join[#1[[2]], #2]] &, {Normal@x, abreplist}]], 
-   jCoord, {All, 1}];
+jCoord = MapAt[Merge[{#,abreplist},Apply[Join]]&,jCoord,{All, 1}];
 jCoord=MapAt[KeyMap[Map["\!\(\*SubscriptBox[\("<>Part[particles,#]<>"\), \("<>ToString[#]<>"\)]\)"&]],jCoord,{All,1}];
-Return[<|"basis"->Flatten[opBasis],"j-basis"->jCoord|>];
+Return[<|"basis"->Flatten[opBasis],"groups"-> Join[NAgroups,{"Spin"},Agroups],"j-basis"->jCoord|>];
 ]
-Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2,Working->False};
+Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2,Charges->{},Working->False};
 
 
 (* ::Input::Initialization:: *)

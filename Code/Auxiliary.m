@@ -85,6 +85,12 @@ Normal[aux]/.Rule->List
 
 
 (* ::Input::Initialization:: *)
+SetAttributes[AssocIni,HoldAll];
+AssocIni[assoc_]:=If[!AssociationQ[assoc],assoc=<||>]
+AssocIni[assoc1_,assoc2__]:=AssocIni/@{assoc1,assoc2}
+
+
+(* ::Input::Initialization:: *)
 (* Special Definitions *)
 tAssumptions={};
 tReduce:=TensorReduce[#,Assumptions->tAssumptions]&;
