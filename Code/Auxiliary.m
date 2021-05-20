@@ -45,12 +45,23 @@ pos++];
 ]
 basisReduce::input="wrong input matrix: `1`";
 
+LinearIntersection[{},basisB_]:={}
 LinearIntersection[basisA_,basisB_]:=Module[{basisPlus=Join[basisA,basisB],lA=Length[basisA],sol},sol=NullSpace[Transpose[basisPlus]];
 If[Length[sol]==0,Return[{}]];basisReduce[sol[[All,1;;lA]].basisA]["basis"]
 ]
 LinearIntersection[basisA_]:=basisA
 LinearIntersection[basisA_,basisB_,basisX__]:=LinearIntersection[LinearIntersection[basisA,basisB],basisX]
 
+MapIntersection[A_,B_]:=Module[{len=Length[A],W,lenW,PA,PB,R},
+If[MatrixRank[Join[A,B]]==len,Sow[IdentityMatrix[len],restriction];Return[LinearSolve[B\[Transpose]]/@A]];
+W=LinearIntersection[A,B];
+lenW=Length[W];If[lenW==0,Return[{{}}]];
+PA=LinearSolve[A\[Transpose]]/@W;
+PB=LinearSolve[B\[Transpose]]/@W;
+If[MatrixRank[Join[PA,PB]]==lenW,Sow[PA,restriction];Return[LinearSolve[PA\[Transpose]]/@PB]];
+R=LinearIntersection[PA,PB];Sow[R,restriction];
+MapIntersection[R.A,R.B]
+]
 
 
 (* ::Input::Initialization:: *)

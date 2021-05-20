@@ -213,24 +213,25 @@ reduce[W2[amp,ch],num]==-j(j+1) reduce[amp Mandelstam[ch],num]//Simplify//TrueQ
 
 
 (* ::Input::Initialization:: *)
-Options[W2Diagonalize]={OutputFormat->"print"};
+Options[W2Diagonalize]={OutputFormat->"print",CheckJ->False};
 W2Diagonalize[state_,k_,Ind_,OptionsPattern[]]:=
 Module[{Num=Length[state],iniBasis=SSYT[state,k,OutMode->"amplitude"],stBasis=SSYT[state,k+2,OutMode->"amplitude"],
-W2Basis,W2result,W2resultA,eigensys,result,embed,sel},Off[LinearSolve::sqmat1];
+W2Basis,W2result,zeros,Wrep,rlist,rstr,eigensys,result},Off[LinearSolve::sqmat1];
 W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));
 W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));
 zeros=NullSpace[W2result\[Transpose]];
-W2resultA=LinearIntersection[W2Basis,W2result];
-If[W2resultA=={},result=<|"j"->ConstantArray[0,Length[zeros]],"transfer"->zeros,"j-basis"->zeros.iniBasis|>,
-embed=LinearSolve[W2Basis\[Transpose]]/@W2resultA;
-sel=LinearSolve[W2result\[Transpose]]/@W2resultA;
-eigensys=LinearSolve[sel\[Transpose]]/@embed//Transpose//Eigensystem;
+{Wrep,rlist}=Reap[MapIntersection[W2result,W2Basis],restriction];
+If[Wrep=={{}},result=<|"j"->ConstantArray[0,Length[zeros]],"transfer"->zeros,"j-basis"->zeros.iniBasis|>,
+rstr=Dot@@Reverse[rlist[[1]]];
+eigensys=Eigensystem[Wrep\[Transpose]];
 eigensys[[1]]=eigensys[[1]]~Join~ConstantArray[0,Length[zeros]];
-eigensys[[2]]=eigensys[[2]].sel~Join~zeros;
-(*eigensys=LinearSolve[W2Basis\[Transpose]]/@W2result//Transpose//Eigensystem;*)
+eigensys[[2]]=(eigensys[[2]].rstr)~Join~zeros;
 result=<|"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>
 ];
-If[And@@MapThread[W2Check[#1,Length[state],Ind,#2]&,result/@{"j-basis","j"}],Print["eigen equation verified"]];
+If[OptionValue[CheckJ],Print["check eigen equation ..."];
+If[And@@MapThread[W2Check[#1,Length[state],Ind,#2]&,result/@{"j-basis","j"}],Print["eigen values verified!"],
+Print["eigen system error!"];Abort[]]
+];
 
 Switch[OptionValue[OutputFormat],
 "working",result,
@@ -239,16 +240,16 @@ result=MapAt[MatrixForm,result,Key["transfer"]]
 ]
 ]
 
-Jbasis[state_,k_,partition_]:=Module[{jEigen={},jbasisAll,jcomb},
+(*Jbasis[state_,k_,partition_]:=Module[{jEigen={},jbasisAll,jcomb},
 jbasisAll=W2Diagonalize[state,k,#,OutputFormat->"working"]&/@partition;
 Do[AppendTo[jEigen,Map[Part[jB["transfer"],#]&,PositionIndex[jB["j"]],{2}]],{jB,jbasisAll}];
 jcomb=Distribute[Keys/@jEigen,List];
 DeleteCases[AssociationMap[LinearIntersection@@MapThread[#1[#2]&,{jEigen,#}]&,jcomb],{}]
-]
+]*)
 
 LorentzJBasis[state_,k_,partition_]:=Module[{jEigen={},jbasisAll,jcomb,result=<|"basis"->SSYT[state,k,OutMode->"amplitude"]|>},
 jbasisAll=W2Diagonalize[state,k,#,OutputFormat->"working"]&/@partition;
 Do[AppendTo[jEigen,Map[Part[jB["transfer"],#]&,PositionIndex[jB["j"]],{2}]],{jB,jbasisAll}];
-jcomb=Thread[partition->#]&/@Distribute[Keys/@jEigen,List];
+jcomb=Thread[partition->#]&/@Distribute[Keys/@jEigen,List];(*Scan[Print[LinearIntersection@@MapThread[#1[#2[[2]]]&,{jEigen,#}]]&,jcomb];*)
 Append[result,"jcoord"->Normal@DeleteCases[AssociationMap[LinearIntersection@@MapThread[#1[#2[[2]]]&,{jEigen,#}]&,jcomb],{}]]
 ]
