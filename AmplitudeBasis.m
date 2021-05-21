@@ -574,7 +574,7 @@ YTParts=Map[YTlist[[#]]&,nonsingletparts,{2}];
 SubYTs=Table[Distribute[GenerateLRTYTs@@@MapThread[{group,#1,#2}&,{SUNrepPartlist[[i,1]][#]&/@nonsingletparts,YTParts}],List],{i,Length[SUNrepPartlist]}];
 Do[tempresult={};ranktemp=0;
 ntarget=SUNrepPartlist[[i,2]];
-Do[Do[stemp=2Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]//Expand;
+Do[Do[stemp=2*Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]//Expand;
 If[stemp==0,Continue[]];
 vtemp=SymbolicTC[stemp,WithIndex->False]/.tVal[group];
 coordtemp=LinearSolve[mbasis["basis"]\[Transpose],Flatten[vtemp/2]];

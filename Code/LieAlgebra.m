@@ -327,7 +327,7 @@ unflatten[result,tdim]
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*JBasis related*)
 
 
@@ -411,18 +411,10 @@ Return[temp*(Times@@(AuxNum[group,#,chainmap,hierarchy]&/@hierarchy[part]))]
 ];
 ]
 
-FindRepPathPartition[group_,replist_,partition_]:=Module[{hierarchy=<||>,n=Length@replist,temp1,linkedmap=<||>,result={},chainmap},
-temp1=UnionFinder[partition];
-If[Union@@temp1[[1;;,1]]==Range[n],AppendTo[hierarchy,Range[n]->temp1[[1;;,1]]],Print["Not a Good Partition"];Abort[];];
-HierarchyFinder[hierarchy,#]&/@temp1;
-FindRepPathV3[linkedmap,group,replist,Range[n]->Singlet[group],hierarchy];
+FindRepPathPartition[group_,replist_,partition_]:=Module[{hierarchy=Association[],n=Length[replist],temp1,linkedmap=Association[],result={},chainmap},temp1=UnionFinder[partition];If[Union@@temp1[[1;;All,1]]==Range[n],AppendTo[hierarchy,Range[n]->temp1[[1;;All,1]]],Print["Not a Good Partition"];Abort[];];(HierarchyFinder[hierarchy,#1]&)/@temp1;FindRepPathV3[linkedmap,group,replist,Range[n]->Singlet[group],hierarchy];
 AuxResolve2[result,linkedmap,{Range[n]->Singlet[group]},{},hierarchy];
-Do[chainmap=result[[i]];
-MapThread[Set[chainmap[{#1}],#2]&,{Range[n],replist}];
-result[[i]]=result[[i]]->Times@@(AuxNum[group,#,chainmap,hierarchy]&/@temp1[[1;;,1]]);
-,{i,Length@result}];
-result
-]
+result=KeySelect[#,Function[x,Cases[partition,x]!={}]]&/@result;
+Print[result];Do[chainmap=result[[i]];MapThread[(chainmap[{#1}]=#2)&,{Range[n],replist}];result[[i]]=result[[i]]->Times@@(AuxNum[group,#1,chainmap,hierarchy]&)/@temp1[[1;;All,1]];,{i,Length[result]}];result];
 
 
 (* ::Subsubsection:: *)
