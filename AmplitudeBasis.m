@@ -391,7 +391,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Gauge Group Factor*)
 
 
@@ -642,10 +642,10 @@ ranktemp=0;
 ntarget=SUNrepPartlist[[i,2]];
 Do[
 Do[
-stemp=Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert];
+stemp=Expand[2*Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]];
 If[stemp==0,Continue[]];
 vtemp=SymbolicTC[stemp,WithIndex->False]/.tVal[group];
-coordtemp=LinearSolve[mbasis["basis"]\[Transpose],Flatten[vtemp]];
+coordtemp=LinearSolve[mbasis["basis"]\[Transpose],Flatten[vtemp/2]];
 AppendTo[tempresult,coordtemp];
 If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[];];,tempresult=Drop[tempresult,-1];]
 ,{YTs,SubYTs[[i]]}
