@@ -127,7 +127,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Do[Get[file],{file,Global`$CodeFiles}];
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Input*)
 
 
@@ -186,7 +186,7 @@ Protect[Times,Power]
 
 (* ::Input::Initialization:: *)
 SetAttributes[ModelIni,HoldFirst];
-ModelIni[model_]:=model=<|"Groups"->{},"rep2indOut"-><||>|>
+ModelIni[model_]:=model=<|"Groups"->{},"Gauge"->{},"rep2indOut"-><||>|>
 LoadGroup[groupname_]:=Module[{profile},
 If[!MemberQ[groupList,groupname],
 profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile", groupname<>"_profile.m"}];
@@ -208,6 +208,7 @@ AssociateTo[model[#],groupname->Singlet[group]]&/@Fields[model]; (* pre-existing
 (* Add Gauge Boson, otherwise a global sym *)
 If[fieldname=!=None,
 (*Freps=MapAt[Adjoint,MapAt[Singlet,CheckGroup/@model["Groups"],{;;-2}],-1];*) (* gauge boson representations under all groups *)
+AppendTo[model["Gauge"],groupname];
 AddField[model,fieldname<>"L",-1,{groupname->Adjoint[group]},Hermitian->True];
 AddField[model,fieldname<>"R",1,{groupname->Adjoint[group]},Hermitian->True]; (* add gauge bosons *)
 Conj[fieldname<>"L"]=fieldname<>"R";
@@ -216,7 +217,7 @@ Conj[fieldname<>"R"]=fieldname<>"L"]; (* define special conjugation relation (no
 If[nonAbelian[groupname],If[OptionValue[Index]=="default",ind=INDEX[group],ind=OptionValue[Index]];
 AssociateTo[model["rep2indOut"],groupname->ind]; (* define list of specific indices for all reps of the new group *)
 AssociateTo[model["rep2indOut"][groupname],Singlet[group]->{}]];
-
+model[groupname]=fieldname;
 SetSimplificationRule[model] (* define simplification rules for all gauge groups *)
 ]
 
@@ -244,6 +245,9 @@ Conj[field]=field<>"\[Dagger]";
 Conj[field<>"\[Dagger]"]=field;
 ];
 ]
+AddTypeEOM[filename_]:=Module[{profile},profile=FileNameJoin[{Global`$AmplitudeBasisDir,filename}];
+If[FileExistsQ[profile],Get[profile],Message[AddTypeEOM::profile,groupname];Abort[]]]
+AddTypeEOM::profile="Profile for TypeEOM `1` not found.";
 
 
 (* ::Input::Initialization:: *)
@@ -408,7 +412,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Gauge Group Factor*)
 
 
@@ -623,6 +627,33 @@ Print["Dim ",dim,": ",Length[Catenate@#2]," types in all, time used ",#1]&@@Last
 Return[types[[All,2]]];
 ]
 GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
+
+(*Get Types with EOM relaiton*)
+GetRelevantDAux[model_,dimlim_,fields_,nDs_]:=Module[{state,dim,NAgroups=Select[model["Gauge"],nonAbelian],Agroups=Select[model["Gauge"],!nonAbelian[#1]&],dimnow=Total[Abs[model[#]["helicity"]]+1&/@fields]+nDs,funique=DeleteDuplicates[fields],eomlist,result={}},
+state=Sort[(model[#1]["helicity"]&)/@fields];
+dim=Total[Abs[state]+1]+nDs;
+If[Position[LorentzList[dim],{state,nDs}]!={},Sow[Join[fields,ConstantArray["D",nDs]]]];
+If[dimnow>dimlim,Return[]];
+If[nDs==0,Return[]];
+If[nDs==1,
+Do[eomlist=EOM[item];
+GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-1+#[[2]]}&/@eomlist);
+,{item,Select[funique,(Abs[model[#]["helicity"]]==1/2||Abs[model[#]["helicity"]]==1)&]}];
+Return[result];
+];
+If[nDs>=2,
+Do[If[Length@Select[Model[#][gg]&/@fields,Not[#==Singlet[CheckGroup[gg]]]&]>=1,
+GetRelevantDAux[model,dimlim,Join[fields,{model[gg]<>"L"}],nDs-2];GetRelevantDAux[model,dimlim,Join[fields,{model[gg]<>"R"}],nDs-2]],{gg,model["Gauge"]}];
+Do[eomlist=EOM[item];
+GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-2+#[[2]]}&/@eomlist);
+,{item,Select[funique,(Abs[model[#]["helicity"]]==0)&]}];
+Do[eomlist=EOM[item];
+GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-1+#[[2]]}&/@eomlist);
+,{item,Select[funique,(Abs[model[#]["helicity"]]==1/2||Abs[model[#]["helicity"]]==1)&]}];
+Return[result]
+]
+]
+GetRelevantD[model_,dimlim_,type_]:=Module[{k=Exponent[type,"D"]},Times@@@Reap[GetRelevantDAux[model,dimlim,CheckType[model,type,Counting->False],k]][[2,1]]]
 
 
 (* ::Input::Initialization:: *)
