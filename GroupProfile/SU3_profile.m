@@ -2,19 +2,13 @@
 
 (* ::Input::Initialization:: *)
 (* Initialization *)
-If[MatchQ[groupList,_List],AppendTo[groupList,SU3],groupList={SU3}];
-If[!AssociationQ[tRep],tRep=<||>];
-If[!AssociationQ[tOut],tOut=<||>];
-If[!AssociationQ[tList],tList=<||>];
-If[!AssociationQ[tasList],tasList=<||>];
+If[MatchQ[groupList,_List],AppendTo[groupList,"SU3"],groupList={"SU3"}];
+AssocIni[tRep,tOut,tList,tasList,INDEX,tVal,tYDcol,tSimp];
 tList[SU3]={del3,eps3a,eps3f,\[Lambda],del8n,fabc,dabc};
 tasList[SU3]={eps3a,eps3f,fabc};
-If[!AssociationQ[tVal],tVal=<||>];
 tVal[SU3]={del3->IdentityMatrix[3],eps3f->LeviCivitaTensor[3],eps3a->LeviCivitaTensor[3],\[Lambda]->GellMann[3],del8n->IdentityMatrix[8],fabc->fG,dabc->dG};
-If[!AssociationQ[tYDcol],tYDcol=<||>];
 tYDcol[SU3]=eps3a;
 If[!IntegerQ[dummyIndexCount],dummyIndexCount=0];
-If[!AssociationQ[tSimp],tSimp=<||>];
 
 
 (* ::Input::Initialization:: *)
@@ -99,3 +93,9 @@ CF[{0,0},num_,ind_]:=1
 CF[{1,0},num_,ind_]:=del3[ind,Subscript[num, 1]]
 CF[{0,1},num_,ind_]:=eps3f[Subscript[num, 1],Subscript[num, 2],ind]
 CF[{1,1},num_,ind_]:=TensorContract[eps3f\[TensorProduct]\[Lambda],{{1,6}}][Subscript[num, 1],Subscript[num, 3],ind,Subscript[num, 2]]
+
+AssocIni[INDEX[SU3]];
+INDEX[SU3][{0,0}]={};
+INDEX[SU3][{1,0}]={"a","b","c","d","e","f","g","h"};
+INDEX[SU3][{0,1}]={"a","b","c","d","e","f","g","h"};
+INDEX[SU3][{1,1}]={"A","B","C","D","E","F","G","H"};

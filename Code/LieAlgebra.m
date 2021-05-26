@@ -464,9 +464,11 @@ i++;
 result
 ]
 
-GaugePermGenerator[group_,replist_,indmap_]:=Module[{indexct,
+Options[GaugePermGenerator]={Index->"default"};
+GaugePermGenerator[group_,replist_,OptionsPattern[]]:=Module[{indmap,indexct,
 indlist,ybasis,convert,tensorlist,tensorValue,mbasis,result,dummy,dummyPosList,indexcttemp,dummyReplace={},
 tname,slot,indexRepeat},
+If[OptionValue[Index]==="default",indmap=INDEX[group],indmap=OptionValue[Index]];
 
 indexct=AssociationThread[Union@Values[indmap]->0];
 indlist=IndexIterator[indmap[#],indexct]&/@replist;
@@ -489,6 +491,34 @@ indexRepeat=Select[Merge[Thread[DeleteCases[replist,Singlet[group]]->indlist],Id
 result=(Map[LinearSolve[Transpose[mbasis["basis"]],Flatten[#1]]&,SymbolicTC[{result/. IndexInvPermute[Cycles[{{1,2}}],#1],result/. IndexInvPermute[Cycles[{Range[Length[#1]]}],#1]},WithIndex->False]/. tVal[group],{2}]&)/@indexRepeat;
 If[Count[replist,Singlet[group]]>1,AssociateTo[result,Singlet[group]->ConstantArray[IdentityMatrix[Length[mbasis["basis"]]],2]]];
 Return[result];
+]
+
+
+(* ::Input::Initialization:: *)
+Options[GaugeBasisAux]={OutMode->"p-basis",Index->"default"};
+GaugeBasisAux[group_,replist_,posRepeat_,OptionsPattern[]]:=Module[{shift,yngList,gaugeGen,mbasis,trivial=False,result},
+If[posRepeat==<||>,trivial=True]; (* no repeated fields *)
+{gaugeGen,mbasis}=Reap[GaugePermGenerator[group,replist,Index->OptionValue[Index]],tl];
+If[gaugeGen==<||>,trivial=True]; (* all singlets *)
+result=<|"basis"->mbasis[[1,1]]|>;
+shift=FirstPosition[PositionIndex[replist],First[#]]&/@posRepeat;
+
+Switch[Head[posRepeat],
+Association,
+If[trivial,Return[Append[result,"p-basis"-><|{}->IdentityMatrix[Length[mbasis[[1,1]]]]|>]]];
+yngList=IntegerPartitions@Length[#]&/@posRepeat;
+yngList=AssociationThread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
+Append[result,"p-basis"->
+DeleteCases[Association@Map[Normal[#]->
+basisReduce[Dot@@KeyValueMap[PermRepFromGenerator[gaugeGen[[shift[#1][[1]]]],YO[#2,shift[#1][[2]]]]&,#]]["basis"]&,yngList],{}]],
+
+List,
+If[trivial,Return[Append[result,"generators"-><|#->{{{1}},{{1}}}&/@posRepeat|>]]];
+Append[result,"generators"->
+Association@MapThread[
+#2->Function[gen,PermRepFromGenerator[gaugeGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,
+{shift,posRepeat}]]
+]
 ]
 
 

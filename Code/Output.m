@@ -31,7 +31,7 @@ If[index>Length[indlist],Print["index list ",indlist," not enough."];index=index
 (* Generate the replacing rule of the tensor indices for the final output form *)
 GenerateReplacingRule[model_,type:(_Times|_Power)]:=GenerateReplacingRule[model,CheckType[model,type]]
 GenerateReplacingRule[model_,flist_List]:=Module[{nonsingletlist,fexpand,symbollist,arglist,listind,listgen,indexct,indpair,listdummy},
-nonsingletlist=AssociationMap[Function[groupname,Select[flist,Function[fname,model[fname[[1]]][groupname]!=Singlet[CheckGroup[groupname]]]]],Select[model["Gauge"],nonAbelian]]; 
+nonsingletlist=AssociationMap[Function[groupname,Select[flist,Function[fname,model[fname[[1]]][groupname]!=Singlet[CheckGroup[groupname]]]]],Select[model["Groups"],nonAbelian]]; 
 fexpand=Flatten[ConstantArray@@@#]&/@nonsingletlist;
 symbollist=KeyValueMap[Function[fname,model["rep2ind"][#1][model[fname[[1]]][#1]]]/@#2 &,nonsingletlist]; 
 arglist=Map[Function[fname,Array[{fname[[1]],#,1}&,fname[[2]]]],nonsingletlist,{2}];
@@ -79,7 +79,7 @@ Options[SetIndex2]={FieldRename->{}};
 Options[groupindex1]={FieldRename->{}};
 Options[groupindex2]={FieldRename->{}};
 SetIndex1[model_,field_,label_,indexct_,flavorct_,OptionsPattern[]]:=Module[{hel=model[field]["helicity"],fieldname=ToExpression@field,head=Identity,su2antiflag=False,irrep,group,indexList,index,tensorform},If[model[field]["stat"]=="fermion"&&MemberQ[OptionValue[FieldRename],"set chirality"],fieldname=model[field]["chirality"][[1]];head=model[field]["chirality"][[2]];If[head=="right",fieldname=OverBar[fieldname]]];If[model[field]["nfl"]==1,tensorform=fieldname,tensorform=Subscript[fieldname,model[field]["indfl"][[++flavorct]]]];Do[irrep=model[field][groupname];group=CheckGroup[model,groupname];indexList=model["rep2indOut"][groupname][irrep];If[indexList=={},tensorform=tensorform[];Continue[]];index=IndexIterator[indexList,indexct];
-tensorform=tensorform[index],{groupname,Select[model["Gauge"],nonAbelian]}];Subscript[h2f[hel], label]->head[tensorform]]
+tensorform=tensorform[index],{groupname,Select[model["Groups"],nonAbelian]}];Subscript[h2f[hel], label]->head[tensorform]]
 SetIndex2[model_, field_, label_,indexct_,flavorct_,OptionsPattern[]] :=
 Module[{hel=model[field]["helicity"],fieldname=field,head=Identity,su2antiflag = False,irrep,group,indexList,index,tensorform}, 
 If[model[field]["stat"]=="fermion"&&MemberQ[OptionValue[FieldRename],"set chirality"],
@@ -105,7 +105,7 @@ If[indexList=={},Continue[]]; (* singlet *)
 index=IndexIterator[indexList,indexct];
 If[Fund[group]==irrep,If[group==SU2&&su2antiflag,AddIndex[tensorform,"upind"->index],AddIndex[tensorform,"downind"->index]],
 AddIndex[tensorform,"upind"->{index}]],
-{groupname,Select[model["Gauge"],nonAbelian]}];
+{groupname,Select[model["Groups"],nonAbelian]}];
 Subscript[h2f[hel], label] -> head[Inactive[PrintTensor]@tensorform]
 ]
 groupindex1[model_, flistexpand_,OptionsPattern[]] := Module[{indexct,flavorct=0, n= Length[flistexpand]},
@@ -163,7 +163,7 @@ transform[ope_, OptionsPattern[]] := Module[{result=ope,model, type, fer, fieldl
 If[OptionValue[Dcontract],Dcon=Flatten[{Dcontract1, Dcontract2}]];
 If[OptionValue[OpenFchain],l2t=listtotime];
 If[OptionValue[Working],f2t=FtoTensor1,f2t=FtoTensor2];
-If[OptionValue[ReplaceField] === {},Return[result//.Dcon/.f2t//.l2t]]; (* abstract operators *)
+If[OptionValue[ReplaceField] === {},Return[result//.Dcon//.f2t//.l2t]]; (* abstract operators *)
 {model, type, fer} = OptionValue[ReplaceField];
 fieldlist = CheckType[model,type,Counting->False];
 If[OptionValue[Working],gind=groupindex1[model,fieldlist,FieldRename->fieldrename],gind=groupindex2[model,fieldlist,FieldRename->fieldrename]];
@@ -172,7 +172,7 @@ result=result//.{\[Sigma]^(a_) | OverBar[\[Sigma]]^(a_) :> \[Gamma]^a,Subscript[
 //. {(a_)[(b_)[\[Gamma], a1_], b1_] :>a[b[\[Sigma], a1], b1]}; (* change \[Sigma] matrices to \[Gamma] matrices *)
 fchain=spinorH2C
 ];
-result=result//.Dcon/.f2t/.gind;
+result=result//.Dcon//.f2t/.gind;
 (*result=result/.Activate[groupindex[model,fieldlist,FieldRename->fieldrename],If[OptionValue[ActivatePrintTensor],PrintTensor,Null]];*)
 If[OptionValue[ActivatePrintTensor],result=Map[Activate,result,\[Infinity]]];
 result/.fchain//.l2t

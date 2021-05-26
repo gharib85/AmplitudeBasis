@@ -2,17 +2,12 @@
 
 (* ::Input::Initialization:: *)
 (* Initialization *)
-If[MatchQ[groupList,_List],AppendTo[groupList,SU2],groupList={SU2}];
-If[!AssociationQ[tRep],tRep=<||>];
-If[!AssociationQ[tOut],tOut=<||>];
-If[!AssociationQ[tVal],tVal=<||>];
-If[!AssociationQ[tasList],tasList=<||>];
+If[MatchQ[groupList,_List],AppendTo[groupList,"SU2"],groupList={"SU2"}];
+AssocIni[tRep,tOut,tList,tasList,INDEX,tVal,tYDcol,tSimp];
 tasList[SU2]={eps2a,eps2f,eps3n};
 tVal[SU2]={del2->IdentityMatrix[2],eps2f->LeviCivitaTensor[2],eps2a->LeviCivitaTensor[2],\[Tau]->GellMann[2],del3n->IdentityMatrix[3],eps3n->LeviCivitaTensor[3]};
-If[!AssociationQ[tYDcol],tYDcol=<||>];
 tYDcol[SU2]=eps2a;
 If[!IntegerQ[dummyIndexCount],dummyIndexCount=0];
-If[!AssociationQ[tSimp],tSimp=<||>];
 
 
 (* ::Input::Initialization:: *)
@@ -85,3 +80,9 @@ CF[{0},num_,ind_]:=1
 CF[{1},num_,ind_]:=del2[ind,Subscript[num, 1]]
 CF[{-1},num_,ind_]:=eps2f[Subscript[num, 1],ind]
 CF[{2},num_,ind_]:=TensorContract[eps2f\[TensorProduct]\[Tau],{{1,5}}][Subscript[num, 1],ind,Subscript[num, 2]]
+
+AssocIni[INDEX[SU2]];
+INDEX[SU2][{0}]={};
+INDEX[SU2][{1}]={"i","j","k","l","m","n"};
+INDEX[SU2][{-1}]={"i","j","k","l","m","n"};
+INDEX[SU2][{2}]={"I","J","K","L","M","N"};
