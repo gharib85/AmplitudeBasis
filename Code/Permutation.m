@@ -155,9 +155,18 @@ Map[Fold[Partition,#,Reverse[Rest[listdim]]]&,result,{4}]
 (* ::Input::Initialization:: *)
 (********************** Young tableau related *******************)
 TransposeYng[yng_]:=Length/@TransposeTableaux[Range/@yng]
-
-Dynk2Yng[rep_]:=Reverse@Accumulate@Reverse@Abs[rep]
+YngContainQ[ynglist_]:=TrueQ[And@@Thread[LessEqual@@(PadRight[#,Max[Length/@ynglist]]&/@ynglist)]]
+Dynk2Yng[rep_]:=Replace[Reverse[Accumulate[Reverse[Abs[rep]]]],{x__,0..}:>{x}]
 Yng2Dynk[group_,yng_]:=-Differences@PadRight[yng,Length[group]+1]
+
+
+(* ::Input::Initialization:: *)
+Sym4Singlet[group_,rep_,num_]:=Association[Cases[PlethysmsN[group,rep,num],{Singlet[group],x_,y_}:>(x->y)]]
+SymPlethysm[partX_,partY_List]:=Module[{Num=Length[partX]*Total[partY],group},
+group=ToExpression["SU"<>ToString[Num+1]];
+MapAt[Dynk2Yng,Plethysms[group,Yng2Dynk[group,partX],partY],{All,1}]
+]
+SymPlethysm[partX_,num_Integer]:=SymPlethysm[partX,{num}]
 
 
 (* ::Input::Initialization:: *)
@@ -165,12 +174,16 @@ Yng2Dynk[group_,yng_]:=-Differences@PadRight[yng,Length[group]+1]
 MyRepProduct[cm_,repsList_,select_:Identity]:=MyRepProduct[cm,repsList,select]=Module[{n,orderedList,result},
 If[cm==U1,Return[{{Plus@@repsList,1}}]];If[Length[repsList]==1,Return[{{repsList[[1]],1}}]];orderedList=Sort[repsList,DimR[cm,#1]<DimR[cm,#2]&];n=Length[orderedList];result=ReduceRepProductBase2[cm,orderedList[[n-1]],orderedList[[n]]];Do[result=ReduceRepProductBase1[cm,orderedList[[n-i]],select@result];,{i,2,n-1}];Return[result]
 ]
-
+ReducePermRepProduct[permlist_]:=Module[{len=Total[Length/@permlist],group,replist},
+group=ToExpression["SU"<>ToString[len+1]];
+replist=Yng2Dynk[group,#]&/@permlist;
+MapAt[Dynk2Yng,ReduceRepProduct[group,replist],{All,1}]
+]
 FindIrrepCombination[group_,IPlist_,rep_]:=FindIrrepCombination[group,IPlist,rep]=
 (*IPlist is a list of {__,__}, where the first slot is the Dykin coefficient of the corresponding representation, the second slot is the number of this representation*)
 Module[{nbox,yng=Dynk2Yng[rep],select,PlethysmsNlist,IrrepListAmongNIP,IrrepListFromReduce,SingletPositionList,SUNirrep,SNirrep,NumSUN},
 nbox=Total@Flatten[Dynk2Yng/@Join@@ConstantArray@@@IPlist];
-select=Select[And@@Thread[Dynk2Yng[#[[1]]]<=yng+(nbox-Total@yng)/(1+Length[group])]&];
+select=Select[YngContainQ[{Dynk2Yng[#[[1]]],yng+(nbox-Total@yng)/(1+Length[group])}]&];
 PlethysmsNlist=select/@(PlethysmsN[group,##]&@@@IPlist);
 IrrepListAmongNIP=Distribute[DeleteDuplicates/@PlethysmsNlist[[1;;-1,1;;-1,1]],List];
 IrrepListFromReduce=MyRepProduct[group,#,select]&/@IrrepListAmongNIP;

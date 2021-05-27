@@ -235,9 +235,9 @@ AssociateTo[attribute,"stat"->If[IntegerQ[hel],"boson","fermion"]];
 If[attribute["stat"]=="fermion" ,AssociateTo[attribute,"chirality"->OptionValue[Chirality]]];
 AppendTo[model,field->attribute];
 
-NAgroups=Select[model["Groups"],nonAbelian];
+(*NAgroups=Select[model["Groups"],nonAbelian];
 shape=MapThread[DimR[#1,#2]&,{CheckGroup/@NAgroups,Abs[attribute/@NAgroups]}];
-AppendTo[tAssumptions,ToExpression["t"<>field<>ToString[NAgroups[[#]]]]\[Element]Arrays[{shape[[#]]}]]&/@Range[1,Length[shape]];
+AppendTo[tAssumptions,ToExpression["t"<>field<>ToString[NAgroups[[#]]]]\[Element]Arrays[{shape[[#]]}]]&/@Range[1,Length[shape]];*)
 
 If[!OptionValue[Hermitian]&&Last@Characters[field]!="\[Dagger]",AddField[model,field<>"\[Dagger]",-hel,MapAt[RepConj,Greps,{All,2}],Flavor->OptionValue[Flavor],Chirality->(OptionValue[Chirality]/.{"left"->"right","right"->"left"})];
 Conj[field]=field<>"\[Dagger]";
@@ -408,7 +408,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Gauge Group Factor*)
 
 
@@ -813,10 +813,11 @@ gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,Index->mode
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 factors=MapAt[KeyMap[particles[[First[#]]]&],factors,{Key["generators"],All}];
 
-If[OptionValue[OutputFormat]=="operator",
 opBasis=ContractDelta[TensorProduct@@factors["basis"],Working->OptionValue[Working]];
+(*If[OptionValue[OutputFormat]=="operator",*)
 If[!OptionValue[Working],opBasis=PrintOper[RefineReplace@opBasis]];
-opBasis=opBasis//.listtotime];
+opBasis=opBasis//.listtotime;
+(*,If[!OptionValue[Working],opBasis=RefineReplace@opBasis]];*)
 
 If[Length[posRepeat]==0,Return[<|"basis"->Flatten@opBasis|>]];
 generators=Merge[factors["generators"],SparseArray/@

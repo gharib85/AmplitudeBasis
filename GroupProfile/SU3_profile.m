@@ -70,12 +70,12 @@ eps3a[i_,j_,k_]del3[l_,k_]:=eps3a[i,j,l];
 
 fabc[a_,b_,c_]/;!OrderedQ[{a,b,c}]:=Signature[{a,b,c}]fabc@@Sort[{a,b,c}];
 del8n[a_,d_]fabc[a_,b_,c_]:=fabc[d,b,c];
-del8n[a_,d_]fabc[b_,a_,c_]:=fabc[b,d,c];
-del8n[a_,d_]fabc[c_,b_,a_]:=fabc[c,b,d];
+del8n[b_,d_]fabc[a_,b_,c_]:=fabc[a,d,c];
+del8n[c_,d_]fabc[a_,b_,c_]:=fabc[a,b,d];
 SetAttributes[dabc,Orderless];
 del8n[a_,d_]dabc[a_,b_,c_]:=dabc[d,b,c];
-del8n[a_,d_]dabc[b_,a_,c_]:=dabc[b,d,c];
-del8n[a_,d_]dabc[c_,b_,a_]:=dabc[c,b,d];
+del8n[b_,d_]dabc[a_,b_,c_]:=dabc[a,d,c];
+del8n[c_,d_]dabc[a_,b_,c_]:=dabc[a,b,d];
 del8n[a_,c_]del8n[a_,b_]:=del8n[c,b];
 \[Lambda][i_,j_,k_]\[Lambda][l_,k_,m_]:=Module[{dummy=Unique[]},I fabc[i,l,dummy]\[Lambda][dummy,j,m]+dabc[i,l,dummy]\[Lambda][dummy,j,m]+2/3 del8n[i,l]del3[m,j]]
 ]]
