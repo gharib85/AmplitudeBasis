@@ -128,7 +128,7 @@ Return[result]
 (* ::Input::Initialization:: *)
 (* List All Lorentz Structure at given dimension *)
 Options[LorentzList]={Conj->False,HelicityInclude->{0,1/2,1}};
-LorentzList[dim_,OptionsPattern[]]:=Module[{hlist,n,k,num,Numh,Nh,Nhsol,N0sol,Nhlist={},result},hlist=Sort@DeleteDuplicates@Flatten[{1,-1}\[TensorProduct]OptionValue[HelicityInclude]];
+LorentzList[dim_,OptionsPattern[]]:=LorentzList[dim,OptionsPattern[]]=Module[{hlist,n,k,num,Numh,Nh,Nhsol,N0sol,Nhlist={},result},hlist=Sort@DeleteDuplicates@Flatten[{1,-1}\[TensorProduct]OptionValue[HelicityInclude]];
 Numh=Map[Subscript[num,#]&,hlist];
 Do[n=dim-Num-nt;
 For[k=0,k<=2 nt,k++,
