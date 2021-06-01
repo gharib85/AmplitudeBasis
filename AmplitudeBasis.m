@@ -18,7 +18,7 @@ BeginPackage["AmplitudeBasis`"]
 {ab,sb,s,Mandelstam,SSYT,reduce};
 
 (* Model Input *)
-{AddGroup,AddField,AllTypesR,AllTypesC,GetTypes,CheckType,CheckGroup,TotCharge,deltaBL};
+{ModelIni,AddGroup,AddField,AllTypesR,AllTypesC,GetTypes,CheckType,CheckGroup,AssocIni,TotCharge,deltaBL};
 
 (* Lorentz Factor *)
 {LorentzList,LorentzBasis,LorentzCount,OperPoly};
@@ -185,7 +185,8 @@ Protect[Times,Power]
 
 
 (* ::Input::Initialization:: *)
-SetAttributes[ModelIni,HoldFirst];
+SetAttributes[{ModelIni,AddGroup,AddField},HoldFirst];
+
 ModelIni[model_]:=model=<|"Groups"->{},"Gauge"->{},"rep2indOut"-><||>|>
 LoadGroup[groupname_]:=Module[{profile},
 If[!MemberQ[groupList,groupname],
@@ -193,8 +194,6 @@ profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile", groupname<>"_pro
 If[FileExistsQ[profile],Get[profile],Message[LoadGroup::profile,groupname];Abort[]]]]
 LoadGroup::profile="Profile for group `1` not found.";
 
-Clear[AddGroup];
-SetAttributes[{AddGroup,AddField},HoldFirst];
 (* Adding new Gauge Group to a Model *)
 Options[AddGroup]={GaugeBoson->None,Index->"default"};
 AddGroup[model_,groupname_String,OptionsPattern[]]:=Module[{group=ToExpression@StringDrop[groupname,-1],fieldname=OptionValue[GaugeBoson],ind},
@@ -207,6 +206,7 @@ AssociateTo[model[#],groupname->Singlet[group]]&/@Fields[model]; (* pre-existing
 
 (* Add Gauge Boson, otherwise a global sym *)
 If[fieldname=!=None,
+model[groupname]=fieldname;
 (*Freps=MapAt[Adjoint,MapAt[Singlet,CheckGroup/@model["Groups"],{;;-2}],-1];*) (* gauge boson representations under all groups *)
 AppendTo[model["Gauge"],groupname];
 AddField[model,fieldname<>"L",-1,{groupname->Adjoint[group]},Hermitian->True];
@@ -214,18 +214,18 @@ AddField[model,fieldname<>"R",1,{groupname->Adjoint[group]},Hermitian->True]; (*
 Conj[fieldname<>"L"]=fieldname<>"R";
 Conj[fieldname<>"R"]=fieldname<>"L"]; (* define special conjugation relation (not denoted by \[Dagger]) for gauge boson names *)
 
-If[nonAbelian[groupname],If[OptionValue[Index]=="default",ind=INDEX[group],ind=OptionValue[Index]];
+If[nonAbelian[groupname],If[OptionValue[Index]=="default",ind=Global`INDEX[group],ind=OptionValue[Index]];
 AssociateTo[model["rep2indOut"],groupname->ind]; (* define list of specific indices for all reps of the new group *)
 AssociateTo[model["rep2indOut"][groupname],Singlet[group]->{}]];
-model[groupname]=fieldname;
 SetSimplificationRule[model] (* define simplification rules for all gauge groups *)
 ]
 
 (* Adding New Field to a Model *)
 AddField::overh="helicity of `1` is neither integer nor half-integer.";
 Options[AddField]={Flavor->1,Dim->"default",Hermitian->False,Chirality->{}};
-AddField[model_,field_String,hel_,Greps_List,OptionsPattern[]]:=Module[{attribute=<||>,flavor=OptionValue[Flavor],NAgroups,shape,dim=OptionValue[Dim]},
+AddField[model_,field_String,hel_,Greps_List,OptionsPattern[]]:=Module[{attribute=<||>,hellist,flavor=OptionValue[Flavor],NAgroups,shape,dim=OptionValue[Dim]},
 If[IntegerQ[2hel],AppendTo[attribute,"helicity"->hel],Message[AddField::overh,field]];
+If[!MemberQ[hellist=Options[LorentzList,HelicityInclude][[1,2]],Abs[hel]],SetOptions[LorentzList,HelicityInclude->Append[hellist,Abs[hel]]]];
 AssociateTo[attribute,AssociationMap[Singlet[CheckGroup[#]]&,model["Groups"]]];
 AssociateTo[attribute,Greps];
 AssociateTo[attribute,"dim"->If[NumericQ[dim],dim,1+Abs[hel]]];
@@ -257,21 +257,27 @@ list={0}~Join~#~Join~{len+num}&/@Subsets[Range[len+num-1],{len-1}];
 list=Differences[#]-1&/@list;
 Join@@MapThread[ConstantArray,{fieldlist,#}]&/@list
 ]
-Options[GaugeClass]={GroupExceptions->{}};
+ChargeNormalize[chargelist_]:=If[FirstCase[chargelist,x_/;x!=0]<0,-1,1]*chargelist
+
+Options[GaugeClass]={SymGroup->"default",ClassifyBy->{}};
 GaugeClass[model_,type:(_Times|_Power),OptionsPattern[]]:=GaugeClass[model,CheckType[model,type,Counting->False]]
-GaugeClass[model_,fields_List,OptionsPattern[]]:=Module[{greps,groups},
-groups=Cases[model["Groups"],Except[Alternatives@@OptionValue[GroupExceptions]]];
+GaugeClass[model_,fields_List,OptionsPattern[]]:=Module[{greps,greps2,groups},
+If[OptionValue[SymGroup]=="default",groups=Select[model["Groups"],KeyExistsQ[model,#]&],groups=OptionValue[SymGroup]];
 greps=model[#]/@groups&/@fields\[Transpose];
 greps=Replace[Sort/@greps,{x__?NumericQ}:>Plus[x],1];
-If[MemberQ[greps,x_?NumericQ/;x!=0],False,greps]
+greps2=model[#]/@OptionValue[ClassifyBy]&/@fields\[Transpose];
+If[MemberQ[greps,x_?NumericQ/;x!=0],False,{greps,greps2}]
 ]
-Options[state2type]={GroupExceptions->{}};
-state2type[model_,state_,k_,OptionsPattern[]]:=Module[{comblist,combindexed,singletcomb,groups},groups=CheckGroup/@Cases[model["Groups"],Except[Alternatives@@OptionValue[GroupExceptions]]];
+
+Options[state2type]={SymGroup->"default",ClassifyBy->{}};
+state2type[model_,state_,k_,OptionsPattern[]]:=Module[{comblist,combindexed,singletcomb,groups},
+If[OptionValue[SymGroup]=="default",groups=CheckGroup/@Select[model["Groups"],KeyExistsQ[model,#]&],groups=CheckGroup/@OptionValue[SymGroup]];
 (* field combinations in the model with given helicities *)
 comblist=Join@@@Distribute[CombList[Select[Keys[model],helicityQ[model,#1]],#2]&@@@Tally[state],List];
-combindexed=Delete[GroupBy[comblist,GaugeClass[model,#,GroupExceptions->OptionValue[GroupExceptions]]&],Key[False]];(* find singlet combinations *)
-singletcomb=Catenate@KeySelect[combindexed,And@@MapThread[SingletQ,{groups,Abs[#]}]&];
-Times@@@(PadRight[#,Length[state]+k,"D"]&/@singletcomb)
+combindexed=Delete[GroupBy[comblist,GaugeClass[model,#,SymGroup->OptionValue[SymGroup],ClassifyBy->OptionValue[ClassifyBy]]&],Key[False]];(* find singlet combinations *)
+singletcomb=KeySelect[combindexed,And@@MapThread[SingletQ,{groups,Abs[#[[1]]]}]&];
+If[singletcomb===<||>,Return[<||>]];
+Map[Times@@PadRight[#,Length[state]+k,"D"]&]/@Merge[MapAt[Total/@Last[#]&,Normal[singletcomb],{All,1}],Apply[Join]]
 ]
 
 
@@ -602,24 +608,33 @@ AppendTo[finalresult,"jcoord"->coordresult]
 
 (* ::Input::Initialization:: *)
 AllTypesR[model_,dim_]:=state2type[model,#1,#2]&@@@LorentzList[dim,Conj->True]//Flatten
-Options[AllTypesC]={StatusPrint->False,OutputFile->"",GroupExceptions->{}};
-AllTypesC[model_,statelist_,OptionsPattern[]]:=Module[{iter=0,class,file=True,types,result=<||>},
+
+Options[AllTypesC]={StatusPrint->False,OutputFile->"",SymGroup->"default",ClassifyBy->{}};
+AllTypesC[model_,statelist_,OptionsPattern[]]:=Module[{iter=0,class,file=True,pos,k,types,result=<||>,chargeclasses},
 If[OptionValue[StatusPrint],Print["Looking for types in class ",Dynamic[class],",  ",Dynamic[iter],"/",Length[statelist]]];
 If[OptionValue[OutputFile]!="",file=NotebookDirectory[]<>OptionValue[OutputFile]];
-Do[iter++;class=state2class@@state;
-types=state2type[model,#1,#2,GroupExceptions->OptionValue[GroupExceptions]]&@@state;
+If[MemberQ[OptionValue[ClassifyBy],"dim"],pos=Position[OptionValue[ClassifyBy],"dim"]];
+Do[iter++;class=state2class@@state;k=Exponent[class,D];
+types=state2type[model,#1,#2,SymGroup->OptionValue[SymGroup],ClassifyBy->OptionValue[ClassifyBy]]&@@state;
 If[state==MapAt[-Reverse[#]&,state,1],
-types=DeleteDuplicates[types,(#1/.{x_String/;x!= "D":>Conj[x]})==#2&]
+types=DeleteDuplicates[types,(#1/.{x_String/;x!= "D":>Conj[x]})==#2& ]
 ];
-AssociateTo[result,class->types];
-(*If[!TrueQ[file],PutAppend[class\[Rule]types,file]]*),
-{state,statelist}];
+If[Length[pos]!=0,types=KeyMap[MapAt[#+k&,#,pos]&,types]];
+AssociateTo[result,class->types],{state,statelist}];
+
+chargeclasses=DeleteDuplicates@Catenate[Keys/@result];
+If[chargeclasses=={{}},result=#[{}]&/@result,
+result=AssociationMap[Function[chargeclass,DeleteCases[If[KeyExistsQ[#,chargeclass],#[chargeclass],None]&/@result,None] ],chargeclasses]
+];
+
 If[!TrueQ[file],Put[result,file]];
 Return[result];
 ]
 AllTypesC[model_,dim_Integer,OptionsPattern[]]:=AllTypesC[model,LorentzList[dim],
 StatusPrint->OptionValue[StatusPrint],
-OutputFile->OptionValue[OutputFile]]
+OutputFile->OptionValue[OutputFile],
+SymGroup->OptionValue[SymGroup],
+ClassifyBy->OptionValue[ClassifyBy]]
 
 GetTypes[model_,dmin_,dmax_,file_]:=Module[{dim,types={}},
 Do[AppendTo[types,Timing@AllTypesC[model,dim,StatusPrint->True,OutputFile->file<>ToString[dim]<>".m"]];
