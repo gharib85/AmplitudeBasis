@@ -221,7 +221,7 @@ W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));
 W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));
 zeros=NullSpace[W2result\[Transpose]];
 {Wrep,rlist}=Reap[MapIntersection[W2result,W2Basis],restriction];
-If[Wrep=={{}},result=<|"j"->ConstantArray[0,Length[zeros]],"transfer"->zeros,"j-basis"->zeros.iniBasis|>,
+If[Wrep=={{}},result=<|"j"->ConstantArray[0,Length[zeros]],"transfer"->zeros,"j-basis"->If[zeros=={},{},zeros.iniBasis]|>,
 rstr=Dot@@Reverse[rlist[[1]]];
 eigensys=Eigensystem[Wrep\[Transpose]];
 eigensys[[1]]=eigensys[[1]]~Join~ConstantArray[0,Length[zeros]];
@@ -235,7 +235,7 @@ Print["eigen system error!"];Abort[]]
 
 Switch[OptionValue[OutputFormat],
 "working",result,
-"print",result=MapAt[Ampform,result,{Key["j-basis"],All}];
+"print",result=MapAt[Map[Ampform],result,Key["j-basis"]];
 result=MapAt[MatrixForm,result,Key["transfer"]]
 ]
 ]

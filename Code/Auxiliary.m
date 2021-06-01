@@ -60,6 +60,7 @@ PA=LinearSolve[A\[Transpose]]/@W;
 PB=LinearSolve[B\[Transpose]]/@W;
 If[MatrixRank[Join[PA,PB]]==lenW,Sow[PA,restriction];Return[LinearSolve[PA\[Transpose]]/@PB]];
 R=LinearIntersection[PA,PB];Sow[R,restriction];
+If[R=={},Return[{{}}]];
 MapIntersection[R.A,R.B]
 ]
 

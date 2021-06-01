@@ -127,7 +127,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Do[Get[file],{file,Global`$CodeFiles}];
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Input*)
 
 
@@ -253,18 +253,20 @@ list={0}~Join~#~Join~{len+num}&/@Subsets[Range[len+num-1],{len-1}];
 list=Differences[#]-1&/@list;
 Join@@MapThread[ConstantArray,{fieldlist,#}]&/@list
 ]
-GaugeClass[model_,type:(_Times|_Power)]:=GaugeClass[model,CheckType[model,type,Counting->False]]
-GaugeClass[model_,fields_List]:=Module[{greps},
-greps=model[#]/@model["Groups"]&/@fields\[Transpose];
+Options[GaugeClass]={GroupExceptions->{}};
+GaugeClass[model_,type:(_Times|_Power),OptionsPattern[]]:=GaugeClass[model,CheckType[model,type,Counting->False]]
+GaugeClass[model_,fields_List,OptionsPattern[]]:=Module[{greps,groups},
+groups=Cases[model["Groups"],Except[Alternatives@@OptionValue[GroupExceptions]]];
+greps=model[#]/@groups&/@fields\[Transpose];
 greps=Replace[Sort/@greps,{x__?NumericQ}:>Plus[x],1];
 If[MemberQ[greps,x_?NumericQ/;x!=0],False,greps]
 ]
-state2type[model_,state_,k_]:=Module[{comblist,combindexed,singletcomb,groups=CheckGroup/@model["Groups"]},
+Options[state2type]={GroupExceptions->{}};
+state2type[model_,state_,k_,OptionsPattern[]]:=Module[{comblist,combindexed,singletcomb,groups},groups=CheckGroup/@Cases[model["Groups"],Except[Alternatives@@OptionValue[GroupExceptions]]];
 (* field combinations in the model with given helicities *)
 comblist=Join@@@Distribute[CombList[Select[Keys[model],helicityQ[model,#1]],#2]&@@@Tally[state],List];
-(*comblist=DeleteDuplicatesBy[Distribute[(Select[Keys[model],helicityQ[model,#]]&/@state),List],Sort];*)
-combindexed=Delete[GroupBy[comblist,GaugeClass[model,#]&],Key[False]];(* find singlet combinations *)
-singletcomb=Catenate@KeySelect[combindexed,And@@MapThread[SingletQ,{groups,#}]&];
+combindexed=Delete[GroupBy[comblist,GaugeClass[model,#,GroupExceptions->OptionValue[GroupExceptions]]&],Key[False]];(* find singlet combinations *)
+singletcomb=Catenate@KeySelect[combindexed,And@@MapThread[SingletQ,{groups,Abs[#]}]&];
 Times@@@(PadRight[#,Length[state]+k,"D"]&/@singletcomb)
 ]
 
@@ -596,12 +598,12 @@ AppendTo[finalresult,"jcoord"->coordresult]
 
 (* ::Input::Initialization:: *)
 AllTypesR[model_,dim_]:=state2type[model,#1,#2]&@@@LorentzList[dim,Conj->True]//Flatten
-Options[AllTypesC]={StatusPrint->False,OutputFile->""};
+Options[AllTypesC]={StatusPrint->False,OutputFile->"",GroupExceptions->{}};
 AllTypesC[model_,statelist_,OptionsPattern[]]:=Module[{iter=0,class,file=True,types,result=<||>},
 If[OptionValue[StatusPrint],Print["Looking for types in class ",Dynamic[class],",  ",Dynamic[iter],"/",Length[statelist]]];
 If[OptionValue[OutputFile]!="",file=NotebookDirectory[]<>OptionValue[OutputFile]];
 Do[iter++;class=state2class@@state;
-types=state2type[model,#1,#2]&@@state;
+types=state2type[model,#1,#2,GroupExceptions->OptionValue[GroupExceptions]]&@@state;
 If[state==MapAt[-Reverse[#]&,state,1],
 types=DeleteDuplicates[types,(#1/.{x_String/;x!= "D":>Conj[x]})==#2&]
 ];
@@ -861,9 +863,9 @@ opBasis=ContractDelta[TensorProduct@@factors["basis"],Working->OptionValue[Worki
 If[!OptionValue[Working],opBasis=PrintOper[RefineReplace@opBasis]];
 opBasis=opBasis//.listtotime];
 
-jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2]],List])&/@Distribute[factors["jcoord"],List];
+jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2]],List])&/@Distribute[factors["jcoord"],List];If[jCoord!={},
 jCoord = MapAt[Merge[{#,abreplist},Apply[Join]]&,jCoord,{All, 1}];
-jCoord=MapAt[KeyMap[Map["\!\(\*SubscriptBox[\("<>Part[particles,#]<>"\), \("<>ToString[#]<>"\)]\)"&]],jCoord,{All,1}];
+jCoord=MapAt[KeyMap[Map["\!\(\*SubscriptBox[\("<>Part[particles,#]<>"\), \("<>ToString[#]<>"\)]\)"&]],jCoord,{All,1}]];
 Return[<|"basis"->Flatten[opBasis],"groups"-> Join[NAgroups,{"Spin"},Agroups],"j-basis"->jCoord|>];
 ]
 Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2,Charges->{},Working->False};
