@@ -127,7 +127,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Do[Get[file],{file,Global`$CodeFiles}];
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Input*)
 
 
@@ -188,10 +188,11 @@ Protect[Times,Power]
 SetAttributes[{ModelIni,AddGroup,AddField},HoldFirst];
 
 ModelIni[model_]:=model=<|"Groups"->{},"Gauge"->{},"rep2indOut"-><||>|>
-LoadGroup[groupname_]:=Module[{profile},
+LoadGroup[groupname_String]:=Module[{profile},
 If[!MemberQ[groupList,groupname],
 profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile", groupname<>"_profile.m"}];
-If[FileExistsQ[profile],Get[profile],Message[LoadGroup::profile,groupname];Abort[]]]]
+If[FileExistsQ[profile],Get[profile];SetSimplificationRule[ToExpression[groupname]],
+Message[LoadGroup::profile,groupname];Abort[]]]]
 LoadGroup::profile="Profile for group `1` not found.";
 
 (* Adding new Gauge Group to a Model *)
@@ -420,7 +421,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Gauge Group Factor*)
 
 
@@ -551,58 +552,7 @@ Association@finalresult
 ]*)
 
 
-(* ::Input::Initialization:: *)
-Options[GaugeJBasis]={Index->"default"};
-GaugeJBasis[group_,replist_,parts_,OptionsPattern[]]:=Module[{indmap,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},result,ntarget,
-indexct,indlist,ybasis,convert,tensorlist,tensorValue,mbasis,finalresult,dummy,dummyPosList,indexcttemp,dummyReplace={}},
-If[OptionValue[Index]==="default",indmap=INDEX[group],indmap=OptionValue[Index]];
-
-indexct=AssociationThread[Union@Values[indmap]->0];
-indlist=IndexIterator[indmap[#],indexct]&/@replist;
-ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}|>]];
-convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];
-indlist=DeleteCases[indlist,0];
-
-tensorlist=SimpGFV2[tReduce@SymbolicTC[Expand[# convert],WithIndex->False]&/@ybasis];
-tensorValue=tensorlist/.tVal[group];
-mbasis=basisReduce[Flatten/@tensorValue];
-{result,dummy}=Reap[UnContract[Through[tensorlist[[mbasis["pos"]]]@@Sort[indlist]]],d];
-
-If[dummy!={},(* replace dummy index and sow m-basis *)
-Do[dummyPosList=DeleteCases[Position[tensor,#]&/@dummy[[1]],{}];
-If[dummyPosList=={},Continue[]];indexcttemp=indexct;
-Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Extract[tensor,dpos]->IndexIterator[indmap[tRep[tname][[slot]]],indexcttemp]],
-{dpos,dummyPosList[[All,1]]}],
-{tensor,result}];
-];
-finalresult=<|"basis"->result/.dummyReplace|>;
-
-(*Begin Processing J basis related*)
-SUNrepPartlist=FindRepPathPartition[group,Abs@replist,parts];
-nonsingletparts=Select[Keys@SUNrepPartlist[[1,1]],(!MatchQ[replist[[#]]&/@#,{Singlet[group]..}])&];
-YTlist=MapIndexed[DeleteCases[{}]@FoldPairList[TakeDrop,Table[Subscript[#2[[1]], i],{i,Total@Dynk2Yng[#1]}],Dynk2Yng[#1]]&,replist]; (*Young tableaux for the representation*)
-RepParts=Map[replist[[#]]&,nonsingletparts,{2}];
-YTParts=Map[YTlist[[#]]&,nonsingletparts,{2}];
-SubYTs=Table[Distribute[GenerateLRTYTs@@@MapThread[{group,#1,#2}&,{SUNrepPartlist[[i,1]][#]&/@nonsingletparts,YTParts}],List],{i,Length[SUNrepPartlist]}];
-Do[tempresult={};ranktemp=0;
-ntarget=SUNrepPartlist[[i,2]];
-Do[Do[stemp=2*Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]//Expand;
-If[stemp==0,Continue[]];
-vtemp=SymbolicTC[stemp,WithIndex->False]/.tVal[group];
-coordtemp=LinearSolve[mbasis["basis"]\[Transpose],Flatten[vtemp/2]];
-AppendTo[tempresult,coordtemp];
-If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[];];,tempresult=Drop[tempresult,-1];]
-,{YTs,SubYTs[[i]]}];
-If[ranktemp==ntarget,Break[];];
-,{ybs,ybasis}];
-AppendTo[coordresult,SUNrepPartlist[[i,1]]->tempresult];
-,{i,Length[SUNrepPartlist]}
-];
-AppendTo[finalresult,"jcoord"->coordresult]
-]
-
-
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Analysis*)
 
 

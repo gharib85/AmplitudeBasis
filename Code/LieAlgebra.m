@@ -14,7 +14,7 @@ GellMann[n_]:=GellMann[n]=
 Flatten[Table[(*Symmetric case*)SparseArray[{{j,k}->1,{k,j}->1},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Flatten[Table[(*Antisymmetric case*)SparseArray[{{j,k}->-I,{k,j}->+I},{n,n}],{k,2,n},{j,1,k-1}],1]~Join~Table[(*Diagonal case*)Sqrt[2/l/(l+1)] SparseArray[Table[{j,j}->1,{j,1,l}]~Join~{{l+1,l+1}->-l},{n,n}],{l,1,n-1}];
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Littlewood-Richardson related*)
 
 
@@ -413,8 +413,56 @@ Return[temp*(Times@@(AuxNum[group,#,chainmap,hierarchy]&/@hierarchy[part]))]
 
 FindRepPathPartition[group_,replist_,partition_]:=Module[{hierarchy=Association[],n=Length[replist],temp1,linkedmap=Association[],result={},chainmap},temp1=UnionFinder[partition];If[Union@@temp1[[1;;All,1]]==Range[n],AppendTo[hierarchy,Range[n]->temp1[[1;;All,1]]],Print["Not a Good Partition"];Abort[];];(HierarchyFinder[hierarchy,#1]&)/@temp1;FindRepPathV3[linkedmap,group,replist,Range[n]->Singlet[group],hierarchy];
 AuxResolve2[result,linkedmap,{Range[n]->Singlet[group]},{},hierarchy];
-result=KeySelect[#,Function[x,Cases[partition,x]!={}]]&/@result;
-Print[result];Do[chainmap=result[[i]];MapThread[(chainmap[{#1}]=#2)&,{Range[n],replist}];result[[i]]=result[[i]]->Times@@(AuxNum[group,#1,chainmap,hierarchy]&)/@temp1[[1;;All,1]];,{i,Length[result]}];result];
+result=KeySelect[#,Function[x,Cases[partition,x]!={}]]&/@result;Do[chainmap=result[[i]];MapThread[(chainmap[{#1}]=#2)&,{Range[n],replist}];result[[i]]=result[[i]]->Times@@(AuxNum[group,#1,chainmap,hierarchy]&)/@temp1[[1;;All,1]];,{i,Length[result]}];result];
+
+
+(* ::Input::Initialization:: *)
+Options[GaugeJBasis]={Index->"default"};
+GaugeJBasis[group_,replist_,parts_,OptionsPattern[]]:=Module[{indmap,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},result,ntarget,
+indexct,indlist,ybasis,convert,tensorlist,tensorValue,mbasis,mbasisInd,finalresult,qr},
+If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[Index]];
+indexct=AssociationThread[Union@Values[indmap]->0];
+indlist=IndexIterator[indmap[#],indexct]&/@replist;
+ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}|>]];
+convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];
+tensorlist=SimpGFV2[tReduce@SymbolicTC[Expand[# convert],WithIndex->False]&/@ybasis];
+
+tensorValue=tensorlist/.tVal[group];
+mbasis=basisReduce[Flatten/@tensorValue];
+mbasisInd=TensorAddIndex[indmap,indexct,Through[tensorlist[[mbasis["pos"]]]@@DeleteCases[indlist,0]]];
+finalresult=<|"basis"->mbasisInd|>;
+
+(*Begin Processing J basis related*)
+qr=LinSolve[mbasis["basis"]];
+SUNrepPartlist=FindRepPathPartition[group,Abs@replist,parts];
+nonsingletparts=Select[Keys@SUNrepPartlist[[1,1]],(!MatchQ[replist[[#]]&/@#,{Singlet[group]..}])&];
+YTlist=MapIndexed[DeleteCases[{}]@FoldPairList[TakeDrop,Table[Subscript[#2[[1]], i],{i,Total@Dynk2Yng[#1]}],Dynk2Yng[#1]]&,replist]; (*Young tableaux for the representation*)
+RepParts=Map[replist[[#]]&,nonsingletparts,{2}];
+YTParts=Map[YTlist[[#]]&,nonsingletparts,{2}];
+SubYTs=Table[Distribute[GenerateLRTYTs@@@MapThread[{group,#1,#2}&,{SUNrepPartlist[[i,1]][#]&/@nonsingletparts,YTParts}],List],{i,Length[SUNrepPartlist]}];
+
+Do[tempresult={};ranktemp=0;
+ntarget=SUNrepPartlist[[i,2]];
+(* loops for particular channel *)
+Do[(* loop over ybasis *)
+Do[(* loop over young tab *)
+stemp=Map[2#&,Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]]//Expand;
+If[stemp==0,Continue[]];
+vtemp=SymbolicTC[stemp,WithIndex->False];
+vtemp=vtemp/.tVal[group];
+coordtemp=Flatten[vtemp/2].qr;
+AppendTo[tempresult,coordtemp];
+If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[]],
+tempresult=Drop[tempresult,-1]]
+,{YTs,SubYTs[[i]]}]; 
+If[ranktemp==ntarget,Break[]]
+,{ybs,ybasis}];
+(* end loops for particular channel*)
+AppendTo[coordresult,SUNrepPartlist[[i,1]]->tempresult];
+,{i,Length[SUNrepPartlist]}
+];
+AssociateTo[finalresult,"jcoord"->coordresult]
+]
 
 
 (* ::Subsubsection:: *)
@@ -433,79 +481,135 @@ SimpGFV2[x_]:=If[Length[x]>=1,DeleteDuplicates[Replace[#,{_Rational->1,_Integer-
 
 
 
+(* ::Input:: *)
+(*(*symmetrize the group factor numerically with certain group algebra elements*)*)
+(*SymBasis[basis_,perms_]:=*)
+(*Plus@@(MapThread[(Transpose[basis,#1]*#2)&,Transpose[(ColistPP[perms])]])*)
+(**)
+(*(*Get the coordinnate of arbitrary group factor tensor in terms of the m-basis*)*)
+(*GetCoord[qr_,v_]:=qr[[1]].v.Transpose[Inverse[qr[[2]]]]*)
+(**)
+(*(*Get the symmetrized group factor tensors from the m-basis*)*)
+(*GetSymBasis[tMBasis_,SNIrreps_,disp_,qr_,tdim_]:=Module[{multi=SNIrreps[[2]],key=SNIrreps[[1]],num,perms,displist,tensordim,mrank,resultAux={},result={},i=1,tempv},*)
+(*num=Times@@(SnIrrepDim/@key[[1;;-1,2]]);*)
+(*displist=disp/@key[[1;;-1,1]];*)
+(*perms=Generateb/@key[[1;;-1,2]];*)
+(*perms=MapThread[#2/.Cycles[x__]:>Cycles[x+#1]&,{displist,perms}];*)
+(*tensordim=Length/@perms;*)
+(*perms=pp/@Distribute[perms,List];*)
+(*mrank=0;*)
+(*While[mrank<num*multi&&i<=Length[tMBasis],*)
+(*tempv=Flatten/@(SymBasis[tMBasis[[i]],Expand[#]]&/@perms);*)
+(*tempv=GetCoord[qr,#]&/@tempv;*)
+(*resultAux=Join[resultAux,tempv];*)
+(*(*Assuming newly symmetrized basis either all independent with the existing ones or all live in the exsiting space*)*)
+(*If[MatrixRank[resultAux]-mrank==Length[tempv],*)
+(*mrank=MatrixRank[resultAux]; *)
+(*tempv=unflatten[Simplify[tempv],tdim];*)
+(*AppendTo[result,tempv]];*)
+(*i++;*)
+(*];*)
+(*result*)
+(*]*)
+(**)
+(*Options[GaugePermGenerator]={Index->"default"};*)
+(*GaugePermGenerator[group_,replist_,OptionsPattern[]]:=Module[{indmap,indexct,*)
+(*indlist,ybasis,convert,tensorlist,tensorValue,mbasis,result,dummy,dummyPosList,indexcttemp,dummyReplace={},*)
+(*tname,slot,indexRepeat},*)
+(*If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[Index]];*)
+(**)
+(*indexct=AssociationThread[Union@Values[indmap]->0];*)
+(*indlist=IndexIterator[indmap[#],indexct]&/@replist;*)
+(*ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Sow[{1},tl];Return[<||>]];*)
+(*convert=MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]];*)
+(*indlist=DeleteCases[indlist,0];*)
+(*tensorlist=SimpGFV2[tReduce@SymbolicTC[UnContract[# Times@@convert],WithIndex->False]&/@ybasis];*)
+(*tensorValue=tensorlist/.tVal[group];*)
+(*mbasis=basisReduce[Flatten/@tensorValue];*)
+(*{result,dummy}=Reap[UnContract[Through[tensorlist[[mbasis["pos"]]]@@Sort[indlist]]],d];*)
+(*If[dummy!={},(* replace dummy index and sow m-basis *)*)
+(*Do[dummyPosList=DeleteCases[Position[tensor,#]&/@dummy[[1]],{}];*)
+(*If[dummyPosList=={},Continue[]];indexcttemp=indexct;*)
+(*Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Extract[tensor,dpos]->IndexIterator[indmap[tRep[tname][[slot]]],indexcttemp]],*)
+(*{dpos,dummyPosList[[All,1]]}],*)
+(*{tensor,result}];*)
+(*];*)
+(*Sow[result/.dummyReplace,tl];*)
+(**)
+(*indexRepeat=Select[Merge[Thread[DeleteCases[replist,Singlet[group]]->indlist],Identity],Length[#]>1&];*)
+(*result=(Map[LinearSolve[Transpose[mbasis["basis"]],Flatten[#1]]&,SymbolicTC[{result/. IndexInvPermute[Cycles[{{1,2}}],#1],result/. IndexInvPermute[Cycles[{Range[Length[#1]]}],#1]},WithIndex->False]/. tVal[group],{2}]&)/@indexRepeat;*)
+(*If[Count[replist,Singlet[group]]>1,AssociateTo[result,Singlet[group]->ConstantArray[IdentityMatrix[Length[mbasis["basis"]]],2]]];*)
+(*Return[result];*)
+(*]*)
+
+
+(* ::Input:: *)
+(*Options[GaugeBasisAux]={OutMode->"p-basis",Index->"default"};*)
+(*GaugeBasisAux[group_,replist_,posRepeat_,OptionsPattern[]]:=Module[{shift,yngList,gaugeGen,mbasis,trivial=False,result},*)
+(*If[posRepeat==<||>,trivial=True]; (* no repeated fields *)*)
+(*{gaugeGen,mbasis}=Reap[GaugePermGenerator[group,replist,Index->OptionValue[Index]],tl];*)
+(*If[gaugeGen==<||>,trivial=True]; (* all singlets *)*)
+(*result=<|"basis"->mbasis[[1,1]]|>;*)
+(*shift=FirstPosition[PositionIndex[replist],First[#]]&/@posRepeat;*)
+(**)
+(*Switch[Head[posRepeat],*)
+(*Association,*)
+(*If[trivial,Return[Append[result,"p-basis"-><|{}->IdentityMatrix[Length[mbasis[[1,1]]]]|>]]];*)
+(*yngList=IntegerPartitions@Length[#]&/@posRepeat;*)
+(*yngList=AssociationThread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];*)
+(*Append[result,"p-basis"->*)
+(*DeleteCases[Association@Map[Normal[#]->*)
+(*basisReduce[Dot@@KeyValueMap[PermRepFromGenerator[gaugeGen[[shift[#1][[1]]]],YO[#2,shift[#1][[2]]]]&,#]]["basis"]&,yngList],{}]],*)
+(**)
+(*List,*)
+(*If[trivial,Return[Append[result,"generators"-><|#->{{{1}},{{1}}}&/@posRepeat|>]]];*)
+(*Append[result,"generators"->*)
+(*Association@MapThread[*)
+(*#2->Function[gen,PermRepFromGenerator[gaugeGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,*)
+(*{shift,posRepeat}]]*)
+(*]*)
+(*]*)
+
+
 (* ::Input::Initialization:: *)
-(*symmetrize the group factor numerically with certain group algebra elements*)
-SymBasis[basis_,perms_]:=
-Plus@@(MapThread[(Transpose[basis,#1]*#2)&,Transpose[(ColistPP[perms])]])
+GaugePermGenerator[group_,replist_]:=Module[{indlist,ind,indexRepeat,ybasis,convert,tensorlist,tensorValue,mbasis,qr,mtensor,result,dummy,perm1,perm2,permresult},
+indlist=Array[ind,Length[replist]];
+indexRepeat=Select[PositionIndex[replist],Length[#]>1&];
 
-(*Get the coordinnate of arbitrary group factor tensor in terms of the m-basis*)
-GetCoord[qr_,v_]:=qr[[1]].v.Transpose[Inverse[qr[[2]]]]
+ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"generators"-><||>|>]];
+convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];
+tensorlist=SimpGFV2[tReduce@SymbolicTC[Expand[# convert],WithIndex->False]&/@ybasis];
 
-(*Get the symmetrized group factor tensors from the m-basis*)
-GetSymBasis[tMBasis_,SNIrreps_,disp_,qr_,tdim_]:=Module[{multi=SNIrreps[[2]],key=SNIrreps[[1]],num,perms,displist,tensordim,mrank,resultAux={},result={},i=1,tempv},
-num=Times@@(SnIrrepDim/@key[[1;;-1,2]]);
-displist=disp/@key[[1;;-1,1]];
-perms=Generateb/@key[[1;;-1,2]];
-perms=MapThread[#2/.Cycles[x__]:>Cycles[x+#1]&,{displist,perms}];
-tensordim=Length/@perms;
-perms=pp/@Distribute[perms,List];
-mrank=0;
-While[mrank<num*multi&&i<=Length[tMBasis],
-tempv=Flatten/@(SymBasis[tMBasis[[i]],Expand[#]]&/@perms);
-tempv=GetCoord[qr,#]&/@tempv;
-resultAux=Join[resultAux,tempv];
-(*Assuming newly symmetrized basis either all independent with the existing ones or all live in the exsiting space*)
-If[MatrixRank[resultAux]-mrank==Length[tempv],
-mrank=MatrixRank[resultAux]; 
-tempv=unflatten[Simplify[tempv],tdim];
-AppendTo[result,tempv]];
-i++;
-];
-result
+tensorValue=tensorlist/.tVal[group];
+mbasis=basisReduce[Flatten/@tensorValue];
+result=<|"basis"->tensorlist[[mbasis["pos"]]]|>;
+If[Length[indexRepeat]==0,Return[AssociateTo[result,"generators"-><||>]]];
+
+qr=LinSolve[Flatten/@mbasis["basis"]];
+perm1=Normal@IndexInvPermute[Cycles[{{1,2}}],ind/@# ]&/@indexRepeat;
+perm2=Normal@IndexInvPermute[Cycles[{Range[Length[#]]}],ind/@#]&/@indexRepeat;
+mtensor=UnContract[Through[result["basis"]@@Sort[indlist]]];
+permresult=Map[SymbolicTC[mtensor/.#,WithIndex->False]/.tVal[group]&,{perm1,perm2},{2}];
+AssociateTo[result,"generators"->Map[(Flatten/@#).qr&,Merge[permresult,Identity],{2}]]
 ]
 
-Options[GaugePermGenerator]={Index->"default"};
-GaugePermGenerator[group_,replist_,OptionsPattern[]]:=Module[{indmap,indexct,
-indlist,ybasis,convert,tensorlist,tensorValue,mbasis,result,dummy,dummyPosList,indexcttemp,dummyReplace={},
-tname,slot,indexRepeat},
-If[OptionValue[Index]==="default",indmap=INDEX[group],indmap=OptionValue[Index]];
 
+(* ::Input::Initialization:: *)
+Options[GaugeBasisAux]={Index->"default"};
+GaugeBasisAux[group_,replist_,posRepeat_,OptionsPattern[]]:=Module[{indmap,indexct,indlist,shift,yngList,gaugeGen,mbasis,mbasisInd,dummy,
+trivial=False,result},
+If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[Index]];
 indexct=AssociationThread[Union@Values[indmap]->0];
 indlist=IndexIterator[indmap[#],indexct]&/@replist;
-ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Sow[{1},tl];Return[<||>]];
-convert=MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]];
-indlist=DeleteCases[indlist,0];
-tensorlist=SimpGFV2[tReduce@SymbolicTC[UnContract[# Times@@convert],WithIndex->False]&/@ybasis];tensorValue=tensorlist/.tVal[group];
-mbasis=basisReduce[Flatten/@tensorValue];
-{result,dummy}=Reap[UnContract[Through[tensorlist[[mbasis["pos"]]]@@Sort[indlist]]],d];
-If[dummy!={},(* replace dummy index and sow m-basis *)
-Do[dummyPosList=DeleteCases[Position[tensor,#]&/@dummy[[1]],{}];
-If[dummyPosList=={},Continue[]];indexcttemp=indexct;
-Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Extract[tensor,dpos]->IndexIterator[indmap[tRep[tname][[slot]]],indexcttemp]],
-{dpos,dummyPosList[[All,1]]}],
-{tensor,result}];
-];
-Sow[result/.dummyReplace,tl];
-
-indexRepeat=Select[Merge[Thread[DeleteCases[replist,Singlet[group]]->indlist],Identity],Length[#]>1&];
-result=(Map[LinearSolve[Transpose[mbasis["basis"]],Flatten[#1]]&,SymbolicTC[{result/. IndexInvPermute[Cycles[{{1,2}}],#1],result/. IndexInvPermute[Cycles[{Range[Length[#1]]}],#1]},WithIndex->False]/. tVal[group],{2}]&)/@indexRepeat;
-If[Count[replist,Singlet[group]]>1,AssociateTo[result,Singlet[group]->ConstantArray[IdentityMatrix[Length[mbasis["basis"]]],2]]];
-Return[result];
-]
-
-
-(* ::Input::Initialization:: *)
-Options[GaugeBasisAux]={OutMode->"p-basis",Index->"default"};
-GaugeBasisAux[group_,replist_,posRepeat_,OptionsPattern[]]:=Module[{shift,yngList,gaugeGen,mbasis,trivial=False,result},
-If[posRepeat==<||>,trivial=True]; (* no repeated fields *)
-{gaugeGen,mbasis}=Reap[GaugePermGenerator[group,replist,Index->OptionValue[Index]],tl];
+{mbasis,gaugeGen}=Values@GaugePermGenerator[group,replist];
+mbasisInd=TensorAddIndex[indmap,indexct,Through[mbasis@@DeleteCases[indlist,0]]];
 If[gaugeGen==<||>,trivial=True]; (* all singlets *)
-result=<|"basis"->mbasis[[1,1]]|>;
-shift=FirstPosition[PositionIndex[replist],First[#]]&/@posRepeat;
+result=<|"basis"->mbasisInd|>;
 
+shift=FirstPosition[PositionIndex[replist],First[#]]&/@posRepeat;
 Switch[Head[posRepeat],
 Association,
-If[trivial,Return[Append[result,"p-basis"-><|{}->IdentityMatrix[Length[mbasis[[1,1]]]]|>]]];
+If[trivial,Return[Append[result,"p-basis"-><|{}->IdentityMatrix[Length[mbasis]]|>]]];
 yngList=IntegerPartitions@Length[#]&/@posRepeat;
 yngList=AssociationThread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
 Append[result,"p-basis"->

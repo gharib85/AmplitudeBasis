@@ -36,3 +36,23 @@ UnContract[tc_/;tc[[0,0]]==TensorTranspose]:=Module[{tensor=tc[[0,1]],perm=tc[[0
 UnContract[tensor@@Permute[indlist,FindPermutation[perm]]]
 ]
 UnContract[tc_]:=tc
+
+
+(* ::Input::Initialization:: *)
+SetAttributes[IndexIterator,HoldRest];
+IndexIterator[indlist_,indexct_]:=Module[{index=++indexct[indlist]},
+If[indlist=={},Return[0]];
+If[index>Length[indlist],Print["index list ",indlist," not enough."];index=indexct[indlist]=1];indlist[[index]]]
+
+TensorAddIndex[indmap_,indexct_,tensorlist_]:=Module[{tensors,dummy,dummyPosList,indexcttemp,tname,slot,dummyReplace={}},
+{tensors,dummy}=Reap[UnContract[tensorlist],d];
+If[dummy!={},(* replace dummy index and sow m-basis *)
+Do[dummyPosList=DeleteCases[Position[tensor,#]&/@dummy[[1]],{}];
+If[dummyPosList=={},Continue[]];indexcttemp=indexct;
+Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Extract[tensor,dpos]->IndexIterator[indmap[tRep[tname][[slot]]],indexcttemp]],
+{dpos,dummyPosList[[All,1]]}],
+{tensor,tensors}];
+];
+tensors/.dummyReplace
+]
+

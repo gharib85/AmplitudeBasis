@@ -23,11 +23,6 @@ Return[x/.Sortarg[asTlist]/.printreplace]
 SetAttributes[RefineReplace,Listable];
 Options[RefineReplace]={ActivatePrintTensor->True};
 
-SetAttributes[IndexIterator,HoldRest];
-IndexIterator[indlist_,indexct_]:=Module[{index=++indexct[indlist]},
-If[indlist=={},Return[0]];
-If[index>Length[indlist],Print["index list ",indlist," not enough."];index=indexct[indlist]=1];indlist[[index]]]
-
 (* Generate the replacing rule of the tensor indices for the final output form *)
 GenerateReplacingRule[model_,type:(_Times|_Power)]:=GenerateReplacingRule[model,CheckType[model,type]]
 GenerateReplacingRule[model_,flist_List]:=Module[{nonsingletlist,fexpand,symbollist,arglist,listind,listgen,indexct,indpair,listdummy},
