@@ -126,6 +126,15 @@ Return[result]
 
 
 (* ::Input::Initialization:: *)
+GetState[amp_,num_]:=Module[{particle,exp,M,state,k},
+exp=amp/.{ab[i_,j_]:>Exp[M-(particle[i]+particle[j])/2],sb[i_,j_]:>Exp[M+(particle[i]+particle[j])/2]};
+state=Table[D[exp,particle[i]]/exp//Simplify,{i,num}];
+k=D[exp,M]/exp-2Total@Abs[state]//Simplify;
+{state,k}
+]
+
+
+(* ::Input::Initialization:: *)
 (* List All Lorentz Structure at given dimension *)
 Options[LorentzList]={Conj->False,HelicityInclude->{0,1/2,1}};
 LorentzList[dim_,OptionsPattern[]]:=LorentzList[dim,Conj->OptionValue[Conj],HelicityInclude->OptionValue[HelicityInclude]]=Module[{hlist,n,k,num,Numh,Nh,Nhsol,N0sol,Nhlist={},result},hlist=Sort@DeleteDuplicates@Flatten[{1,-1}\[TensorProduct]OptionValue[HelicityInclude]];
@@ -216,17 +225,15 @@ reduce[W2[amp,ch],num]==-j(j+1) reduce[amp Mandelstam[ch],num]//Simplify//TrueQ
 Options[W2Diagonalize]={OutputFormat->"print",CheckJ->False};
 W2Diagonalize[state_,k_,Ind_,OptionsPattern[]]:=
 Module[{Num=Length[state],iniBasis=SSYT[state,k,OutMode->"amplitude"],stBasis=SSYT[state,k+2,OutMode->"amplitude"],
-W2Basis,W2result,zeros,Wrep,rlist,rstr,eigensys,result},Off[LinearSolve::sqmat1];
+W2Basis,W2result,Wrep,rlist,rstr,eigensys,result},Off[LinearSolve::sqmat1];
 W2Basis=FindCor[stBasis]/@(reduce[Num]/@(Mandelstam[Ind]iniBasis));
 W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));
-zeros=NullSpace[W2result\[Transpose]];
+
 {Wrep,rlist}=Reap[MapIntersection[W2result,W2Basis],restriction];
-If[Wrep=={{}},result=<|"j"->ConstantArray[0,Length[zeros]],"transfer"->zeros,"j-basis"->If[zeros=={},{},zeros.iniBasis]|>,
+If[Wrep=={{}},result=<|"basis"->iniBasis,"j"->{},"transfer"->{},"j-basis"->{}|>,
 rstr=Dot@@Reverse[rlist[[1]]];
 eigensys=Eigensystem[Wrep\[Transpose]];
-eigensys[[1]]=eigensys[[1]]~Join~ConstantArray[0,Length[zeros]];
-eigensys[[2]]=(eigensys[[2]].rstr)~Join~zeros;
-result=<|"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]],"j-basis"->eigensys[[2]].iniBasis|>
+result=<|"basis"->iniBasis,"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]].rstr,"j-basis"->eigensys[[2]].iniBasis|>
 ];
 If[OptionValue[CheckJ],Print["check eigen equation ..."];
 If[And@@MapThread[W2Check[#1,Length[state],Ind,#2]&,result/@{"j-basis","j"}],Print["eigen values verified!"],
@@ -252,4 +259,30 @@ jbasisAll=W2Diagonalize[state,k,#,OutputFormat->"working"]&/@partition;
 Do[AppendTo[jEigen,Map[Part[jB["transfer"],#]&,PositionIndex[jB["j"]],{2}]],{jB,jbasisAll}];
 jcomb=AssociationThread[partition->#]&/@Distribute[Keys/@jEigen,List];
 Append[result,"jcoord"->Normal@DeleteCases[AssociationMap[LinearIntersection@@MapThread[#1[#2]&,{jEigen,Values[#]}]&,jcomb],{}]]
+]
+
+
+(* ::Input::Initialization:: *)
+(* to be added: normalization of pwbasis *)
+PWExpand[amp:Except[_List],num_,ch_]:=Module[{state,k,PW,coord},
+{state,k}=GetState[amp,num];
+PW=W2Diagonalize[state,k,ch,OutputFormat->"working"];
+coord=FindCor[reduce[amp,num],PW["basis"]];
+Append[KeyDrop[PW,{"transfer","basis"}],"coeff"->LinearSolve[PW["transfer"]\[Transpose],coord]]
+]
+PWExpand[amp_List,num_,ch_]:=Module[{state,k,PW,coordlist},
+{state,k}=If[Length[#]>1,Print["amp list with different {state,k}"];Abort[],#[[1,1]]]&@Tally[GetState[#,num]&/@amp];
+PW=W2Diagonalize[state,k,ch,OutputFormat->"working"];
+coordlist=FindCor[reduce[#,num],PW["basis"]]&/@amp;
+Append[KeyDrop[PW,{"transfer","basis"}],"coeff"->coordlist.LinSolve[PW["transfer"]]]
+]
+PWExpand[amp_,num_,ch_,denom_,jmax_]:=Module[{state,kini,k,jini,extraMand,pw,pw2,coref},
+state=First@GetState[amp/denom,num];
+kini=Last@GetState[amp,num];
+jini=Max[W2Diagonalize[state,k=kmin[state],ch,OutputFormat->"working"]["j"]];
+extraMand=Max[0,Floor[jmax-jini]];
+pw=W2Diagonalize[state,k+2extraMand,ch,OutputFormat->"working"];
+pw2=PWExpand[denom pw["j-basis"],num,ch];
+coref=PWExpand[amp Power[Mandelstam[ch],(Last@GetState[pw2["j-basis"][[1]],num]-kini)/2],num,ch]["coeff"];Print[pw2["coeff"]];
+Append[KeyDrop[pw,{"transfer","basis"}],"coeff"->LinearSolve[pw2["coeff"][[All,-Length[pw["j"]];;]]\[Transpose],coref[[-Length[pw["j"]];;]]]]
 ]
