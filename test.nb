@@ -20,7 +20,7 @@ WindowFrame->Normal*)
 Notebook[{
 Cell[BoxData["Exit"], "Input",
  CellChangeTimes->{{3.8077822427314253`*^9, 3.807782243242146*^9}},
- CellLabel->"In[3]:=",ExpressionUUID->"86f0e2bb-59f3-4843-ac31-0ba346eb986c"],
+ CellLabel->"In[4]:=",ExpressionUUID->"86f0e2bb-59f3-4843-ac31-0ba346eb986c"],
 
 Cell[BoxData[{
  RowBox[{
@@ -4389,8 +4389,8 @@ In[15]:=",ExpressionUUID->"d5035eef-5019-4254-9ba9-86ba0cacab0a"]
 }, Open  ]]
 }, Open  ]]
 },
-WindowSize->{1278, 1341},
-WindowMargins->{{Automatic, 19}, {Automatic, 1}},
+WindowSize->{1278, 1348},
+WindowMargins->{{Automatic, -7}, {Automatic, 0}},
 TaggingRules->{
  "WelcomeScreenSettings" -> {"FEStarting" -> False}, "TryRealOnly" -> False},
 Magnification:>1.25 Inherited,
