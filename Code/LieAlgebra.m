@@ -575,20 +575,23 @@ SimpGFV2[x_]:=If[Length[x]>=1,DeleteDuplicates[Replace[#,{_Rational->1,_Integer-
 GaugePermGenerator[group_,replist_]:=Module[{indlist,ind,indexRepeat,ybasis,convert,tensorlist,tensorValue,mbasis,qr,mtensor,result,dummy,perm1,perm2,permresult},
 indlist=Array[ind,Length[replist]];
 indexRepeat=Select[PositionIndex[replist],Length[#]>1&];
-
+Print["get ybasis .."];
 ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"generators"-><||>|>]];
 convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];
+Print["get mbasis .."];
 tensorlist=SimpGFV2[tReduce@SymbolicTC[Expand[# convert],WithIndex->False]&/@ybasis];
-
+Print["take values .."];
 tensorValue=tensorlist/.tVal[group];
+Print["reduce .."];
 mbasis=basisReduce[Flatten/@tensorValue];
 result=<|"basis"->tensorlist[[mbasis["pos"]]]|>;
 If[Length[indexRepeat]==0,Return[AssociateTo[result,"generators"-><||>]]];
-
-qr=LinSolve[Flatten/@mbasis["basis"]];
+Print["mbasis obtained"];
+qr=LinSolve[Flatten/@mbasis["basis"]];Print["qr decomposed"];
 perm1=Normal@IndexInvPermute[Cycles[{{1,2}}],ind/@# ]&/@indexRepeat;
-perm2=Normal@IndexInvPermute[Cycles[{Range[Length[#]]}],ind/@#]&/@indexRepeat;
+perm2=Normal@IndexInvPermute[Cycles[{Range[Length[#]]}],ind/@#]&/@indexRepeat;Print["get generators .."];
 mtensor=UnContract[Through[result["basis"]@@Delete[indlist,Position[replist,Singlet[group]]]]];
+Print["start permuting"];
 permresult=Map[SymbolicTC[mtensor/.#,WithIndex->False]/.tVal[group]&,{perm1,perm2},{2}];
 AssociateTo[result,"generators"->Map[(Flatten/@#).qr&,Merge[permresult,Identity],{2}]]
 ]
