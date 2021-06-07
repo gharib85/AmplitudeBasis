@@ -327,7 +327,7 @@ unflatten[result,tdim]
 
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*JBasis related*)
 
 
@@ -588,7 +588,7 @@ If[Length[indexRepeat]==0,Return[AssociateTo[result,"generators"-><||>]]];
 qr=LinSolve[Flatten/@mbasis["basis"]];
 perm1=Normal@IndexInvPermute[Cycles[{{1,2}}],ind/@# ]&/@indexRepeat;
 perm2=Normal@IndexInvPermute[Cycles[{Range[Length[#]]}],ind/@#]&/@indexRepeat;
-mtensor=UnContract[Through[result["basis"]@@Sort[indlist]]];
+mtensor=UnContract[Through[result["basis"]@@Delete[indlist,Position[replist,Singlet[group]]]]];
 permresult=Map[SymbolicTC[mtensor/.#,WithIndex->False]/.tVal[group]&,{perm1,perm2},{2}];
 AssociateTo[result,"generators"->Map[(Flatten/@#).qr&,Merge[permresult,Identity],{2}]]
 ]
