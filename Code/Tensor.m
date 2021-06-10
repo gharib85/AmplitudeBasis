@@ -56,3 +56,23 @@ Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Ext
 tensors/.dummyReplace
 ]
 
+
+
+(* ::Input::Initialization:: *)
+Clear[NumericContraction];
+NumericContraction[tc:(_Plus|_TensorProduct|_Times),tval_]:=NumericContraction[tval]/@tc
+NumericContraction[tc_TensorTranspose,tval_]:=MapAt[NumericContraction[tval],tc,1]
+NumericContraction[tc_TensorContract,tval_]:=NumericContraction[tc,tval]=Module[{indlist,ind,tlist,dummy,dpos,tv1,tv2,tr1,tr2},
+indlist=ind/@Range[tRank[tc]];
+{tlist,dummy}=Reap[NumericContraction[tval]/@Prod2List@UnContract[tc@@indlist],d];
+Do[dpos=Position[tlist,dum];
+If[Equal@@First/@dpos,tlist= DeleteCases[MapAt[TensorContract[#,{Last/@dpos}]&,tlist,{dpos[[1,1]],0}],dum,2],
+{tv1,tv2}=Part[tlist,First/@dpos];
+{tr1,tr2}=tRank/@Head/@{tv1,tv2};
+tlist[[dpos[[1,1]]]]=DeleteCases[(TensorTranspose[Head[tv1],InversePermutation@Cycles[{Range[dpos[[1,2]],tr1]}]].TensorTranspose[Head[tv2],Cycles[{Range[dpos[[2,2]]]}]])@@Flatten[List@@@{tv1,tv2}],dum,2];
+tlist=Delete[tlist,dpos[[2,1]]];
+],{dum,dummy[[1]]}];
+SymbolicTC[Times@@tlist,WithIndex->False]
+]
+NumericContraction[tc_,tval_]:=tc/.tval
+NumericContraction[tval_]:=NumericContraction[#,tval]&

@@ -50,6 +50,30 @@ pos++];
 ]
 basisReduce::input="wrong input matrix: `1`";
 
+Options[basisReducePro]={TargetDim->Null,ShowProgress->False,Tolerance->10^-10};
+basisReducePro[prebasis_,f_,OptionsPattern[]]:=Module[{tensorValue={},mtensor={},poslist={},metric={{}},iter=0,tvtemp,metrictemp,vector={},scalar},
+If[OptionValue[ShowProgress],
+Print[Dynamic[iter],"/",Length[prebasis]];
+Print[Dynamic[Length[poslist]],"/",OptionValue[TargetDim]," found: "];
+Print[Dynamic[poslist]];
+];
+Do[iter++;
+tvtemp=f[t];
+scalar=tvtemp\[Conjugate].tvtemp;
+If[Length@tensorValue==0,metrictemp={{scalar}},
+vector=tensorValue.tvtemp\[Conjugate];
+metrictemp=Append[Append[metric\[ConjugateTranspose],vector]\[ConjugateTranspose],Append[vector,scalar]]
+];
+If[Chop[Det[metrictemp],OptionValue[Tolerance]]==0,Continue[]];
+metric=metrictemp;
+AppendTo[tensorValue,tvtemp];
+AppendTo[mtensor,t];
+AppendTo[poslist,iter];
+If[Length[metric]===OptionValue[TargetDim],Break[]];
+,{t,prebasis}];
+<|"pos"->poslist,"mbasis"->mtensor,"mvalues"->tensorValue,"metric"->metric|>
+]
+
 LinearIntersection[{},basisB_]:={}
 LinearIntersection[basisA_,basisB_]:=Module[{basisPlus=Join[basisA,basisB],lA=Length[basisA],sol},sol=NullSpace[Transpose[basisPlus]];
 If[Length[sol]==0,Return[{}]];basisReduce[sol[[All,1;;lA]].basisA]["basis"]
