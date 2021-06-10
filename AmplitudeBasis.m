@@ -9,7 +9,7 @@ $CodeFiles=FileNames[__~~".m",FileNameJoin[{$AmplitudeBasisDir,"Code"}]];
 BeginPackage["AmplitudeBasis`"]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Declaration*)
 
 
@@ -110,7 +110,7 @@ PrintStat::usage="PrintStat[model,dim] effectively counts the number of types, p
 GenerateOperatorList::usage="GenerateOperatorList[model,dim] enumerates all the p-basis at certain dimension in the model.";
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Configure*)
 
 
@@ -127,7 +127,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Do[Get[file],{file,Global`$CodeFiles}];
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Input*)
 
 
@@ -421,7 +421,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Gauge Group Factor*)
 
 
@@ -552,7 +552,7 @@ Association@finalresult
 ]*)
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Model Analysis*)
 
 
@@ -787,7 +787,7 @@ KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]
 
 (* ::Input::Initialization:: *)
 basisReduceByFirst[tensor_,len_]:=Module[{pos},
-pos=basisReduce[Extract[tensor,ConstantArray[1,len]]]["pos"];
+pos=basisReducePro[Extract[tensor,ConstantArray[1,len]],Identity]["pos"];
 Map[Part[#,pos]&,tensor,{len}]
 ]
 
@@ -821,11 +821,15 @@ If[Length[posRepeat]==0,Return[<|"basis"->Flatten@opBasis|>]];
 generators=Merge[factors["generators"],SparseArray/@
 Flatten[MapThread[TensorProduct,#],{{1},2Range[Length[NAgroups]+1],2Range[Length[NAgroups]+1]+1}]&];
 If[OptionValue[DeSym],
-pCoord=AssociationMap[basisReduce[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["pos"]&,yngList];
+(* desym monomials *)
+pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&],Identity]["pos"]&,yngList];
 Map[Part[Flatten[opBasis],#]&,pCoord,{2}],
+(* sym result *)
 Switch[OptionValue[TakeFirstBasis],
-True,pCoord=AssociationMap[basisReduce[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["basis"]&,yngList],
-False,pCoord=AssociationMap[basisReduceByFirst[Outer[Dot,##,1]&@@Merge[{generators,#},Table[PermRepFromGenerator[#[[1]],YO[#[[2]],1,i]],{i,SnIrrepDim[#[[2]]]}]&],len]&,yngList]
+True,pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&],Identity]["mvalues"]&,yngList],
+False,
+(* full basis *)
+pCoord=AssociationMap[basisReduceByFirst[Outer[Dot,##,1]&@@Merge[{generators,#},Table[PermRepFromGenerator[#[[1]],YO[#[[2]],1,i]],{i,SnIrrepDim[#[[2]]]}]&],len]&,yngList]
 ];
 pCoord=Select[pCoord,Flatten[#]!={}&];
 <|"basis"->Flatten@opBasis,"p-basis"->pCoord,"Kpy"->Partition[Flatten@Values[pCoord],Length[Flatten@opBasis]]|>]

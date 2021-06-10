@@ -3,11 +3,13 @@
 (* ::Input::Initialization:: *)
 Options[SymbolicTC]={WithIndex->True};
 SymbolicTC[tensorpoly:_Plus|_List,OptionsPattern[]]:=SymbolicTC[#,WithIndex->OptionValue[WithIndex]]&/@tensorpoly
-SymbolicTC[tensorprod_,OptionsPattern[]]:=Module[{coeff=1,heads={},indices={},indtemp,indlist,indcount,freeind,dumind,pairContract,order,tensorfinal},
+SymbolicTC[tensorprod_,OptionsPattern[]]:=Module[{tlist,coeff=1,heads={},indices={},indtemp,indlist,indcount,freeind,dumind,pairContract,order,tensorfinal},
+tlist=If[Head[tensorprod]===Times,List@@tensorprod,
+{tensorprod}];
 Do[If[NumericQ[t],coeff*=t;Continue[]];
 AppendTo[heads,t[[0]]];
 AppendTo[indices,List@@t],
-{t,Prod2List[tensorprod]}];
+{t,tlist}];
 indices=Flatten[indices];
 freeind=Select[indices,Count[indices,#]==1&];
 dumind=DeleteDuplicates@Select[indices,Count[indices,#]==2&];
@@ -60,6 +62,7 @@ tensors/.dummyReplace
 
 (* ::Input::Initialization:: *)
 Clear[NumericContraction];
+NumericContraction[tc_?NumericQ,tval_]:=tc
 NumericContraction[tc:(_Plus|_TensorProduct|_Times),tval_]:=NumericContraction[tval]/@tc
 NumericContraction[tc_TensorTranspose,tval_]:=MapAt[NumericContraction[tval],tc,1]
 NumericContraction[tc_TensorContract,tval_]:=NumericContraction[tc,tval]=Module[{indlist,ind,tlist,dummy,dpos,tv1,tv2,tr1,tr2},
@@ -76,3 +79,12 @@ SymbolicTC[Times@@tlist,WithIndex->False]
 ]
 NumericContraction[tc_,tval_]:=tc/.tval
 NumericContraction[tval_]:=NumericContraction[#,tval]&
+
+
+(* ::Input::Initialization:: *)
+ApplyGenerator[tensor_,repeat_]:=Module[{len=Length[repeat],gen1,gen2},
+gen1=tReduce@TensorTranspose[tensor,Cycles[{repeat[[{1,2}]]}]];
+If[len==2,gen2=gen1,
+gen2=tReduce@TensorTranspose[tensor,Cycles[{repeat}]] ];
+{gen1,gen2}
+]

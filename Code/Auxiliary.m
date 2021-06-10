@@ -71,7 +71,7 @@ AppendTo[mtensor,t];
 AppendTo[poslist,iter];
 If[Length[metric]===OptionValue[TargetDim],Break[]];
 ,{t,prebasis}];
-<|"pos"->poslist,"mbasis"->mtensor,"mvalues"->tensorValue,"metric"->metric|>
+<|"pos"->poslist,"mbasis"->mtensor,"mvalues"->Chop[tensorValue],"metric"->metric|>
 ]
 
 LinearIntersection[{},basisB_]:={}
