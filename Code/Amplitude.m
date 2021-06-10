@@ -129,7 +129,7 @@ Return[result]
 GetState[amp_,num_]:=Module[{particle,exp,M,state,k},
 exp=amp/.{ab[i_,j_]:>Exp[M-(particle[i]+particle[j])/2],sb[i_,j_]:>Exp[M+(particle[i]+particle[j])/2]};
 state=Table[D[exp,particle[i]]/exp//Simplify,{i,num}];
-k=D[exp,M]/exp-2Total@Abs[state]//Simplify;
+k=D[exp,M]/exp-Total@Abs[state]//Simplify;
 {state,k}
 ]
 

@@ -127,7 +127,7 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Do[Get[file],{file,Global`$CodeFiles}];
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Input*)
 
 
@@ -215,7 +215,7 @@ AddField[model,fieldname<>"R",1,{groupname->Adjoint[group]},Hermitian->True]; (*
 Conj[fieldname<>"L"]=fieldname<>"R";
 Conj[fieldname<>"R"]=fieldname<>"L"]; (* define special conjugation relation (not denoted by \[Dagger]) for gauge boson names *)
 
-If[nonAbelian[groupname],If[OptionValue[Index]=="default",ind=Global`INDEX[group],ind=OptionValue[Index]];
+If[nonAbelian[groupname],If[OptionValue[Index]==="default",ind=Global`INDEX[group],ind=OptionValue[Index]];
 AssociateTo[model["rep2indOut"],groupname->ind]; (* define list of specific indices for all reps of the new group *)
 AssociateTo[model["rep2indOut"][groupname],Singlet[group]->{}]];
 SetSimplificationRule[model] (* define simplification rules for all gauge groups *)
@@ -261,12 +261,12 @@ Join@@MapThread[ConstantArray,{fieldlist,#}]&/@list
 ChargeNormalize[chargelist_]:=If[FirstCase[chargelist,x_/;x!=0]<0,-1,1]*chargelist
 
 Options[GaugeClass]={SymGroup->"default",ClassifyBy->{}};
-GaugeClass[model_,type:(_Times|_Power),OptionsPattern[]]:=GaugeClass[model,CheckType[model,type,Counting->False]]
+GaugeClass[model_,type:(_Times|_Power),OptionsPattern[]]:=GaugeClass[model,CheckType[model,type,Counting->False],SymGroup->OptionValue[SymGroup],ClassifyBy->OptionValue[ClassifyBy]]
 GaugeClass[model_,fields_List,OptionsPattern[]]:=Module[{greps,greps2,groups},
 If[OptionValue[SymGroup]=="default",groups=Select[model["Groups"],KeyExistsQ[model,#]&],groups=OptionValue[SymGroup]];
 greps=model[#]/@groups&/@fields\[Transpose];
 greps=Replace[Sort/@greps,{x__?NumericQ}:>Plus[x],1];
-greps2=model[#]/@OptionValue[ClassifyBy]&/@fields\[Transpose];
+greps2=((model[#]/@OptionValue[ClassifyBy])&/@fields)\[Transpose];
 If[MemberQ[greps,x_?NumericQ/;x!=0],False,{greps,greps2}]
 ]
 
