@@ -5,6 +5,7 @@ Sum2List[x_Plus]:=List@@x
 Sum2List[x:Except[Plus]]:=List@x
 Prod2List[x_]:=Flatten[{x}/.{Power[b_,n_Integer]:>ConstantArray[b,n],Times->List}]
 
+Identityfunc[x_]:=Switch[Expand[x],_Plus,Expand[1/2 (2 #1&)/@Expand[x]],_,Expand[x]]
 FactorSplit[exp_,crit_]:=FactorSplit[crit][exp]
 FactorSplit[crit_]:=Merge[{Times@@@GroupBy[Prod2List[#],crit],<|True->1,False->1|>},Apply[Times]]&
 

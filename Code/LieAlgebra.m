@@ -327,7 +327,7 @@ unflatten[result,tdim]
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*JBasis related*)
 
 
@@ -446,11 +446,11 @@ ntarget=SUNrepPartlist[[i,2]];
 (* loops for particular channel *)
 Do[(* loop over ybasis *)
 Do[(* loop over young tab *)
-stemp=Map[2#&,Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]]//Expand;
+stemp=Expand@FixedPoint[Identityfunc,(PermuteYBasis[ybs,YTs]/. Sortarg[tasList[group]])convert];(*Map[2#&,Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]]//Expand;*)
 If[stemp==0,Continue[]];
 vtemp=SymbolicTC[stemp,WithIndex->False];
 vtemp=NumericContraction[vtemp,tVal[group]];
-coordtemp=Flatten[vtemp/2].qr;
+coordtemp=Flatten[vtemp].qr;
 AppendTo[tempresult,coordtemp];
 If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[]],
 tempresult=Drop[tempresult,-1]]
@@ -601,9 +601,10 @@ AssociateTo[result,"generators"->Map[(Flatten/@#).qr&,Merge[permresult,Identity]
 
 
 (* ::Input::Initialization:: *)
-GaugePermGenerator[group_,replist_,debug_:False]:=Module[{indlist,ind,indexRepeat,nonSingletIndexRepeat,ybasis,dimB,convert,tensorlist,tensorValue={},dimtemp=0,iter=0,mbasis,ginv,tvCo,mtensor={},result,dummy,perm1,perm2,permresult,dimtest,ortho={},rowreduce={},qrtemp=0,tvtemp,tvorth,status,step=1,pos,finalresult},
+GaugePermGenerator[group_,replist_,debug_:False]:=Module[{indlist,ind,indexRepeat,nonSingletIndex,nonSingletIndexRepeat,ybasis,dimB,convert,tensorlist,tensorValue={},dimtemp=0,iter=0,mbasis,ginv,tvCo,mtensor={},result,dummy,perm1,perm2,permresult,dimtest,ortho={},rowreduce={},qrtemp=0,tvtemp,tvorth,status,step=1,pos,finalresult},
 indlist=Array[ind,Length[replist]];
 indexRepeat=Select[PositionIndex[replist],Length[#]>1&];
+nonSingletIndex=KeyDrop[PositionIndex[replist],{Singlet[group]}];
 nonSingletIndexRepeat=KeyDrop[indexRepeat,{Singlet[group]}];
 
 If[debug==True,Print["get ybasis .."]];
@@ -626,22 +627,21 @@ If[debug==True,Print["mbasis obtained"]];
 If[debug==True,Print["linear solve .."]];
 ginv=If[dimB<30,Inverse[mbasis["metric"]],
 Inverse[mbasis["metric"]//N]];
-tvCo=(ginv.mbasis["mvalues"])//ConjugateTranspose;
-If[debug==True,Print["orthonormality: ",MatchQ[Chop@Flatten[(Flatten/@mbasis["mvalues"]).tvCo-IdentityMatrix[dimB]],{0..}]]];
+tvCo=mbasis["mvalues"]\[ConjugateTranspose].ginv\[Conjugate];
+If[debug===True,Print["orthonormality: ",MatchQ[Chop@Flatten[(Flatten/@mbasis["mvalues"]).tvCo-IdentityMatrix[dimB]],{0..}]]];
 
 (*If[debug==True,Print["get generators .."]];
 perm1=Normal@IndexInvPermute[Cycles[{{1,2}}],ind/@# ]&/@indexRepeat;
 perm2=Normal@IndexInvPermute[Cycles[{Range[Length[#]]}],ind/@#]&/@indexRepeat;
 permresult=Merge[{perm1,perm2},Identity];
 If[debug==True,Print[permresult]];*)
-
+(*Print[nonSingletIndexRepeat];
+Print[PositionIndex[replist]];
+Print[Union@@Values@nonSingletIndex];
+Print[Map[First@FirstPosition[Union@@Values@nonSingletIndex,#]&,nonSingletIndexRepeat,{2}]];*)
 If[debug==True,Print["start permuting"]];
-permresult=Function[repeat,Transpose[ApplyGenerator[#,First@FirstPosition[Union@@Values@nonSingletIndexRepeat,#]&/@repeat ]&/@result["basis"]]]/@nonSingletIndexRepeat;
-(*mtensor=UnContract[Through[result["basis"]@@Delete[indlist,Position[replist,Singlet[group]]]]];
+permresult=Function[repeat,Transpose[ApplyGenerator[#,First@FirstPosition[Union@@Values@nonSingletIndex,#]&/@repeat ]&/@result["basis"]]]/@nonSingletIndexRepeat;
 
-permresult=Map[tReduce@SymbolicTC[mtensor/.#,WithIndex->False]&,permresult,{2}];
-If[debug==True,Print[Dimensions/@permresult]];
-*)
 If[debug==True,Print["numerical components .."]];
 permresult=Map[If[True(*(pos=Position[result["basis"],#])\[Equal]{}*),
 SparseArray@Flatten@NumericContraction[#,tVal[group]],
