@@ -552,7 +552,7 @@ Association@finalresult
 ]*)
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Model Analysis*)
 
 
@@ -838,8 +838,9 @@ Options[GetBasisForType]={OutputFormat->"operator",Working->False,FerCom->2,NfSe
 
 
 (* ::Input::Initialization:: *)
-GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,abreplist,NAgroups=Select[model["Groups"],nonAbelian],Agroups = OptionValue[Charges],lorBasis,gaugeBasis,
+GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],numpar,state,k,replist,abreplist,NAgroups=Select[model["Groups"],nonAbelian],Agroups = OptionValue[Charges],lorBasis,gaugeBasis,
 factors,opBasis,jCoord,result=<||>},
+numpar=Length[particles];
 state=(model[#1]["helicity"]&)/@particles;k=Exponent[type,"D"];
 replist=Outer[model[#2][#1]&,NAgroups,particles];
 
@@ -855,7 +856,7 @@ LorentzJBasis[state,k,partition],Key["basis"]];
 lorBasis["basis"]=transform[lorBasis["basis"],ReplaceField->{model,type,OptionValue[FerCom]},
 OpenFchain->False,ActivatePrintTensor->False,Working->OptionValue[Working]];
 ];
-gaugeBasis=MapThread[GaugeJBasis[CheckGroup[#1],#2,partition,Index->model["rep2indOut"][#1]]&,{NAgroups,replist}];
+gaugeBasis=MapThread[GaugeJBasis[CheckGroup[#1],#2,parsePart[partition,numpar],Index->model["rep2indOut"][#1]]&,{NAgroups,replist}];
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 
 If[OptionValue[OutputFormat]=="operator",
