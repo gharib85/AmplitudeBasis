@@ -327,7 +327,7 @@ unflatten[result,tdim]
 
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*JBasis related*)
 
 
@@ -446,11 +446,11 @@ ntarget=SUNrepPartlist[[i,2]];
 (* loops for particular channel *)
 Do[(* loop over ybasis *)
 Do[(* loop over young tab *)
-stemp=Map[2#&,Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]]//Expand;
+stemp=Expand@FixedPoint[Identityfunc,(PermuteYBasis[ybs,YTs]/. Sortarg[tasList[group]])convert];(*Map[2#&,Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]]//Expand;*)
 If[stemp==0,Continue[]];
 vtemp=SymbolicTC[stemp,WithIndex->False];
 vtemp=NumericContraction[vtemp,tVal[group]];
-coordtemp=Flatten[vtemp/2].qr;
+coordtemp=Flatten[vtemp].qr;
 AppendTo[tempresult,coordtemp];
 If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[]],
 tempresult=Drop[tempresult,-1]]

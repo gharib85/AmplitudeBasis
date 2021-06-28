@@ -5,6 +5,7 @@ Sum2List[x_Plus]:=List@@x
 Sum2List[x:Except[Plus]]:=List@x
 Prod2List[x_]:=Flatten[{x}/.{Power[b_,n_Integer]:>ConstantArray[b,n],Times->List}]
 
+Identityfunc[x_]:=Switch[Expand[x],_Plus,Expand[1/2 (2 #1&)/@Expand[x]],_,Expand[x]]
 FactorSplit[exp_,crit_]:=FactorSplit[crit][exp]
 FactorSplit[crit_]:=Merge[{Times@@@GroupBy[Prod2List[#],crit],<|True->1,False->1|>},Apply[Times]]&
 
@@ -12,7 +13,14 @@ LinSolve[basis_]:=Module[{q,r},
 {q,r}=QRDecomposition[basis\[Transpose]];
 Transpose[Inverse[r].q]//Simplify
 ]
-
+parsePart[parts_,n_]:=Module[{rest=Complement[Range[n],Union@Flatten[parts]]},
+If[rest=={},Return[parts],
+If[Length[parts]==1,
+Return[Append[parts,rest]],
+Return[Join[parts,List/@rest]]
+]
+]
+];
 (* Find the coefficient list of an expression (e.g. an amplitude) in STANDARD FORM. *)
 FindCor::basis="non-standard expression `1` or incomplete basis `2`";
 FindCor[exp_,stBasis_]:=Module[{termlist,B,pos,cor},
