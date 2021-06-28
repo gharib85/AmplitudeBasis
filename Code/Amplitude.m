@@ -233,7 +233,7 @@ W2result=FindCor[stBasis]/@(reduce[Num]/@(W2[Ind]/@iniBasis));
 If[Wrep=={{}},result=<|"basis"->iniBasis,"j"->{},"transfer"->{},"j-basis"->{}|>,
 rstr=Dot@@Reverse[rlist[[1]]];
 eigensys=Eigensystem[Wrep\[Transpose]];
-result=<|"basis"->iniBasis,"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]].rstr,"j-basis"->eigensys[[2]].iniBasis|>
+result=<|"basis"->iniBasis,"j"->Function[x,(Sqrt[1-4x]-1)/2]/@eigensys[[1]],"transfer"->eigensys[[2]].rstr,"j-basis"->eigensys[[2]].rstr.iniBasis|>
 ];
 If[OptionValue[CheckJ],Print["check eigen equation ..."];
 If[And@@MapThread[W2Check[#1,Length[state],Ind,#2]&,result/@{"j-basis","j"}],Print["eigen values verified!"],

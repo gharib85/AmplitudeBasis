@@ -43,11 +43,12 @@ Return[Thread[listind->Flatten@listgen]~Join~listdummy];
 (* ::Input::Initialization:: *)
 (* Amplitude Formating *)
 
-changebracket[b_ab]:=<|"tensor"->"<"<>StringJoin@@ToString/@b<>">"|>
+changebracket[b_ab]:=AngleBracket[StringJoin@@ToString/@b]
 changebracket[b_sb]:=<|"tensor"->"["<>StringJoin@@ToString/@b<>"]"|>
 changebracket[s_sMand]:=<|"tensor"->"s","downind"-> StringJoin@@ToString/@s|>
 changebracket[p_Power]:=Switch[p[[1]],
-_ab|_sb|_sMand,Merge[{changebracket[p[[1]]],<|"upind"->ToString[p[[2]]]|>},StringJoin],
+_sb|_sMand,Merge[{changebracket[p[[1]]],<|"upind"->ToString[p[[2]]]|>},StringJoin],
+_ab,Power[changebracket[p[[1]]],p[[2]]],
 _,p]
 changebracket[x_]:=x
 

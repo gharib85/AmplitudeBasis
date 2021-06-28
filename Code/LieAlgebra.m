@@ -601,9 +601,10 @@ AssociateTo[result,"generators"->Map[(Flatten/@#).qr&,Merge[permresult,Identity]
 
 
 (* ::Input::Initialization:: *)
-GaugePermGenerator[group_,replist_,debug_:False]:=Module[{indlist,ind,indexRepeat,nonSingletIndexRepeat,ybasis,dimB,convert,tensorlist,tensorValue={},dimtemp=0,iter=0,mbasis,qr,tvCo,mtensor={},result,dummy,perm1,perm2,permresult,dimtest,ortho={},rowreduce={},qrtemp=0,tvtemp,tvorth,status,step=1,pos,finalresult},
+GaugePermGenerator[group_,replist_,debug_:False]:=Module[{indlist,ind,indexRepeat,nonSingletIndex,nonSingletIndexRepeat,ybasis,dimB,convert,tensorlist,tensorValue={},dimtemp=0,iter=0,mbasis,ginv,tvCo,mtensor={},result,dummy,perm1,perm2,permresult,dimtest,ortho={},rowreduce={},qrtemp=0,tvtemp,tvorth,status,step=1,pos,finalresult},
 indlist=Array[ind,Length[replist]];
 indexRepeat=Select[PositionIndex[replist],Length[#]>1&];
+nonSingletIndex=KeyDrop[PositionIndex[replist],{Singlet[group]}];
 nonSingletIndexRepeat=KeyDrop[indexRepeat,{Singlet[group]}];
 
 If[debug==True,Print["get ybasis .."]];
@@ -624,22 +625,23 @@ If[Length[indexRepeat]==0,Return[AssociateTo[result,"generators"-><||>]]];
 If[debug==True,Print["mbasis obtained"]];
 
 If[debug==True,Print["linear solve .."]];
-tvCo=Inverse[mbasis["metric"]//N].(mbasis["mvalues"])//ConjugateTranspose;
-If[debug==True,Print["orthonormality: ",MatchQ[Flatten[(Flatten/@mbasis["mvalues"]).tvCo-IdentityMatrix[dimB]/.{x_/;Abs[x]<10^-6->0}],{0..}]]];
+ginv=If[dimB<30,Inverse[mbasis["metric"]],
+Inverse[mbasis["metric"]//N]];
+tvCo=mbasis["mvalues"]\[ConjugateTranspose].ginv\[Conjugate];
+If[debug===True,Print["orthonormality: ",MatchQ[Chop@Flatten[(Flatten/@mbasis["mvalues"]).tvCo-IdentityMatrix[dimB]],{0..}]]];
 
 (*If[debug==True,Print["get generators .."]];
 perm1=Normal@IndexInvPermute[Cycles[{{1,2}}],ind/@# ]&/@indexRepeat;
 perm2=Normal@IndexInvPermute[Cycles[{Range[Length[#]]}],ind/@#]&/@indexRepeat;
 permresult=Merge[{perm1,perm2},Identity];
 If[debug==True,Print[permresult]];*)
-
+(*Print[nonSingletIndexRepeat];
+Print[PositionIndex[replist]];
+Print[Union@@Values@nonSingletIndex];
+Print[Map[First@FirstPosition[Union@@Values@nonSingletIndex,#]&,nonSingletIndexRepeat,{2}]];*)
 If[debug==True,Print["start permuting"]];
-permresult=Function[repeat,Transpose[ApplyGenerator[#,First@FirstPosition[Union@@Values@nonSingletIndexRepeat,#]&/@repeat ]&/@result["basis"]]]/@nonSingletIndexRepeat;
-(*mtensor=UnContract[Through[result["basis"]@@Delete[indlist,Position[replist,Singlet[group]]]]];
+permresult=Function[repeat,Transpose[ApplyGenerator[#,First@FirstPosition[Union@@Values@nonSingletIndex,#]&/@repeat ]&/@result["basis"]]]/@nonSingletIndexRepeat;
 
-permresult=Map[tReduce@SymbolicTC[mtensor/.#,WithIndex->False]&,permresult,{2}];
-If[debug==True,Print[Dimensions/@permresult]];
-*)
 If[debug==True,Print["numerical components .."]];
 permresult=Map[If[True(*(pos=Position[result["basis"],#])\[Equal]{}*),
 SparseArray@Flatten@NumericContraction[#,tVal[group]],
@@ -650,7 +652,7 @@ finalresult=Map[Chop[#.tvCo]&,permresult,{2}];
 If[Count[replist,Singlet[group]]>1,AssociateTo[finalresult,Singlet[group]->ConstantArray[IdentityMatrix[Length[result["basis"]]],2]]];
 
 If[debug==True,Print["find coord .."]];
-AssociateTo[result,"generators"->finalresult]
+AssociateTo[result,"generators"->Simplify/@finalresult]
 ]
 
 
