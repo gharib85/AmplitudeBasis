@@ -42,9 +42,10 @@ UnContract[tc_]:=tc
 
 (* ::Input::Initialization:: *)
 SetAttributes[IndexIterator,HoldRest];
-IndexIterator[indlist_,indexct_]:=Module[{index=++indexct[indlist]},
-If[indlist=={},Return[0]];
-If[index>Length[indlist],Print["index list ",indlist," not enough."];index=indexct[indlist]=1];indlist[[index]]]
+IndexIterator[indlist_,indexct_]:=Module[{index=++indexct[indlist],len=Length[indlist]},If[indlist=={},Return[0]];
+If[index<=Length[indlist],indlist[[index]],
+indlist[[Mod[index,len]]]<>ToString@Quotient[index,len]]
+]
 
 TensorAddIndex[indmap_,indexct_,tensorlist_]:=Module[{tensors,dummy,dummyPosList,indexcttemp,tname,slot,dummyReplace={}},
 {tensors,dummy}=Reap[UnContract[tensorlist],d];

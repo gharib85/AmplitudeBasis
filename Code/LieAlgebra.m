@@ -664,7 +664,7 @@ If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[
 indexct=AssociationThread[Union@Values[indmap]->0];
 indlist=IndexIterator[indmap[#],indexct]&/@replist;
 {mbasis,gaugeGen}=Values@GaugePermGenerator[group,replist];
-mbasisInd=TensorAddIndex[indmap,indexct,Through[mbasis@@DeleteCases[indlist,0]]];
+If[MatchQ[indlist,{0..}],mbasisInd=mbasis,mbasisInd=TensorAddIndex[indmap,indexct,Through[mbasis@@DeleteCases[indlist,0]]]];
 If[gaugeGen==<||>,trivial=True]; (* all singlets *)
 result=<|"basis"->mbasisInd|>;
 
