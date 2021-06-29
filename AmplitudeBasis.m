@@ -573,7 +573,7 @@ If[Length[pos]!=0,types=KeyMap[MapAt[#+k&,#,pos]&,types]];
 AssociateTo[result,class->types],{state,statelist}];
 
 chargeclasses=DeleteDuplicates@Catenate[Keys/@result];
-If[chargeclasses=={{}},result=#[{}]&/@result,
+If[chargeclasses=={{}},result=If[Length[#]==0,{},#[{}]]&/@result,
 result=AssociationMap[Function[chargeclass,DeleteCases[If[KeyExistsQ[#,chargeclass],#[chargeclass],None]&/@result,None] ],chargeclasses]
 ];
 
@@ -839,7 +839,7 @@ Options[GetBasisForType]={OutputFormat->"operator",Working->False,FerCom->2,NfSe
 
 (* ::Input::Initialization:: *)
 GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],numpar,state,k,replist,abreplist,NAgroups=Select[model["Groups"],nonAbelian],Agroups = OptionValue[Charges],lorBasis,gaugeBasis,
-factors,opBasis,jCoord,result=<||>},
+factors,opBasis,jCoord,result=<||>,renorm},
 numpar=Length[particles];
 state=(model[#1]["helicity"]&)/@particles;k=Exponent[type,"D"];
 replist=Outer[model[#2][#1]&,NAgroups,particles];
@@ -866,8 +866,9 @@ opBasis=opBasis//.listtotime];
 
 jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2]],List])&/@Distribute[factors["jcoord"],List];If[jCoord!={},
 jCoord = MapAt[Merge[{#,abreplist},Apply[Join]]&,jCoord,{All, 1}];
-jCoord=MapAt[KeyMap[Map["\!\(\*SubscriptBox[\("<>Part[particles,#]<>"\), \("<>ToString[#]<>"\)]\)"&]],jCoord,{All,1}]];
-Return[<|"basis"->Flatten[opBasis],"groups"-> Join[NAgroups,{"Spin"},Agroups],"j-basis"->jCoord|>];
+jCoord=MapAt[KeyMap[Map[Subscript[Part[particles,#],#]&]],jCoord,{All,1}]];
+renorm=And@@(MemberQ[renoramlizableUV,#]&/@KeyValueMap[{Model[#[[1]]]["helicity"]&/@#1,Last[#2]}&,#])&/@jCoord[[All,1]];
+Return[<|"basis"->Flatten[opBasis],"groups"-> Join[NAgroups,{"Spin"},Agroups],"j-basis"->jCoord,"UV"->renorm|>];
 ]
 Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2,Charges->{},Working->False};
 
