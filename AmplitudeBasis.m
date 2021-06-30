@@ -788,7 +788,7 @@ KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]
 (* ::Input::Initialization:: *)
 basisReduceByFirst[tensor_,len_]:=Module[{pos},
 pos=basisReducePro[Extract[tensor,ConstantArray[1,len]],Identity]["pos"];
-Map[Part[#,pos]&,tensor,{len}]
+TensorTranspose[Map[Part[#,pos]&,tensor,{len}],Append[Range[2,len+1],1]]
 ]
 
 GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,generators,pCoord},
@@ -867,7 +867,7 @@ opBasis=opBasis//.listtotime];
 jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2]],List])&/@Distribute[factors["jcoord"],List];If[jCoord!={},
 jCoord = MapAt[Merge[{#,abreplist},Apply[Join]]&,jCoord,{All, 1}];
 jCoord=MapAt[KeyMap[Map[Subscript[Part[particles,#],#]&]],jCoord,{All,1}]];
-renorm=And@@(MemberQ[renoramlizableUV,#]&/@KeyValueMap[{Model[#[[1]]]["helicity"]&/@#1,Last[#2]}&,#])&/@jCoord[[All,1]];
+renorm=And@@(MemberQ[renoramlizableUV,#]&/@Cases[KeyValueMap[{Model[#[[1]]]["helicity"]&/@#1,Last[#2]}&,#],{{_,_},_}])&/@jCoord[[All,1]];
 Return[<|"basis"->Flatten[opBasis],"groups"-> Join[NAgroups,{"Spin"},Agroups],"j-basis"->jCoord,"UV"->renorm|>];
 ]
 Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2,Charges->{},Working->False};
