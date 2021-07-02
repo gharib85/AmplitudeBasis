@@ -47,19 +47,16 @@ dG=SparseArray[1/4 Table[Tr[\[Lambda]G[[a]].\[Lambda]G[[b]].\[Lambda]G[[c]]+\[La
 
 (* ::Input::Initialization:: *)
 tSimp[SU3]=Hold[Block[{},
+SetAttributes[{del8n,dabc},Orderless];
 del3[i_,j_]del3[j_,k_]:=del3[i,k];
 del3[i_,i_]:=3;
+del8n[a_,c_]del8n[a_,b_]:=del8n[c,b];
 del8n[i_,i_]:=8;
-del3n[a_,d_]eps3n[a_,b_,c_]:=eps3n[d,b,c];
-del3n[a_,d_]eps3n[b_,a_,c_]:=eps3n[b,d,c];
-del3n[a_,d_]eps3n[c_,b_,a_]:=eps3n[c,b,d];
-del3n[a_,c_]del3n[a_,b_]:=del3n[c,b];
-SetAttributes[del8n,Orderless];
-(*eps3a[i_String,j_String,k_String]eps3f[l_String,m_String,n_String]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Intersection@@(First/@Position[INDEXSET,#]&/@{i,j,k,l,m,n})!={};
-eps3a[i:Except[_String],j_,k_]eps3f[l_,m_,n_]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}]/;Equal@@DeleteCases[Head/@{i,j,k,l,m,n},dummyIndex];*)
-eps3a[i_,j_,k_]eps3f[l_,m_,n_]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}];
 del3[a_,c_]\[Lambda][J_,a_,b_]:=\[Lambda][J,c,b];
 del3[c_,a_]\[Lambda][J_,b_,a_]:=\[Lambda][J,b,c];
+del8n[I_,J_]\[Lambda][J_,a_,b_]:=\[Lambda][I,a,b];
+\[Lambda][i_,j_,k_]\[Lambda][l_,k_,m_]:=Module[{dummy=Unique[]},I fabc[i,l,dummy]\[Lambda][dummy,j,m]+dabc[i,l,dummy]\[Lambda][dummy,j,m]+2/3 del8n[i,l]del3[m,j]];
+\[Lambda][I_,i_,j_]\[Lambda][I_,k_,l_]:=del3[l,i]del3[j,k]-1/3 del3[j,i]del3[l,k];
 \[Lambda][i_,j_,j_]:=0;
 eps3f[i_,j_,k_]del3[i_,l_]:=eps3f[l,j,k];
 eps3f[i_,j_,k_]del3[j_,l_]:=eps3f[i,l,k];
@@ -67,17 +64,18 @@ eps3f[i_,j_,k_]del3[k_,l_]:=eps3f[i,j,l];
 eps3a[i_,j_,k_]del3[l_,i_]:=eps3a[l,j,k];
 eps3a[i_,j_,k_]del3[l_,j_]:=eps3a[i,l,k];
 eps3a[i_,j_,k_]del3[l_,k_]:=eps3a[i,j,l];
+eps3a[i_,j_,k_]eps3f[l_,m_,n_]:=Det@Map[Apply[del3], Partition[Distribute[{{i,j,k},{l,m,n}},List],3],{2}];
 
 fabc[a_,b_,c_]/;!OrderedQ[{a,b,c}]:=Signature[{a,b,c}]fabc@@Sort[{a,b,c}];
 del8n[a_,d_]fabc[a_,b_,c_]:=fabc[d,b,c];
 del8n[b_,d_]fabc[a_,b_,c_]:=fabc[a,d,c];
 del8n[c_,d_]fabc[a_,b_,c_]:=fabc[a,b,d];
-SetAttributes[dabc,Orderless];
+fabc[a_,b_,c_]fabc[a_,b_,d_]:=3del8n[c,d];
 del8n[a_,d_]dabc[a_,b_,c_]:=dabc[d,b,c];
 del8n[b_,d_]dabc[a_,b_,c_]:=dabc[a,d,c];
 del8n[c_,d_]dabc[a_,b_,c_]:=dabc[a,b,d];
-del8n[a_,c_]del8n[a_,b_]:=del8n[c,b];
-\[Lambda][i_,j_,k_]\[Lambda][l_,k_,m_]:=Module[{dummy=Unique[]},I fabc[i,l,dummy]\[Lambda][dummy,j,m]+dabc[i,l,dummy]\[Lambda][dummy,j,m]+2/3 del8n[i,l]del3[m,j]]
+fabc[a_,b_,c_]dabc[a_,b_,d_]:=0;
+dabc[a_,b_,c_]dabc[a_,b_,d_]:=5/3del8n[c,d];
 ]]
 
 

@@ -9,7 +9,7 @@ $CodeFiles=FileNames[__~~".m",FileNameJoin[{$AmplitudeBasisDir,"Code"}]];
 BeginPackage["AmplitudeBasis`"]
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Declaration*)
 
 
@@ -609,7 +609,7 @@ GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-1
 Return[result];
 ];
 If[nDs>=2,
-Do[If[Length@Select[Model[#][gg]&/@fields,Not[#==Singlet[CheckGroup[gg]]]&]>=1,
+Do[If[Length@Select[model[#][gg]&/@fields,Not[#==Singlet[CheckGroup[gg]]]&]>=1,
 GetRelevantDAux[model,dimlim,Join[fields,{model[gg]<>"L"}],nDs-2];GetRelevantDAux[model,dimlim,Join[fields,{model[gg]<>"R"}],nDs-2]],{gg,model["Gauge"]}];
 Do[eomlist=EOM[item];
 GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-2+#[[2]]}&/@eomlist);
@@ -839,7 +839,7 @@ Options[GetBasisForType]={OutputFormat->"operator",Working->False,FerCom->2,NfSe
 
 (* ::Input::Initialization:: *)
 GetJBasisForType[model_,type_,partition_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],numpar,state,k,replist,abreplist,NAgroups=Select[model["Groups"],nonAbelian],Agroups = OptionValue[Charges],lorBasis,gaugeBasis,
-factors,opBasis,jCoord,result=<||>,renorm},
+factors,opBasis,jCoord,result=<||>},
 numpar=Length[particles];
 state=(model[#1]["helicity"]&)/@particles;k=Exponent[type,"D"];
 replist=Outer[model[#2][#1]&,NAgroups,particles];
@@ -867,10 +867,23 @@ opBasis=opBasis//.listtotime];
 jCoord=Merge[#[[All,1]],Identity]->(Flatten/@TensorProduct@@@Distribute[#[[All,2]],List])&/@Distribute[factors["jcoord"],List];If[jCoord!={},
 jCoord = MapAt[Merge[{#,abreplist},Apply[Join]]&,jCoord,{All, 1}];
 jCoord=MapAt[KeyMap[Map[Subscript[Part[particles,#],#]&]],jCoord,{All,1}]];
-renorm=And@@(MemberQ[renoramlizableUV,#]&/@Cases[KeyValueMap[{Model[#[[1]]]["helicity"]&/@#1,Last[#2]}&,#],{{_,_},_}])&/@jCoord[[All,1]];
-Return[<|"basis"->Flatten[opBasis],"groups"-> Join[NAgroups,{"Spin"},Agroups],"j-basis"->jCoord,"UV"->renorm|>];
+Return[<|"basis"->Flatten[opBasis],"groups"-> Join[NAgroups,{"Spin"},Agroups],"j-basis"->jCoord|>];
 ]
 Options[GetJBasisForType]={OutputFormat->"operator",FerCom->2,Charges->{},Working->False};
+
+GetVertices[model_,type_,key_]:=Module[{particles=CheckType[model,type,Counting->False],npart,state,normpart,part,hcy=<||>,vert},npart=Length@particles;
+state=(Rule[{#1},model[particles[[#1]]]["helicity"]]&)/@Range[npart];
+normpart=MapAt[Last,Normal[key],{All,1,All}];
+normpart=MapAt[#[[-1]]&,normpart,{All,2}];
+part=normpart[[All,1]];
+part=UnionFinder[parsePart[part,npart]];
+HierarchyFinder[hcy,#]&/@part;
+hcy=Normal@hcy;
+hcy=DeleteCases[hcy,{_}->{{_}}];
+If[Length[part]>2,AppendTo[hcy,#[[1]]&/@part]];
+vert={Cases[#,{_}],Cases[#,{_,__}]}&/@(hcy/.Rule[{x_,z__},y_]:>Append[y,{x,z}]);
+vert/.state/.normpart]
+AllowedResonance[model_,type_,resPattern_,allowedVertices_]:=And@@(MemberQ[allowedVertices,Sort/@#]&/@GetVertices[model,type,resPattern])
 
 
 (* ::Input::Initialization:: *)
