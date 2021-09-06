@@ -256,7 +256,7 @@ cont=Append[cont,P],
 {i,Length[index]}];
 
 tensor1=Union[Cases[tensor,_sigma],Cases[tensor,_de]];
-tensor2=Cases[tensor,_F];
+tensor2=Union[Cases[tensor,_F],Cases[tensor,_sigma2]];
 tensor3=Cases[tensor,_CL];
 tensor=TensorContract[TensorProduct@@tensor,cont]other;
 
@@ -265,10 +265,10 @@ Return[{tensor,tensor1,tensor2,tensor3,index,cont,other}]
 
 (* change TensorContract into tensor index form *)
 tensortooper[t_]:=
-Module[{factors,other,index,tensorterm,iGreek=0,indexnum,indexposition,si},
+Module[{factors,other,index,tensorterm,iGreek=0,indexnum,indexposition,si},If[t[[0]]===TensorProduct,Return[0]];
 factors=GroupBy[Prod2List[t],MatchQ[_TensorContract]];
 If[KeyExistsQ[factors,True],tensorterm=factors[True],Return[t]];
-If[KeyExistsQ[factors,False],other=Times@@factors[False]];
+If[KeyExistsQ[factors,False],other=Times@@factors[False],other=1];
 
 (*Do[indexnum=1;index=indexposition=ConstantArray["down",2Length[term[[2]]]];
 Do[index[[term[[2,i,1]]]]=index[[term[[2,i,2]]]]=LorentzIndex[[i+iGreek]],{i,Length[term[[2]]]}];iGreek+=Length[term[[2]]];
@@ -445,7 +445,7 @@ oper*= Sum[ch\[Psi][chain[[chainnum[[j-1]]+1]],\[Sigma]m[[2,i]],chain[[chainnum[
 "\[Sigma]"^_,oper*= trace[chain[[chainnum[[j-1]]+1;;chainnum[[j]]]],iGreek][[1]];iGreek= trace[chain[[chainnum[[j-1]]+1;;chainnum[[j]]]],iGreek][[2]]],
 {j,2,lchain}]];
 opS[[0]]=Times;
-Return[oper opS coef]
+(*Return[oper opS coef]*)<|"chain"->oper,"field"->opS,"coef"->coef|>
 ]
 
 (* input monomial amplitude, label shows which F will absorb epsilon *)
@@ -464,11 +464,10 @@ ab,Aa*=A[[i]],
 sb,As*=A[[i]]],
 _,coeff*=A[[i]]],
 {i,LA}];
-oper=coeff*OperMonoResp[Aa,As,n],
-_,oper=A OperMonoResp[1,1,n]
+oper=OperMonoResp[Aa,As,n];oper["coef"]=coeff*oper["coef"],
+_,oper=OperMonoResp[1,1,n];oper["coef"]=A*oper["coef"]
 ];
-oper=Expand[Expand[oper]//.contract]//.contract;
-oper=Expand[oper//.Ftilde[-2]]//.contract//.beforeform;
+oper=Expand[Expand[(Expand[Expand[oper["chain"]]//.contract]//.contract)oper["field"]oper["coef"]]//.Ftilde[-2]]//.contract//.beforeform;
 Return[oper]
 ]
 (* input complete amplitude, firstF shows which F will absorb epsilon *)
@@ -510,28 +509,28 @@ oper=oper//.alphachange
 
 OperPoly[A_,n_,OptionsPattern[]]:=Module[{operpoly,form,form1,form2,form3,ten,tAssumptions},
 operpoly=Thread[head[A,n],Plus]/.{head->If[OptionValue[LorForm],OperMono,OperSpMono]};
-If[operpoly[[0]]===Plus,
+If[operpoly[[0]]===Plus,If[OptionValue[TenReduce],
 operpoly=List@@operpoly;
 form=tensorform/@operpoly;(*Print["form=",form];*)
 form1=Union@@form[[All,2]];
 form2=Union@@form[[All,3]];form3=Union@@form[[All,4]];(*Print["form1=",form1];Print["form2=",form2];Print["form3=",form3];*)
 tAssumptions={epsilon\[Element]Arrays[{4,4,4,4},Antisymmetric[{1,2,3,4}]]}\[Union](sym/@form1)\[Union](antisym/@form2)\[Union](Csym/@form3)//Flatten;
-ten=Map[TensorReduce[#,Assumptions->tAssumptions]&,Plus@@form[[All,1]]//Simplify,{2,3}]//Expand;(*Print["ten=",ten];*)
+ten=Map[TensorReduce[#,Assumptions->tAssumptions]&,Plus@@form[[All,1]]//Simplify,{2,3}]//Expand,form=(tensorform/@(List@@operpoly));ten=Plus@@form[[All,1]]];(*Print["ten=",ten];*)
 operpoly=Thread[head[ten],Plus]/.{head->tensortooper},
 form=Map[TensorReduce[#,Assumptions->tAssumptions]&,tensorform[operpoly],2];
 operpoly=tensortooper[form[[1]]]];
 If[OptionValue[Dcontract],operpoly=operpoly//.Flatten[{Dcontract1,Dcontract2}],operpoly]
 ]
-Options[OperPoly]={LorForm->True,Dcontract->False};
+Options[OperPoly]={LorForm->True,Dcontract->False,TenReduce->True};
 
 
 (* ::Input::Initialization:: *)
-beforechange={Subscript[Subscript[D, n_], \[Nu]_]|Superscript[Subscript[D, n_],\[Nu]_]:>Subscript[D, n][\[Nu]],
+beforechange={ch\[Psi][dd__,(Subscript|Superscript)[D,\[Nu]_],fi2:Subscript[fi_,n_]|Subscript[fi_,n_][inde__]]/;(!Cases[h2f,fi]==={}):>Subscript[D,n][\[Nu]]ch\[Psi][dd,fi2],ch\[Psi][(Subscript|Superscript)[D,\[Nu]_],fi2:Subscript[fi_,n_]|Subscript[fi_,n_][inde__]]/;(!Cases[h2f,fi]==={}):>Subscript[D,n][\[Nu]]fi2,ch\[Psi][aa___,Subscript[D,n_][\[Nu]_]fi_,bb___]:>Subscript[D,n][\[Nu]]ch\[Psi][aa,fi,bb],Subscript[Subscript[D, n_], \[Nu]_]|Superscript[Subscript[D, n_],\[Nu]_]:>Subscript[D, n][\[Nu]],
 Subscript["\[Sigma]", \[Mu]_]|Superscript["\[Sigma]",\[Mu]_]|"\[Sigma]"^\[Mu]_:>"\[Sigma]"[\[Mu]],
 Subscript["\[Gamma]", \[Mu]_]|Superscript["\[Gamma]",\[Mu]_]|"\[Gamma]"^\[Mu]_:>"\[Gamma]"[\[Mu]],
 Subscript["\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)", \[Mu]_]|Superscript["\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)",\[Mu]_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"^\[Mu]_:>"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[\[Mu]],
 Subscript[Subscript[\[Sigma]_, \[Mu]_], \[Nu]_]|Superscript[Subscript[\[Sigma]_, \[Mu]_],\[Nu]_]|Subscript[Superscript[\[Sigma]_,\[Mu]_],\[Nu]_]|Superscript[Superscript[\[Sigma]_,\[Mu]_],\[Nu]_]:>\[Sigma][\[Mu],\[Nu]],
-Superscript["\[Epsilon]",Times[a_,b_,c_,d_]]:>"\[Epsilon]"[a,b,c,d]};
+Superscript["\[Epsilon]",Times[a_,b_,c_,d_]]:>"\[Epsilon]"[a,b,c,d],(fi:Subscript[h2f[-1], n_]|Subscript[h2f[1], n_])[munu_,nu_]:>fi["up",munu,"up",nu]};
 
 SetAttributes[{antichange}, HoldAll];
 antichange[PartofAmp_,Greek_]:=Module[{spinor,particle},
@@ -601,7 +600,7 @@ Options[MonoLorentzBasis]={finalform->True};
 MonoLorentzBasis[{1},num_Integer,OptionsPattern[]]:=<|"LorBasis"->{OperPoly[1,num]},"Trans"->{{1}}|>
 MonoLorentzBasis[state:{__?NumberQ},k_Integer,OptionsPattern[]]:=MonoLorentzBasis[SSYT[state,k,OutMode->"amplitude"],Length[state],finalform->OptionValue[finalform]]
 MonoLorentzBasis[spinorbasis_List,num_Integer,OptionsPattern[]]:=Module[{operbasis,coefbasis,basispos,transfer,basis},
-operbasis=OperPoly[#,num,Dcontract->False]&/@spinorbasis;operbasis=Flatten[operbasis//.{Plus->List}]//.{Times[_Integer,p__]:>Times[p],Times[_Rational,p__]:>Times[p],Times[_Complex,p__]:>Times[I,p]};coefbasis=FindCor[reduce[#,num],spinorbasis]&/@(Amp/@operbasis);(*basispos=Subsets[coefbasis,{Length[spinorbasis]}];Do[If[MatrixRank[basispos[[ii]]]===Length[spinorbasis],transfer=basispos[[ii]];Break[]],{ii,Length[basispos]}];*)
+operbasis=OperPoly[#,num,Dcontract->False,TenReduce->False]&/@spinorbasis;operbasis=Flatten[operbasis//.{Plus->List}]//.{Times[_Integer,p__]:>Times[p],Times[_Rational,p__]:>Times[p],Times[_Complex,p__]:>Times[I,p]};coefbasis=FindCor[reduce[#,num],spinorbasis]&/@(Amp/@operbasis);(*basispos=Subsets[coefbasis,{Length[spinorbasis]}];Do[If[MatrixRank[basispos[[ii]]]===Length[spinorbasis],transfer=basispos[[ii]];Break[]],{ii,Length[basispos]}];*)
 basis=basisReduce[coefbasis];
 (*basispos=Flatten[Position[coefbasis,#][[1]]&/@transfer];
 basis=operbasis[[basis["pos"]]];*)
