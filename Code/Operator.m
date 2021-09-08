@@ -583,12 +583,12 @@ asbracket={Subscript[h2f[-1/2], i_][2,a_]Subscript[h2f[-1/2], j_][1,a_]:>ab[i,j]
 Subscript[h2f[1/2], i_][1,a_]Subscript[h2f[1/2], j_][2,a_]:>sb[i,j]};
 AmpMono[opermono_]:=Module[{Greek=1,oper,amp,fermion,fermionsign={}},
 oper=opermono//.beforechange;
-fermion=Cases[oper,_ch\[Psi]];
+If[oper[[0]]===ch\[Psi],fermion={oper},fermion=Cases[oper,_ch\[Psi]]];
 Do[AppendTo[fermionsign,fermion[[ii,1]]];
 AppendTo[fermionsign,fermion[[ii,3]]],
 {ii,Length[fermion]}];
 fermionsign=Signature[fermionsign];
-amp=fermionsign*antichange[#,Greek]&/@oper;
+amp=If[oper[[0]]===ch\[Psi],fermionsign*antichange[oper,Greek],fermionsign*antichange[#,Greek]&/@oper];
 amp=Expand[amp]//.\[Sigma]contract//.\[Epsilon]contract//.asbracket
 ]
 Amp[oper_]:=Thread[head[oper],Plus]/.{head->AmpMono};
