@@ -214,8 +214,10 @@ Mandelstam[I_]:=(1/2)Sum[s[i,j],{i,I},{j,I}]
 W2[Ind_List]:=W2[#,Ind]&
 W2[Amp_Plus,Ind_List]:=W2[Ind]/@Amp
 W2[Amp:Except[Plus],Ind_List]:=Module[
-{list=Prod2List[Amp],ablist={},sblist={},prefactor=1,sf,sg,sfg},
+{amp=Expand[Amp],list,ablist={},sblist={},prefactor=1,sf,sg,sfg},
 (* find bridges *)
+If[Head[amp]===Plus,Return[W2[amp,Ind]],
+list=Prod2List[amp]];
 Map[Switch[Head[#],
 ab,If[BridgeQ[Ind]@@#,AppendTo[ablist,#],prefactor*=#],
 sb,If[BridgeQ[Ind]@@#,AppendTo[sblist,#],prefactor*=#],

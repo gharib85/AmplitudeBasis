@@ -117,9 +117,12 @@ GenerateOperatorList::usage="GenerateOperatorList[model,dim] enumerates all the 
 (* ::Input::Initialization:: *)
 permutationBasis="left"; (* or "right" *)
 groupList={};
+
+maxTry=30;
 h2f=<|-2->CL,-1->FL,-1/2->\[Psi],0->\[Phi],1/2->OverBar[\[Psi]],1->FR,2->CR|>;
 LorentzIndex=Join[Join[{"\[Mu]","\[Nu]","\[Lambda]","\[Rho]","\[Eta]","\[Xi]"},Alphabet["Greek"][[19;;-1]]],Append[StringJoin[#,"1"]&/@Alphabet["Greek"],StringJoin[#,"2"]&/@Alphabet["Greek"]]];
 FLAVOR={"p","r","s","t","u","v","x","y","z"};
+
 
 
 (* ::Input::Initialization:: *)
@@ -127,7 +130,9 @@ If[!Global`$DEBUG,Begin["`Private`"]]
 Do[Get[file],{file,Global`$CodeFiles}];
 
 
+
 (* ::Subsection:: *)
+
 (*Model Input*)
 
 
@@ -223,13 +228,17 @@ SetSimplificationRule[model] (* define simplification rules for all gauge groups
 
 (* Adding New Field to a Model *)
 AddField::overh="helicity of `1` is neither integer nor half-integer.";
+
 Options[AddField]={Flavor->1,Dim->"default",Hermitian->False,Chirality->{},Spurion->False,Soft->False};
+
 AddField[model_,field_String,hel_,Greps_List,OptionsPattern[]]:=Module[{attribute=<||>,hellist,flavor=OptionValue[Flavor],NAgroups,shape,dim=OptionValue[Dim]},
 If[IntegerQ[2hel],AppendTo[attribute,"helicity"->hel],Message[AddField::overh,field]];
 If[!MemberQ[hellist=Options[LorentzList,HelicityInclude][[1,2]],Abs[hel]],SetOptions[LorentzList,HelicityInclude->Append[hellist,Abs[hel]]]];
 AssociateTo[attribute,AssociationMap[Singlet[CheckGroup[#]]&,model["Groups"]]];
 AssociateTo[attribute,Greps];
+
 AssociateTo[attribute,"dim"->If[NumericQ[dim],dim,1+Abs[hel]]];AssociateTo[attribute,"spurion"->OptionValue[Spurion]];AssociateTo[attribute,"soft"->OptionValue[Soft]];
+
 Switch[flavor,
 _Integer|_Symbol,AssociateTo[attribute,{"nfl"->flavor,"indfl"->FLAVOR}],
 _List,AssociateTo[attribute,{"nfl"->flavor[[1]],"indfl"->flavor[[2]]}]];
@@ -305,7 +314,9 @@ sign{deltaB,deltaL}
 ]
 
 
+
 (* ::Subsection:: *)
+
 (*Lorentz Basis*)
 
 
@@ -370,6 +381,7 @@ Map[Expand[OpBasis.Inverse[amp2op["Trans"]]\[Transpose].#]&,resultCor,{2+Length[
 ] 
 
 Clear[LorentzBasisAux];
+
 Options[LorentzBasisAux]={OutMode->"p-basis",OutputFormat->"operator",ReplaceField->{},finalform->True,newmethod->False,AdlerZero->False};
 LorentzBasisAux[state_,k_,posRepeat_,OptionsPattern[]]:=Module[{Num=Length[state],flip=False,lorentzGen,ybasis,amp2op,mbasis,shift,yngList,result,grassmann},
 If[{Num-2,2}.yngShape[state,k]>{Num-2,2}.yngShape[-state,k],flip=True];
@@ -378,11 +390,13 @@ If[flip,ybasis=ybasis/.{ab->sb,sb->ab};lorentzGen=KeyMap[-1#&,lorentzGen]];
 
 Switch[OptionValue[OutputFormat],
 "amplitude",mbasis=ybasis[[1,1]],
+
 "operator",If[OptionValue[newmethod],(*Print[state,k,OptionValue[AdlerZero]];*)amp2op=LorBasis[state,k,AdlerZero->OptionValue[AdlerZero]],amp2op=MonoLorentzBasis[ybasis[[1,1]],Length[state],finalform->False]];
 mbasis=amp2op["LorBasis"];
 (*transform[amp2op["LorBasis"],ReplaceField->OptionValue[ReplaceField],
 OpenFchain->OptionValue[finalform],ActivatePrintTensor->OptionValue[finalform]];*)
 lorentzGen=Map[Transpose[LinearSolve[Transpose[amp2op["Trans"]],Transpose[(amp2op["Trans"].#)]]]&,lorentzGen,{2}]
+
 ];
 result=<|"basis"->mbasis|>;
 shift=FirstPosition[PositionIndex[state],First[#]]&/@posRepeat;
@@ -787,6 +801,7 @@ KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]
 
 (* ::Input::Initialization:: *)
 basisReduceByFirst[tensor_,len_]:=Module[{pos},
+
 pos=basisReducePro[Extract[tensor,ConstantArray[1,len]],Identity]["pos"];
 TensorTranspose[Map[Part[#,pos]&,tensor,{len}],Append[Range[2,len+1],1]]
 ]
@@ -794,6 +809,7 @@ TensorTranspose[Map[Part[#,pos]&,tensor,{len}],Append[Range[2,len+1],1]]
 GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,generators,pCoord,SoftPart},
 state=Delete[model[#]["helicity"]&/@particles,Position[model[#]["spurion"]&/@particles,True]];k=Exponent[type,"D"];
 SoftPart=Position[model[#]["soft"]&/@particles,True]//Flatten;If[SoftPart==={},SoftPart=False];
+
 replist=Outer[model[#2][#1]&,NAgroups,particles];
 
 posRepeat=Select[PositionIndex[particles],Length[#]>1&];
@@ -803,7 +819,9 @@ If[OptionValue[NfSelect],yngList=Select[yngList,And@@(SQ[model]@@@#)&]];
 posRepeat=Values[posRepeat];
 len=Length[posRepeat];
 
+
 lorBasis=LorentzBasisAux[state,k,posRepeat,OutputFormat->OptionValue[OutputFormat],newmethod->OptionValue[newmethod],AdlerZero->SoftPart];
+
 Switch[OptionValue[OutputFormat],
 "operator",lorBasis=MapAt[transform[#,ReplaceField->{model,type,OptionValue[FerCom]},OpenFchain->False,ActivatePrintTensor->False,Working->OptionValue[Working]]&,lorBasis,Key["basis"]],
 "amplitude",lorBasis=MapAt[Ampform,lorBasis,Key["basis"]]
@@ -836,6 +854,7 @@ pCoord=Select[pCoord,Flatten[#]!={}&];
 <|"basis"->Flatten@opBasis,"p-basis"->pCoord,"Kpy"->Partition[Flatten@Values[pCoord],Length[Flatten@opBasis]]|>]
 ]
 Options[GetBasisForType]={OutputFormat->"operator",Working->False,FerCom->2,NfSelect->True,DeSym->False,TakeFirstBasis->True,newmethod->False};
+
 
 
 (* ::Input::Initialization:: *)
