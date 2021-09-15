@@ -41,13 +41,58 @@ UnContract[tc_]:=tc
 
 
 (* ::Input::Initialization:: *)
+TensorConj[tprod_Times]:=TensorConj/@tprod
+TensorConj[tsum_Plus]:=TensorConj/@tsum
+TensorConj[tnum_?NumericQ]:=tnum
+
+SetAttributes[TensorInner,Listable];
+TensorInner[t1_,t2_](* t1*Overscript[t2, _] *):=ExpandSimplify[t1 TensorConj[t2],tM2Y]
+
+
+(* ::Input::Initialization:: *)
+IndexRep[tensor_]:=Module[{indlist=List@@tensor,tprod=UnContract[tensor],poslist},
+poslist=AssociationMap[FirstPosition[tprod,#]&,indlist];
+Part[tRep@Extract[tprod,ReplacePart[#,-1->0]],Last[#]]&/@poslist
+]
+
+
+(* ::Input::Initialization:: *)
+Clear[IndexIterator,TensorAddIndex];
+
 SetAttributes[IndexIterator,HoldRest];
 IndexIterator[indlist_,indexct_]:=Module[{index=++indexct[indlist],len=Length[indlist]},If[indlist=={},Return[0]];
 If[index<=Length[indlist],indlist[[index]],
 indlist[[Mod[index,len]]]<>ToString@Quotient[index,len]]
 ]
 
-TensorAddIndex[indmap_,indexct_,tensorlist_]:=Module[{tensors,dummy,dummyPosList,indexcttemp,tname,slot,dummyReplace={}},
+TensorAddIndex[tensor_Plus,indmap_]:=Plus@@(TensorAddIndex[#,indmap]&/@Sum2List[tensor])
+TensorAddIndex[tensor_Times,indmap_]:=Times@@(MapAt[TensorAddIndex[#,indmap]&,Prod2List[tensor],{2}])
+
+TensorAddIndex[tensor_/;MatchQ[Head[tensor],Except[Plus|Times]],indmap_]:=Module[{rank=tRank[tensor],replist,indexct,indlist,t,dummy,dummyPosList,tname,slot,dummyReplace={}},
+If[rank==0,Return[tensor]];
+replist=IndexRep[tensor@@Range[rank]];
+indexct=AssociationThread[Union@Values[indmap]->0];
+indlist=IndexIterator[indmap[#],indexct]&/@replist;
+{t,dummy}=Reap[UnContract[tensor@@Values[indlist]],d];
+If[dummy=={},Return[t]];(* replace dummy index and sow m-basis *)
+dummyPosList=Position[t,#]&/@dummy[[1]];
+Do[tname=Head@Extract[t,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Extract[t,dpos]->IndexIterator[indmap[tRep[tname][[slot]]],indexct]],
+{dpos,dummyPosList[[All,1]]}];
+t/.dummyReplace
+]
+
+(*
+TensorAddIndex[indmap_,indexct_,tensor_]:=Module[{t,dummy,dummyPosList,indexcttemp,tname,slot,dummyReplace={}},
+{t,dummy}=Reap[UnContract[tensor],d];
+If[dummy=={},Return[t]];(* replace dummy index and sow m-basis *)
+dummyPosList=Position[t,#]&/@dummy[[1]];
+indexcttemp=indexct;
+Do[tname=Head@Extract[t,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Extract[t,dpos]->IndexIterator[indmap[tRep[tname][[slot]]],indexcttemp]],
+{dpos,dummyPosList[[All,1]]}];
+t/.dummyReplace
+]
+
+TensorAddIndex[indmap_,indexct_,tensorlist_List]:=Module[{tensors,dummy,dummyPosList,indexcttemp,tname,slot,dummyReplace={}},
 {tensors,dummy}=Reap[UnContract[tensorlist],d];
 If[dummy!={},(* replace dummy index and sow m-basis *)
 Do[dummyPosList=DeleteCases[Position[tensor,#]&/@dummy[[1]],{}];
@@ -58,6 +103,7 @@ Do[tname=Head@Extract[tensor,Most@dpos];slot=Last@dpos;AppendTo[dummyReplace,Ext
 ];
 tensors/.dummyReplace
 ]
+*)
 
 
 
@@ -81,11 +127,15 @@ SymbolicTC[Times@@tlist,WithIndex->False]
 NumericContraction[tc_,tval_]:=tc/.tval
 NumericContraction[tval_]:=NumericContraction[#,tval]&
 
+FindTensorCor[tensor_,cobasis_,tval_]:=If[tensor===0,ConstantArray[0,Length[First@cobasis]],(Flatten@NumericContraction[tensor,tval]).cobasis//Simplify]
+FindTensorCor[tensorlist_List,cobasis_,tval_]:=FindTensorCor[#,cobasis,tval]&/@tensorlist
+
 
 (* ::Input::Initialization:: *)
-ApplyGenerator[tensor_,repeat_]:=Module[{len=Length[repeat],gen1,gen2},
-gen1=tReduce@TensorTranspose[tensor,Cycles[{repeat[[{1,2}]]}]];
+ApplyGenerator[tensor_,repeat_]:=tReduce@TensorTranspose[tensor,#]&/@PermGenerators[repeat]
+(*Module[{len=Length[repeat],gen1,gen2},
+gen1=tReduce@TensorTranspose[tensor,Cycles[{repeat\[LeftDoubleBracket];;2\[RightDoubleBracket]}]];
 If[len==2,gen2=gen1,
 gen2=tReduce@TensorTranspose[tensor,Cycles[{repeat}]] ];
 {gen1,gen2}
-]
+]*)

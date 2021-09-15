@@ -5,6 +5,13 @@ Sum2List[x_Plus]:=List@@x
 Sum2List[x:Except[Plus]]:=List@x
 Prod2List[x_]:=Flatten[{x}/.{Power[b_,n_Integer]:>ConstantArray[b,n],Times->List}]
 
+Options[ExpandSimplify]={MaxTry->maxTry};
+ExpandSimplify[exp_,rule_,OptionsPattern[]]:=Module[{F=Expand[exp],F1,iter=1},
+While[True,F1=F/.Normal[rule]//Expand;If[F1===F,Break[],F=F1];If[iter>=OptionValue[MaxTry],Message[reduce::overflow,OptionValue[MaxTry]];Abort[],
+iter++]];
+Return[F]
+]
+
 Identityfunc[x_]:=Switch[Expand[x],_Plus,Expand[1/2 (2 #1&)/@Expand[x]],_,Expand[x]]
 FactorSplit[exp_,crit_]:=FactorSplit[crit][exp]
 FactorSplit[crit_]:=Merge[{Times@@@GroupBy[Prod2List[#],crit],<|True->1,False->1|>},Apply[Times]]&
@@ -42,6 +49,8 @@ Return[cor]
 ]
 FindCor[StBasis_]:=FindCor[#,StBasis]&
 
+SimpGFV2[x_]:=If[Length[x]>=1,DeleteDuplicates[Replace[#,{_Rational->1,_Integer->1,_Complex->1},{1}]&/@(Flatten@(x/.Plus->List))],x]
+
 unflatten[e_,{d__?(IntegerQ[#1]&&Positive[#1]&)}]:=Fold[Partition,e,Take[{d},{-1,2,-1}]]/;Length[e]===Times[d]
 
 (* Select a complete basis from a list of vectors *)
@@ -58,26 +67,28 @@ pos++];
 ]
 basisReduce::input="wrong input matrix: `1`";
 
-Options[basisReducePro]={TargetDim->Null,ShowProgress->False,Tolerance->10^-10};
-basisReducePro[prebasis_,f_,OptionsPattern[]]:=Module[{tensorValue={},mtensor={},poslist={},metric={{}},iter=0,tvtemp,metrictemp,vector={},scalar},
+Options[basisReducePro]={PreTreat->Identity,Initial->{{},{},{{}}},TargetDim->Null,fInner->Dot,ShowProgress->False,Tolerance->10^-10};
+basisReducePro[prebasis_,OptionsPattern[]]:=Module[{f=OptionValue[PreTreat],mtensor,tensorValue,metric,lenIni,poslist={},iter=0,tvtemp,metrictemp,vector,scalar,stage=""},
+{mtensor,tensorValue,metric}=OptionValue[Initial];
+lenIni=Length[mtensor];
 If[OptionValue[ShowProgress],
 Print[Dynamic[iter],"/",Length[prebasis]];
-Print[Dynamic[Length[poslist]],"/",OptionValue[TargetDim]," found: "];
+Print[Dynamic[Length[poslist]],"/",OptionValue[TargetDim]," found: ",Dynamic[stage]];
 Print[Dynamic[poslist]];
 ];
-Do[iter++;
-tvtemp=f[t];
+Do[iter++;stage="-";
+tvtemp=f[t];stage="--";
 scalar=tvtemp\[Conjugate].tvtemp;
 If[Length@tensorValue==0,metrictemp={{scalar}},
 vector=tensorValue.tvtemp\[Conjugate];
-metrictemp=Append[Append[metric\[ConjugateTranspose],vector]\[ConjugateTranspose],Append[vector,scalar]]
-];
-If[Chop[Det[metrictemp],OptionValue[Tolerance]]==0,Continue[]];
+metrictemp=Append[Append[metric\[ConjugateTranspose],vector]\[ConjugateTranspose],Append[vector,scalar]]//Simplify
+];stage="---";
+If[Chop[Det[metrictemp],OptionValue[Tolerance]]==0,Continue[]];stage="----";
 metric=metrictemp;
 AppendTo[tensorValue,tvtemp];
 AppendTo[mtensor,t];
 AppendTo[poslist,iter];
-If[Length[metric]===OptionValue[TargetDim],Break[]];
+If[Length[mtensor]-lenIni===OptionValue[TargetDim],Break[]];
 ,{t,prebasis}];
 <|"pos"->poslist,"mbasis"->mtensor,"mvalues"->Chop[tensorValue],"metric"->metric|>
 ]

@@ -19,6 +19,11 @@ pp[permlist_]:=If[Length[permlist]>1,pp2[First[permlist],pp[Rest[permlist]]],Fir
 
 
 (* ::Input::Initialization:: *)
+PermGenerators[repeat:{__Integer}]:={Cycles[{repeat[[;;2]]}],Cycles[{repeat}]}
+PermGenerators[indlist:{__Symbol}]:=Module[{ind=First@indlist},{Insert[Rest@indlist,ind,2],Append[Rest@indlist,ind]}]
+
+
+(* ::Input::Initialization:: *)
 (* generate index replacement rule for given permutation *)
 IndexPermute[cyc_Cycles,indset_]:=AssociationThread[indset->Permute[indset,cyc]]
 IndexInvPermute[cyc_Cycles,indset_]:=AssociationThread[Permute[indset,cyc]->indset]

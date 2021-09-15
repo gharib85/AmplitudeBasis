@@ -110,13 +110,14 @@ PrintStat::usage="PrintStat[model,dim] effectively counts the number of types, p
 GenerateOperatorList::usage="GenerateOperatorList[model,dim] enumerates all the p-basis at certain dimension in the model.";
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Configure*)
 
 
 (* ::Input::Initialization:: *)
 permutationBasis="left"; (* or "right" *)
 groupList={};
+maxTry=30;
 h2f=<|-2->CL,-1->FL,-1/2->\[Psi],0->\[Phi],1/2->OverBar[\[Psi]],1->FR,2->CR|>;
 LorentzIndex={"\[Mu]","\[Nu]","\[Lambda]","\[Rho]","\[Sigma]","\[Eta]","\[Xi]","\[Upsilon]"};
 FLAVOR={"p","r","s","t","u","v"};
@@ -787,7 +788,7 @@ KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]
 
 (* ::Input::Initialization:: *)
 basisReduceByFirst[tensor_,len_]:=Module[{pos},
-pos=basisReducePro[Extract[tensor,ConstantArray[1,len]],Identity]["pos"];
+pos=basisReducePro[Extract[tensor,ConstantArray[1,len]]]["pos"];
 TensorTranspose[Map[Part[#,pos]&,tensor,{len}],Append[Range[2,len+1],1]]
 ]
 
@@ -822,11 +823,11 @@ generators=Merge[factors["generators"],SparseArray/@
 Flatten[MapThread[TensorProduct,#],{{1},2Range[Length[NAgroups]+1],2Range[Length[NAgroups]+1]+1}]&];
 If[OptionValue[DeSym],
 (* desym monomials *)
-pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&],Identity]["pos"]&,yngList];
+pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["pos"]&,yngList];
 Map[Part[Flatten[opBasis],#]&,pCoord,{2}],
 (* sym result *)
 Switch[OptionValue[TakeFirstBasis],
-True,pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&],Identity]["mvalues"]&,yngList],
+True,pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["mvalues"]&,yngList],
 False,
 (* full basis *)
 pCoord=AssociationMap[basisReduceByFirst[Outer[Dot,##,1]&@@Merge[{generators,#},Table[PermRepFromGenerator[#[[1]],YO[#[[2]],1,i]],{i,SnIrrepDim[#[[2]]]}]&],len]&,yngList]

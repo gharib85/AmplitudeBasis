@@ -205,7 +205,7 @@ result
 ];
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Tensor Reduction related*)
 
 
@@ -243,6 +243,15 @@ Switch[x,_Plus,Return[Plus@@(Product2ContractV2[#,inarglist,Symb2Num->tval]&/@Su
 )];,
 _,Return[Product2ContractV2[x,inarglist,Symb2Num->tval]]];
 result
+]
+
+
+(* ::Input::Initialization:: *)
+FindGaugeCoord[group_,gaugefactor_]:=Module[{sample,mb},
+If[Head[gaugefactor]===Plus,
+sample=Times@@Cases[Prod2List[Sum2List[gaugefactor][[1]]],Except[_?(NumberQ)]];Print[sample],
+sample=gaugefactor];mb=GaugeMBasis[group,Values@IndexRep[SymbolicTC@sample]];
+{mb["basis"],FindTensorCor[SymbolicTC[gaugefactor,WithIndex->False],mb["co-basis_coord"],tVal[group]]}
 ]
 
 
@@ -325,6 +334,55 @@ If[!IntegerQ[trank]||trank==0,Return[result[[1]]]];
 unflatten[result,tdim]
 ]
 
+
+
+(* ::Input::Initialization:: *)
+Clear[GaugeMBasis];
+Options[GaugeMBasis]={debug->False,YBasis->False};
+GaugeMBasis[group_,replist_,OptionsPattern[]]:=Module[{indlist,ind,indexRepeat,nonSingletIndex,nonSingletIndexRepeat,ybasis,tybasis,ytensor,dimB,coybasis,convert,result={{},{},{{}}},tensorlist,tensorexamined={},tensorValue={},mbasis,ginv,tvCo,iter=0,trans},indlist=Array[ind,Length[replist]];ybasis=GaugeYT[group,Abs[replist]];If[ybasis=={1},Return[Association["basis"->{1},"co-basis_coord"->{{1}},"trans"->{{1}}]]];dimB=Length[ybasis];If[OptionValue[debug],Print[Dynamic[iter],"/",dimB];Print[Dynamic[Length[First[result]]],"/",dimB]];convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,Transpose[{replist,indlist}]]];
+Do[iter++;
+tensorlist=SimpGFV2[{tReduce[SymbolicTC[ExpandSimplify[b convert,tY2M],WithIndex->False]]}];
+tensorlist=Complement[tensorlist,tensorexamined];If[tensorlist=={},Continue];mbasis=basisReducePro[tensorlist,Initial->result,PreTreat->(SparseArray[Flatten[NumericContraction[#1,tVal[group]]]]&),TargetDim->dimB-Length[First[result]],ShowProgress->debug];result=mbasis/@{"mbasis","mvalues","metric"};If[Length[First[result]]==dimB,Break[]];tensorexamined=tensorexamined\[Union]tensorlist,{b,ybasis}];
+ginv=If[dimB<50,Inverse[result[[3]]],Inverse[N[result[[3]]]]];tvCo=ConjugateTranspose[result[[2]]].Conjugate[ginv];
+If[OptionValue[YBasis],tybasis=tReduce[SymbolicTC[ExpandSimplify[# convert,tY2M],WithIndex->False]]&/@ybasis;trans=FindTensorCor[#,tvCo,tVal[group]]&/@tybasis;Association["basis"->result[[1]],"co-basis_coord"->tvCo,"ybasis"->tybasis,"trans"->trans],Association["basis"->result[[1]],"co-basis_coord"->tvCo]
+]
+]
+(*GaugeMBasis[group_,replist_,debug_:False]:=Module[{indlist,ind,indexRepeat,nonSingletIndex,nonSingletIndexRepeat,
+ybasis,dimB,coybasis,convert,result={{},{},{{}}},tensorlist,tensorexamined={},tensorValue={},mbasis,ginv,tvCo,iter=0,trans},
+indlist=Array[ind,Length[replist]];
+
+ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"co-basis_coord"->{{1}},"trans"->{{1}}|>]];
+dimB=Length[ybasis];
+(*coybasis=ybasis.(Outer[TensorInner,ybasis,ybasis]//Inverse);*)
+
+If[debug,Print[Dynamic[iter],"/",dimB];
+Print[Dynamic[Length[First@result]],"/",dimB]];
+convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];
+
+Do[iter++;
+tensorlist=SimpGFV2[{tReduce@SymbolicTC[(*Expand[b convert]*)ExpandSimplify[b convert,tY2M],WithIndex->False]} ];
+tensorlist=Complement[tensorlist,tensorexamined];
+If[tensorlist=={},Continue];
+mbasis=basisReducePro[tensorlist,
+Initial->result,
+PreTreat->(SparseArray@Flatten@NumericContraction[#,tVal[group]]&),TargetDim->dimB-Length[First@result],
+ShowProgress->debug];
+result=mbasis/@{"mbasis","mvalues","metric"};
+If[Length[First@result]==dimB,Break[]];
+tensorexamined=Union[tensorexamined,tensorlist],
+{b,ybasis}];
+
+(*tensorlist=SimpGFV2[tReduce@SymbolicTC[ExpandSimplify[# convert,tY2M],WithIndex->False]&/@ybasis];
+mbasis=basisReducePro[tensorlist,PreTreat\[Rule](SparseArray@Flatten@NumericContraction[#,tVal[group]]&),TargetDim->dimB,ShowProgress->debug];
+result=<|"basis"->mbasis["mbasis"]|>;*)
+
+ginv=If[dimB<50,Inverse[result[[3]]],Inverse[result[[3]]//N]];
+tvCo=result[[2]]\[ConjugateTranspose].ginv\[Conjugate];
+
+(*trans=Outer[TensorInner,(UnContract/@Through[result[[1]]@@indlist])TensorConj[convert],coybasis]//Simplify;*)
+
+<|"basis"->result[[1]],"co-basis_coord"->tvCo(*,"trans"\[Rule]trans*)|>
+]*)
 
 
 (* ::Subsubsection:: *)
@@ -416,16 +474,69 @@ AuxResolve2[result,linkedmap,{Range[n]->Singlet[group]},{},hierarchy];
 result=KeySelect[#,Function[x,Cases[partition,x]!={}]]&/@result;Do[chainmap=result[[i]];MapThread[(chainmap[{#1}]=#2)&,{Range[n],replist}];result[[i]]=result[[i]]->Times@@(AuxNum[group,#1,chainmap,hierarchy]&)/@temp1[[1;;All,1]];,{i,Length[result]}];result];
 
 
+(*Casimir operators*)
+C2[tensor_,ch_]:=Module[{dummy,arglist=List@@tensor,channel=Part[IndexRep[tensor],ch],ttemp=UnContract[tensor],x},
+dummy=Unique[];
+(*Print[channel];*)
+ttemp=Plus@@KeyValueMap[TGen[#2][x,#1,dummy]*(ttemp/.#1->dummy)&,channel];
+(*Print[ttemp];*)
+dummy=Unique[];
+ttemp=Plus@@KeyValueMap[TGen[#2][x,#1,dummy]*(ttemp/.#1->dummy)&,channel];
+(*Print[ttemp];*)
+tReduce@SymbolicTC[ttemp//Expand,WithIndex->False]
+]
+C3[tensor_,ch_]:=Module[{dummy,arglist=List@@tensor,channel=Part[IndexRep[tensor],ch],ttemp=UnContract[tensor],x,y,z},
+dummy=Unique[];
+ttemp=Plus@@KeyValueMap[TGen[#2][x,#1,dummy]*(ttemp/.#1->dummy)&,channel];
+dummy=Unique[];
+ttemp=Plus@@KeyValueMap[TGen[#2][y,#1,dummy]*(ttemp/.#1->dummy)&,channel];
+dummy=Unique[];
+ttemp=Plus@@KeyValueMap[TGen[#2][z,#1,dummy]*(ttemp/.#1->dummy)&,channel];
+tReduce@SymbolicTC[(dabc[x,y,z])ttemp//Expand,WithIndex->False]
+]
+
+S2[rep_]:=Module[{\[Lambda]=PadRight[Dynk2Yng[rep],Length[rep]+1],n,m,\[Rho]},
+n=Length[\[Lambda]];
+m=\[Lambda]-Total[\[Lambda]]/n;
+\[Rho]=n-Range[n];
+Total[MapThread[(#1+#2)^2-#1^2&,{\[Rho],m}]]/2
+]
+S3[rep_]:=Module[{\[Lambda]=PadRight[Dynk2Yng[rep],Length[rep]+1],n,m,\[Rho]},
+n=Length[\[Lambda]];
+m=\[Lambda]-Total[\[Lambda]]/n;
+\[Rho]=n-Range[n];
+Total[MapThread[(#1+#2)^3-#1^3&,{\[Rho],m}]]/2
+]
+C2V[rep_]:=C2V[rep]=S2[rep];
+C3V[rep_]:=C3V[rep]=S3[rep]-3S2[rep];
+
+GetCMatrix[group_,C_,mbasis_,cobasis_,part_]:=Merge[MapThread[Association[Rule[#1,#2]]&,Eigensystem[FindTensorCor[#,cobasis,tVal[group]]&/@(C[#,part]&/@mbasis)]],Identity]
+GetCIntersection[part_,CV_,Cmatrices_]:=LinearIntersection@@MapThread[#1[part][#2]&,{Cmatrices,CV}]
+
+
 (* ::Input::Initialization:: *)
 Options[GaugeJBasis]={Index->"default"};
-GaugeJBasis[group_,replist_,parts_,OptionsPattern[]]:=Module[{indmap,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},result,ntarget,
+{
+ {GaugeJBasis[group_,replist_,parts_,OptionsPattern[]]:=Module[{nrep=Length@replist,ind,indlistJ,indmap,singletpos,nonsingletpos,nonsingletn,replacerule,nonsingletparts,SUNrepPartlist,ntarget,indexct,indlist,mbasis,mbasisInd,mbasisInd2,CVParts,CMatrices={},C2Matrices,C3Matrices,finalresult},
+  If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[Index]];
+  singletpos=
+  Flatten@Position[replist,ConstantArray[0,Length[group]]];
+  nonsingletpos=Complement[Range[nrep],singletpos];
+  nonsingletn=Length[replist]-Length[singletpos];
+  replacerule=MapThread[Rule,{nonsingletpos,Range[nonsingletn]}];
+  nonsingletparts=
+  DeleteCases[parts,Alternatives@@singletpos,2]/.replacerule;indexct=AssociationThread[Union[Values[indmap]]->0];indlist=(IndexIterator[indmap[#1],indexct]&)/@replist;indlistJ=Sequence@@Array[ind,nonsingletn];mbasis=GaugeMBasis[group,replist];If[mbasis["basis"]=={1},Return[Association["basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}]]];mbasisInd=(TensorAddIndex[#1,indmap]&)/@mbasis["basis"];
+  mbasisInd2=Through[mbasis["basis"][indlistJ]];
+  finalresult=Association["basis"->mbasisInd];SUNrepPartlist=FindRepPathPartition[group,Abs[replist],parts];AppendTo[CMatrices,Association[Apply[Rule,MapThread[{#1,GetCMatrix[group,C2,mbasisInd2,mbasis["co-basis_coord"],#2]}&,{parts,nonsingletparts}],{1}]]];If[Length[group]>=2,AppendTo[CMatrices,Association[Apply[Rule,MapThread[{#1,GetCMatrix[group,C3,mbasisInd2,mbasis["co-basis_coord"],#2]}&,{parts,nonsingletparts}],{1}]]];CVParts=Function[u,({C2V[#1],C3V[Reverse[#1]]}&)/@u]/@SUNrepPartlist[[All,1]];,CVParts=Function[u,({C2V[#1]}&)/@u]/@SUNrepPartlist[[All,1]];];finalresult["jcoord"]=Thread[SUNrepPartlist[[All,1]]->Function[u,LinearIntersection@@KeyValueMap[GetCIntersection[#1,#2,CMatrices]&,u]]/@CVParts];finalresult]}
+}
+(*GaugeJBasis[group_,replist_,parts_,OptionsPattern[]]:=Module[{indmap,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},result,ntarget,
 indexct,indlist,ybasis,convert,tensorlist,tensorValue,mbasis,mbasisInd,finalresult,qr},
 If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[Index]];
 indexct=AssociationThread[Union@Values[indmap]->0];
 indlist=IndexIterator[indmap[#],indexct]&/@replist;
 ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}|>]];
 convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];
-tensorlist=SimpGFV2[tReduce@SymbolicTC[Expand[# convert],WithIndex->False]&/@ybasis];
+tensorlist=SimpGFV2[tReduce@SymbolicTC[ExpandSimplify[# convert,tY2M],WithIndex->False]&/@ybasis];
 
 tensorValue=NumericContraction[tVal[group]]/@tensorlist;
 mbasis=basisReduce[Flatten/@tensorValue];
@@ -462,23 +573,25 @@ AppendTo[coordresult,SUNrepPartlist[[i,1]]->tempresult];
 ,{i,Length[SUNrepPartlist]}
 ];
 AssociateTo[finalresult,"jcoord"->coordresult]
-]
+]*)
+
+
 
 
 (* ::Subsubsection:: *)
 (*Symmetrization related*)
 
 
-(* ::Input::Initialization:: *)
-(*find the independent m-basis tensors and store them into the symbolic forms, numerical tensor forms and numerical vector forms*)
-FindIndependentMbasis[Mbasis_,tMbasis_,vMbasis_]:=Module[{result,tempI},
-result=Part[#,basisReduce[vMbasis]["pos"]]&/@{Mbasis,tMbasis,vMbasis};
-tempI=If[Or@@(#\[Element]Reals&/@#),1,I]&/@result[[3]];
-tempI*#&/@result
-]
-(*Delete duplicated list of tensors that are propotional to each other*)
-SimpGFV2[x_]:=If[Length[x]>=1,DeleteDuplicates[Replace[#,{_Rational->1,_Integer->1,_Complex->1},{1}]&/@(Flatten@(x/.Plus->List))],x]
-
+(* ::Input:: *)
+(*(*find the independent m-basis tensors and store them into the symbolic forms, numerical tensor forms and numerical vector forms*)*)
+(*FindIndependentMbasis[Mbasis_,tMbasis_,vMbasis_]:=Module[{result,tempI},*)
+(*result=Part[#,basisReduce[vMbasis]["pos"]]&/@{Mbasis,tMbasis,vMbasis};*)
+(*tempI=If[Or@@(#\[Element]Reals&/@#),1,I]&/@result[[3]];*)
+(*tempI*#&/@result*)
+(*]*)
+(*(*Delete duplicated list of tensors that are propotional to each other*)*)
+(*SimpGFV2[x_]:=If[Length[x]>=1,DeleteDuplicates[Replace[#,{_Rational->1,_Integer->1,_Complex->1},{1}]&/@(Flatten@(x/.Plus->List))],x]*)
+(**)
 
 
 (* ::Input:: *)
@@ -600,59 +713,72 @@ AssociateTo[result,"generators"->Map[(Flatten/@#).qr&,Merge[permresult,Identity]
 
 
 
+(* ::Input:: *)
+(*GaugePermGenerator[group_,replist_,debug_:False]:=Module[{indlist,ind,indexRepeat,nonSingletIndex,nonSingletIndexRepeat,ybasis,dimB,convert,tensorlist,tensorValue={},dimtemp=0,iter=0,mbasis,ginv,tvCo,mtensor={},result,dummy,perm1,perm2,permresult,dimtest,ortho={},rowreduce={},qrtemp=0,tvtemp,tvorth,status,step=1,pos,finalresult},*)
+(*indlist=Array[ind,Length[replist]];*)
+(*indexRepeat=Select[PositionIndex[replist],Length[#]>1&];*)
+(*nonSingletIndex=KeyDrop[PositionIndex[replist],{Singlet[group]}];*)
+(*nonSingletIndexRepeat=KeyDrop[indexRepeat,{Singlet[group]}];*)
+(**)
+(*If[debug==True,Print["get ybasis .."]];*)
+(*ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"generators"-><||>|>]];*)
+(*dimB=Length[ybasis];*)
+(*If[debug==True,Print[dimB," ybasis"]];*)
+(*convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];*)
+(**)
+(*If[debug==True,Print["get mbasis .."]];*)
+(*(*tensorlist=Import["mbasis.m"];*)*)
+(*tensorlist=SimpGFV2[tReduce@SymbolicTC[ExpandSimplify[# convert,tY2M],WithIndex->False]&/@ybasis];*)
+(*If[debug==True,Print[Length[tensorlist]," monomials"]];*)
+(**)
+(*mbasis=basisReducePro[tensorlist,PreTreat->(SparseArray@Flatten@NumericContraction[#,tVal[group]]&),TargetDim->dimB,ShowProgress->debug];*)
+(*(*mbasis=Import["mbasis_result.m"];*)*)
+(*result=<|"basis"->mbasis["mbasis"]|>;*)
+(*If[Length[indexRepeat]==0,Return[AssociateTo[result,"generators"-><||>]]];*)
+(*If[debug==True,Print["mbasis obtained"]];*)
+(**)
+(*If[debug==True,Print["linear solve .."]];*)
+(*ginv=If[dimB<30,Inverse[mbasis["metric"]],*)
+(*Inverse[mbasis["metric"]//N]];*)
+(*tvCo=mbasis["mvalues"]\[ConjugateTranspose].ginv\[Conjugate];*)
+(*If[debug===True,Print["orthonormality: ",MatchQ[Chop@Flatten[(Flatten/@mbasis["mvalues"]).tvCo-IdentityMatrix[dimB]],{0..}]]];*)
+(**)
+(*(*If[debug==True,Print["get generators .."]];*)
+(*perm1=Normal@IndexInvPermute[Cycles[{{1,2}}],ind/@# ]&/@indexRepeat;*)
+(*perm2=Normal@IndexInvPermute[Cycles[{Range[Length[#]]}],ind/@#]&/@indexRepeat;*)
+(*permresult=Merge[{perm1,perm2},Identity];*)
+(*If[debug==True,Print[permresult]];*)*)
+(*(*Print[nonSingletIndexRepeat];*)
+(*Print[PositionIndex[replist]];*)
+(*Print[Union@@Values@nonSingletIndex];*)
+(*Print[Map[First@FirstPosition[Union@@Values@nonSingletIndex,#]&,nonSingletIndexRepeat,{2}]];*)*)
+(*If[debug==True,Print["start permuting"]];Print[nonSingletIndexRepeat];*)
+(*permresult=Function[repeat,Transpose[ApplyGenerator[#,First@FirstPosition[Union@@Values@nonSingletIndex,#]&/@repeat ]&/@result["basis"]]]/@nonSingletIndexRepeat;*)
+(**)
+(*If[debug==True,Print["numerical components .."]];*)
+(*permresult=Map[If[True(*(pos=Position[result["basis"],#])\[Equal]{}*),*)
+(*SparseArray@Flatten@NumericContraction[#,tVal[group]],*)
+(*Extract[mbasis["mvalues"],pos]]&,permresult,{3}];*)
+(*If[debug==True,Print[Dimensions/@permresult]];*)
+(**)
+(*finalresult=Map[Chop[#.tvCo]&,permresult,{2}];*)
+(*If[Count[replist,Singlet[group]]>1,AssociateTo[finalresult,Singlet[group]->ConstantArray[IdentityMatrix[Length[result["basis"]]],2]]];*)
+(**)
+(*If[debug==True,Print["find coord .."]];*)
+(*AssociateTo[result,"generators"->Simplify/@finalresult]*)
+(*]*)
+
+
 (* ::Input::Initialization:: *)
-GaugePermGenerator[group_,replist_,debug_:False]:=Module[{indlist,ind,indexRepeat,nonSingletIndex,nonSingletIndexRepeat,ybasis,dimB,convert,tensorlist,tensorValue={},dimtemp=0,iter=0,mbasis,ginv,tvCo,mtensor={},result,dummy,perm1,perm2,permresult,dimtest,ortho={},rowreduce={},qrtemp=0,tvtemp,tvorth,status,step=1,pos,finalresult},
-indlist=Array[ind,Length[replist]];
-indexRepeat=Select[PositionIndex[replist],Length[#]>1&];
-nonSingletIndex=KeyDrop[PositionIndex[replist],{Singlet[group]}];
-nonSingletIndexRepeat=KeyDrop[indexRepeat,{Singlet[group]}];
-
-If[debug==True,Print["get ybasis .."]];
-ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"generators"-><||>|>]];
-dimB=Length[ybasis];
-If[debug==True,Print[dimB," ybasis"]];
-convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];
-
-If[debug==True,Print["get mbasis .."]];
-(*tensorlist=Import["mbasis.m"];*)
-tensorlist=SimpGFV2[tReduce@SymbolicTC[Expand[# convert],WithIndex->False]&/@ybasis];
-If[debug==True,Print[Length[tensorlist]," monomials"]];
-
-mbasis=basisReducePro[tensorlist,SparseArray@Flatten@NumericContraction[#,tVal[group]]&,TargetDim->dimB,ShowProgress->debug];
-(*mbasis=Import["mbasis_result.m"];*)
-result=<|"basis"->mbasis["mbasis"]|>;
-If[Length[indexRepeat]==0,Return[AssociateTo[result,"generators"-><||>]]];
-If[debug==True,Print["mbasis obtained"]];
-
-If[debug==True,Print["linear solve .."]];
-ginv=If[dimB<30,Inverse[mbasis["metric"]],
-Inverse[mbasis["metric"]//N]];
-tvCo=mbasis["mvalues"]\[ConjugateTranspose].ginv\[Conjugate];
-If[debug===True,Print["orthonormality: ",MatchQ[Chop@Flatten[(Flatten/@mbasis["mvalues"]).tvCo-IdentityMatrix[dimB]],{0..}]]];
-
-(*If[debug==True,Print["get generators .."]];
-perm1=Normal@IndexInvPermute[Cycles[{{1,2}}],ind/@# ]&/@indexRepeat;
-perm2=Normal@IndexInvPermute[Cycles[{Range[Length[#]]}],ind/@#]&/@indexRepeat;
-permresult=Merge[{perm1,perm2},Identity];
-If[debug==True,Print[permresult]];*)
-(*Print[nonSingletIndexRepeat];
-Print[PositionIndex[replist]];
-Print[Union@@Values@nonSingletIndex];
-Print[Map[First@FirstPosition[Union@@Values@nonSingletIndex,#]&,nonSingletIndexRepeat,{2}]];*)
-If[debug==True,Print["start permuting"]];
-permresult=Function[repeat,Transpose[ApplyGenerator[#,First@FirstPosition[Union@@Values@nonSingletIndex,#]&/@repeat ]&/@result["basis"]]]/@nonSingletIndexRepeat;
-
-If[debug==True,Print["numerical components .."]];
-permresult=Map[If[True(*(pos=Position[result["basis"],#])\[Equal]{}*),
-SparseArray@Flatten@NumericContraction[#,tVal[group]],
-Extract[mbasis["mvalues"],pos]]&,permresult,{3}];
-If[debug==True,Print[Dimensions/@permresult]];
-
-finalresult=Map[Chop[#.tvCo]&,permresult,{2}];
-If[Count[replist,Singlet[group]]>1,AssociateTo[finalresult,Singlet[group]->ConstantArray[IdentityMatrix[Length[result["basis"]]],2]]];
-
-If[debug==True,Print["find coord .."]];
-AssociateTo[result,"generators"->Simplify/@finalresult]
+Clear[GaugePermGenerator1,ConjugateRep];
+ConjugateRep[rep_]:=If[Length[rep]>1,Reverse[rep],(-1)^Abs[rep[[1]]]rep]
+GaugePermGenerator1[basis_,cobasis_,tval_]:=Module[{sample=First@basis,rank,reppos,repeat,tensorperm,gen},
+rank=tRank[sample];
+If[rank==0,Return[<||>]];
+reppos=KeyMap[ConjugateRep,Select[Merge[Reverse/@Normal@IndexRep[sample@@Range[rank]],Identity],Length[#]>1&]];
+tensorperm=Function[repeat,ApplyGenerator[#,repeat]&/@basis]/@reppos;
+gen=Transpose/@Map[FindTensorCor[#,cobasis,tval]&,tensorperm,{2}];
+Return[gen];
 ]
 
 
@@ -661,22 +787,24 @@ Options[GaugeBasisAux]={Index->"default"};
 GaugeBasisAux[group_,replist_,posRepeat_,OptionsPattern[]]:=Module[{indmap,indexct,indlist,shift,yngList,gaugeGen,mbasis,mbasisInd,dummy,
 trivial=False,result},
 If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[Index]];
-indexct=AssociationThread[Union@Values[indmap]->0];
-indlist=IndexIterator[indmap[#],indexct]&/@replist;
-{mbasis,gaugeGen}=Values@GaugePermGenerator[group,replist];
-If[MatchQ[indlist,{0..}],mbasisInd=mbasis,mbasisInd=TensorAddIndex[indmap,indexct,Through[mbasis@@DeleteCases[indlist,0]]]];
-If[gaugeGen==<||>,trivial=True]; (* all singlets *)
-result=<|"basis"->mbasisInd|>;
 
+mbasis=GaugeMBasis[group,replist];
+gaugeGen=GaugePermGenerator1[mbasis["basis"],mbasis["co-basis_coord"],tVal[group]];
+mbasisInd=TensorAddIndex[#,indmap]&/@mbasis["basis"];
+(*{mbasis,gaugeGen}=Values@GaugePermGenerator[group,replist];*)
+If[gaugeGen==<||>,trivial=True];
+(*If[MatchQ[indlist,{0..}],mbasisInd=mbasis["basis"],mbasisInd=TensorAddIndex[indmap,indexct,Through[mbasis["basis"]@@DeleteCases[indlist,0]]]];
+*) (* all singlets *)
+result=<|"basis"->mbasisInd|>;
 shift=FirstPosition[PositionIndex[replist],First[#]]&/@posRepeat;
 Switch[Head[posRepeat],
 Association,
-If[trivial,Return[Append[result,"p-basis"-><|{}->IdentityMatrix[Length[mbasis]]|>]]];
+If[trivial,Return[Append[result,"p-basis"-><|{}->IdentityMatrix[Length[mbasis["basis"]]]|>]]];
 yngList=IntegerPartitions@Length[#]&/@posRepeat;
 yngList=AssociationThread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
 Append[result,"p-basis"->
 DeleteCases[Association@Map[Normal[#]->
-basisReducePro[Dot@@KeyValueMap[PermRepFromGenerator[gaugeGen[[shift[#1][[1]]]],YO[#2,shift[#1][[2]]]]&,#],Identity]["mvalues"]&,yngList],{}]],
+basisReducePro[Dot@@KeyValueMap[PermRepFromGenerator[gaugeGen[[shift[#1][[1]]]],YO[#2,shift[#1][[2]]]]&,#]]["mvalues"]&,yngList],{}]],
 
 List,
 If[trivial,Return[Append[result,"generators"-><|#->{{{1}},{{1}}}&/@posRepeat|>]]];
@@ -688,7 +816,7 @@ Association@MapThread[
 ]
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Lie Algebra*)
 
 
