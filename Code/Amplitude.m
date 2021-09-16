@@ -279,12 +279,23 @@ Append[result,"jcoord"->Normal@DeleteCases[AssociationMap[LinearIntersection@@Ma
 
 
 (* ::Input::Initialization:: *)
+Adim[amp_]:=Module[{mass},If[amp[[0]]===Plus,Exponent[amp[[1]]//.{ab[x_,y_]:>mass,sb[x_,y_]:>mass},mass],Exponent[amp//.{ab[x_,y_]:>mass,sb[x_,y_]:>mass},mass]]];
+FillingList[list_List,l_]:=If[Length@list<l,Join[list,ConstantArray[0,l-Length@list]],list[[;;l]]];
 (* to be added: normalization of pwbasis *)
-PWExpand[amp:Except[_List],num_,ch_]:=Module[{state,k,PW,coord},
-{state,k}=GetState[amp,num];
-PW=W2Diagonalize[state,k,ch,OutputFormat->"working"];
-coord=FindCor[reduce[amp,num],PW["basis"]];
-Append[KeyDrop[PW,{"transfer","basis"}],"coeff"->LinearSolve[PW["transfer"]\[Transpose],coord]]
+PWExpand[amp:Except[_List],num_,ch_,OptionsPattern[]]:=Module[{ampexpand=Expand[amp],state,k,PW,coord,LorJBasis,MandCoef,maxdim,Jcoord},
+If[ampexpand[[0]]===Plus,{state,k}=GetState[ampexpand[[1]],num];maxdim=Adim[ampexpand[[1]]],{state,k}=GetState[ampexpand,num];maxdim=Adim[ampexpand]];
+PW=(*ShowOnlyNonzero@*)W2Diagonalize[state,k,ch,OutputFormat->"working"];
+coord=FindCor[reduce[ampexpand,num],PW["basis"]];
+If[OptionValue[LorStrBasis],LorJBasis=If[OptionValue[preBasis]===False,<|#->IndepJLorUpToDim[state,ch,#,MaxK->k]&/@Table[ij,{ij,Min[PW["j"]],Max[PW["j"]]}]|>,Select[#,Adim[#]<=maxdim&]&/@<|#->OptionValue[preBasis][#]&/@Table[ij,{ij,Min[PW["j"]],Max[PW["j"]]}]|>];
+MandCoef=Map[ShowSpecJ[W2Diagonalize[ConstantArray[0,num],maxdim-Adim[#],ch,OutputFormat->"working"],0]&,LorJBasis,{2}];(*Print["LorJBasis= ",LorJBasis];Print["MandCoef= ",MandCoef];*)PW=<|"j"->{},"j-basis"->{},"transfer"->{},"basis"->PW["basis"]|>;
+Do[Jcoord={};
+Do[(*AppendTo[PW["j"],ij];AppendTo[PW["j-basis"],LorJBasis[ij]\[LeftDoubleBracket]LorJnum\[RightDoubleBracket]];AppendTo[PW["transfer"],{ij,LorJnum}\[Rule]{}];*)
+Do[AppendTo[Jcoord,FindCor[reduce[LorJBasis[ij][[LorJnum]]Mands//Expand,num],PW["basis"]]];(*Print["Jcoord= ",Jcoord];*)If[MatrixRank@Jcoord<Length@Jcoord,Print["non-independent mandelstam"];Jcoord=Delete[Jcoord,-1],AppendTo[PW["j"],ij];AppendTo[PW["j-basis"],LorJBasis[ij][[LorJnum]]];AppendTo[PW["transfer"],Jcoord[[-1]]/Mands]]
+,{Mands,MandCoef[ij][[LorJnum]]}]
+,{LorJnum,Length@LorJBasis[ij]}]
+,{ij,Keys[LorJBasis]}];(*Print[PW["transfer"]];*)(*PW["transfer"]=Plus@@@PW["transfer"];*)If[!Length@PW["transfer"]===Length@PW["j-basis"],Print["J skip"]]]
+;PW=Append[KeyDrop[PW,{"transfer","basis"}],"coeff"->LinearSolve[PW["transfer"]\[Transpose],coord]];LorJBasis=DeleteDuplicates@PW["j-basis"];Jcoord=Flatten/@(Position[PW["j-basis"],#,1]&/@LorJBasis);PW["j-basis"]=LorJBasis;PW["coeff"]=Plus@@Part[PW["coeff"],#]&/@Jcoord;PW["j"]=Mean/@(Part[PW["j"],#]&/@Jcoord);
+PW
 ]
 PWExpand[amp_List,num_,ch_]:=Module[{state,k,PW,coordlist},
 {state,k}=If[Length[#]>1,Print["amp list with different {state,k}"];Abort[],#[[1,1]]]&@Tally[GetState[#,num]&/@amp];
@@ -292,13 +303,23 @@ PW=W2Diagonalize[state,k,ch,OutputFormat->"working"];
 coordlist=FindCor[reduce[#,num],PW["basis"]]&/@amp;
 Append[KeyDrop[PW,{"transfer","basis"}],"coeff"->coordlist.LinSolve[PW["transfer"]]]
 ]
-PWExpand[amp_,num_,ch_,denom_,jmax_]:=Module[{state,kini,k,jini,extraMand,pw,pw2,coref},
-state=First@GetState[amp/denom,num];
-kini=Last@GetState[amp,num];
+Options[PWExpand]={LorStrBasis->False,preBasis->False};
+PWExpand[amp_,num_,ch_,denom_,jmax_,OptionsPattern[]]:=Module[{state,kini,k,jini,extraMand,pw,pw2,coref,ampexpand=Expand[amp],demexpand=Expand[denom],numerstate,lorJbasis,equnum,jd},
+If[ampexpand[[0]]===Plus,{numerstate,kini}=GetState[ampexpand[[1]],num];If[demexpand[[0]]===Plus,state=First@GetState[ampexpand[[1]]/denom[[1]],num],state=First@GetState[ampexpand[[1]]/denom,num]],
+{numerstate,kini}=GetState[ampexpand,num];If[demexpand[[0]]===Plus,state=First@GetState[ampexpand/denom[[1]],num],state=First@GetState[ampexpand/denom,num]]];If[OptionValue[LorStrBasis],
+jini=Abs[state[[ch[[1]]]]-state[[ch[[2]]]]];pw=<|#->IndepJLorUpToDim[state,ch,#]&/@If[jmax===jini,{jini,jini+1},Table[ij,{ij,jini,jmax}]]|>;
+jini=Abs[numerstate[[ch[[1]]]]-numerstate[[ch[[2]]]]];jd=Max[PWExpand[denom,num,ch,LorStrBasis->False]["j"]];(*Print[jini,jd];*)
+lorJbasis=<|#->IndepJLorUpToDim[numerstate,ch,#]&/@Table[ij,{ij,jini,If[jmax===Abs[state[[ch[[1]]]]-state[[ch[[2]]]]],jmax+1,jmax]+1+jd}]|>;
+pw=<|"j"->Flatten[ConstantArray[#,Length[pw[#]]]&/@Keys@pw],"j-basis"->Flatten[Values@pw]|>;
+pw2=PWExpand[denom #,num,ch,LorStrBasis->True,preBasis->lorJbasis]["coeff"]&/@pw["j-basis"];
+equnum=Length@Flatten[lorJbasis/@Table[ij,{ij,jini,jmax-jd}]];
+coref=PWExpand[ampexpand,num,ch,LorStrBasis->True,preBasis->lorJbasis]["coeff"];
+Append[pw,"coeff"->LinearSolve[Transpose[FillingList[#,equnum]&/@pw2],FillingList[coref,equnum]]]
+,
 jini=Max[W2Diagonalize[state,k=kmin[state],ch,OutputFormat->"working"]["j"]];
 extraMand=Max[0,Floor[jmax-jini]];
 pw=W2Diagonalize[state,k+2extraMand,ch,OutputFormat->"working"];
 pw2=PWExpand[denom pw["j-basis"],num,ch];
 coref=PWExpand[amp Power[Mandelstam[ch],(Last@GetState[pw2["j-basis"][[1]],num]-kini)/2],num,ch]["coeff"];Print[pw2["coeff"]];
-Append[KeyDrop[pw,{"transfer","basis"}],"coeff"->LinearSolve[pw2["coeff"][[All,-Length[pw["j"]];;]]\[Transpose],coref[[-Length[pw["j"]];;]]]]
+Append[KeyDrop[pw,{"transfer","basis"}],"coeff"->LinearSolve[pw2["coeff"][[All,-Length[pw["j"]];;]]\[Transpose],coref[[-Length[pw["j"]];;]]]]]
 ]
