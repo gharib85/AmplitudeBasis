@@ -790,7 +790,7 @@ If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[
 
 mbasis=GaugeMBasis[group,replist];
 gaugeGen=GaugePermGenerator1[mbasis["basis"],mbasis["co-basis_coord"],tVal[group]];
-gaugeGen[Singlet[group]]={{{1}},{{1}}};
+gaugeGen[Singlet[group]]=ConstantArray[IdentityMatrix[Length[mbasis["basis"]]],2];
 mbasisInd=TensorAddIndex[#,indmap]&/@mbasis["basis"];
 (*{mbasis,gaugeGen}=Values@GaugePermGenerator[group,replist];*)
 If[gaugeGen==<||>,trivial=True];
