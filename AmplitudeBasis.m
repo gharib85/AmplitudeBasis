@@ -42,7 +42,7 @@ BeginPackage["AmplitudeBasis`"]
 {tAssumptions,tRep,tOut,tVal,tYDcol,tSimp,dummyIndexCount,GellMann,ConvertToFundamental,PrintTensor};
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Help Text*)
 
 
@@ -132,7 +132,6 @@ Do[Get[file],{file,Global`$CodeFiles}];
 
 
 (* ::Subsection:: *)
-
 (*Model Input*)
 
 
@@ -316,7 +315,6 @@ sign{deltaB,deltaL}
 
 
 (* ::Subsection:: *)
-
 (*Lorentz Basis*)
 
 
@@ -391,14 +389,14 @@ If[flip,ybasis=ybasis/.{ab->sb,sb->ab};lorentzGen=KeyMap[-1#&,lorentzGen]];
 Switch[OptionValue[OutputFormat],
 "amplitude",mbasis=ybasis[[1,1]],
 
-"operator",If[OptionValue[newmethod],(*Print[state,k,OptionValue[AdlerZero]];*)amp2op=LorBasis[state,k,AdlerZero->OptionValue[AdlerZero]],amp2op=MonoLorentzBasis[ybasis[[1,1]],Length[state],finalform->False]];
+"operator",If[OptionValue[newmethod],(*Print[state,k,OptionValue[AdlerZero]];*)amp2op=LorBasis[If[flip,-1,1]state,k,AdlerZero->OptionValue[AdlerZero]]/.If[flip,{h2f[-1/2]->h2f[1/2],h2f[1/2]->h2f[-1/2],h2f[-1]->h2f[1],h2f[1]->h2f[-1],"\[Sigma]"->"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)","\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"->"\[Sigma]"},{}],amp2op=MonoLorentzBasis[ybasis[[1,1]],Length[state],finalform->False]];
 mbasis=amp2op["LorBasis"];
 (*transform[amp2op["LorBasis"],ReplaceField->OptionValue[ReplaceField],
 OpenFchain->OptionValue[finalform],ActivatePrintTensor->OptionValue[finalform]];*)
 lorentzGen=Map[Transpose[LinearSolve[Transpose[amp2op["Trans"]],Transpose[(amp2op["Trans"].#)]]]&,lorentzGen,{2}]
 
 ];
-result=<|"basis"->mbasis|>;
+result=<|"basis"->mbasis,"Trans"->amp2op["Trans"]|>;
 shift=FirstPosition[PositionIndex[state],First[#]]&/@posRepeat;
 grassmann=If[IntegerQ[state[[First[#]]]],{1,1},{-1,(-1)^(1+Length[#])}]&/@posRepeat;
 
@@ -802,11 +800,11 @@ KeyMap[Switch[model[#[[1]]]["stat"],"boson",#,"fermion",MapAt[TransposeYng,#,2]]
 (* ::Input::Initialization:: *)
 basisReduceByFirst[tensor_,len_]:=Module[{pos},
 
-pos=basisReducePro[Extract[tensor,ConstantArray[1,len]],Identity]["pos"];
+pos=basisReducePro[Extract[tensor,ConstantArray[1,len]](*,Identity*)]["pos"];
 TensorTranspose[Map[Part[#,pos]&,tensor,{len}],Append[Range[2,len+1],1]]
 ]
 
-GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,generators,pCoord,SoftPart},
+GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,generators,pCoord,SoftPart\:ff0cKmy},
 state=Delete[model[#]["helicity"]&/@particles,Position[model[#]["spurion"]&/@particles,True]];k=Exponent[type,"D"];
 SoftPart=Position[model[#]["soft"]&/@particles,True]//Flatten;If[SoftPart==={},SoftPart=False];
 
@@ -825,35 +823,42 @@ lorBasis=LorentzBasisAux[state,k,posRepeat,OutputFormat->OptionValue[OutputForma
 Switch[OptionValue[OutputFormat],
 "operator",lorBasis=MapAt[transform[#,ReplaceField->{model,type,OptionValue[FerCom]},OpenFchain->False,ActivatePrintTensor->False,Working->OptionValue[Working]]&,lorBasis,Key["basis"]],
 "amplitude",lorBasis=MapAt[Ampform,lorBasis,Key["basis"]]
-];
+];(*Print[lorBasis];*)
 gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,Index->model["rep2indOut"][#1]]&,{NAgroups,replist}];
+(*Print[gaugeBasis];*)
+gaugeBasis=Append[#,"Trans"->FindGCoord/@#["basis"]]&/@gaugeBasis;
+(*gaugeBasis=Append[#,"Trans"->IdentityMatrix[Length@#["basis"]]]&/@gaugeBasis;*)
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 factors=MapAt[KeyMap[particles[[First[#]]]&],factors,{Key["generators"],All}];
 
-opBasis=ContractDelta[TensorProduct@@factors["basis"],Working->OptionValue[Working]];
+If[OptionValue[findcor],opBasis=TensorProduct@@factors["basis"],
+opBasis=ContractDelta[TensorProduct@@factors["basis"],Working->OptionValue[Working]];(*Print[TensorProduct@@factors["basis"]//Flatten];*)
 (*If[OptionValue[OutputFormat]=="operator",*)
 If[!OptionValue[Working],opBasis=PrintOper[RefineReplace@opBasis]];
-opBasis=opBasis//.listtotime;
+opBasis=opBasis//.listtotime];
 (*,If[!OptionValue[Working],opBasis=RefineReplace@opBasis]];*)
+Kmy=TensorProduct@@factors["Trans"];Do[Kmy=ArrayFlatten[Kmy],{re,Length@factors["Trans"]-1}];
 
-If[Length[posRepeat]==0,Return[<|"basis"->Flatten@opBasis|>]];
+If[Length[posRepeat]==0,Return[<|"basis"->Flatten@opBasis,"Kmy"->Kmy|>]];
 generators=Merge[factors["generators"],SparseArray/@
 Flatten[MapThread[TensorProduct,#],{{1},2Range[Length[NAgroups]+1],2Range[Length[NAgroups]+1]+1}]&];
 If[OptionValue[DeSym],
 (* desym monomials *)
-pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&],Identity]["pos"]&,yngList];
-Map[Part[Flatten[opBasis],#]&,pCoord,{2}],
+pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["pos"]&,yngList];
+If[OptionValue[printkpm],
+Join[Map[Part[Flatten[opBasis],#]&,pCoord,{2}],<|"p-basis"->Partition[Flatten@Values[Select[AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["mvalues"]&,yngList],Flatten[#]!={}&]],Length[Flatten@opBasis]],"Kmy"->Kmy|>],
+Map[Part[Flatten[opBasis],#]&,pCoord,{2}]],
 (* sym result *)
 Switch[OptionValue[TakeFirstBasis],
-True,pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&],Identity]["mvalues"]&,yngList],
+True,pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["mvalues"]&,yngList],
 False,
 (* full basis *)
 pCoord=AssociationMap[basisReduceByFirst[Outer[Dot,##,1]&@@Merge[{generators,#},Table[PermRepFromGenerator[#[[1]],YO[#[[2]],1,i]],{i,SnIrrepDim[#[[2]]]}]&],len]&,yngList]
 ];
 pCoord=Select[pCoord,Flatten[#]!={}&];
-<|"basis"->Flatten@opBasis,"p-basis"->pCoord,"Kpy"->Partition[Flatten@Values[pCoord],Length[Flatten@opBasis]]|>]
+<|"basis"->Flatten@opBasis,"p-basis"->pCoord,"Kpy"->Partition[Flatten@Values[pCoord],Length[Flatten@opBasis]],"Kmy"->Kmy|>]
 ]
-Options[GetBasisForType]={OutputFormat->"operator",Working->False,FerCom->2,NfSelect->True,DeSym->False,TakeFirstBasis->True,newmethod->False};
+Options[GetBasisForType]={OutputFormat->"operator",Working->False,FerCom->2,NfSelect->True,DeSym->False,TakeFirstBasis->True,newmethod->False,findcor->False,printkpm->False};
 
 
 
