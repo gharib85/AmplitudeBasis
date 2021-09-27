@@ -125,3 +125,37 @@ MultDeriTensor[num_,k_,OptionsPattern[]]:=Module[{kk,ad=1},If[OptionValue[AdlerZ
 Options[LorBasis]={doubleindex->{},AdlerZero->False,spurion->False};
 LorBasis[state_,k_,OptionsPattern[]]:=Module[{tens,stat},If[OptionValue[spurion]===False,stat=state,stat=Delete[state,List/@OptionValue[spurion]]];tens=state2tensor[stat,k,AdlerZero->OptionValue[AdlerZero]];(*Print[tens];*)
 testLorBasis[tens["tensor"],tens["other"],tens["contract"],stat,k,doubleindex->OptionValue[doubleindex],AdlerZero->OptionValue[AdlerZero]]]
+
+
+(* ::Section:: *)
+(*Find Coordinate*)
+
+
+PT2field[model_,PT_]:=Module[{field=PT},While[model[field][[0]]===Missing,Switch[field[[0]],Inactive[PrintTensor],field=field[[1]]["tensor"],List,field=field[[1,1]]["tensor"],ch,field=field[[-1]],_,Print["missing!, field= ",field];Break[]]];field];
+Options[FindYCoord]={FerCom->2,Ybasis->False};
+FindYCoord[model_,opemono:Except[_Plus],OptionsPattern[]]:=Module[{opelist,grouptensor=<|"SU2"->{},"SU3"->{},"Lor"->{}|>,Type=1,transf,k},
+opelist=List@@opemono;(*Print[opelist];*)
+Do[Switch[iope[[0]],
+\[Lambda]|del3|del3n|fabc|dabc|eps3f|eps3a,AppendTo[grouptensor["SU3"],iope],
+\[Tau]|del2|eps3n|eps2f|eps2a,AppendTo[grouptensor["SU2"],iope],
+Inactive[PrintTensor],Type*=PT2field[model,iope],
+ch,Type*=PT2field[model,iope[[-1]]],
+ch\[Psi],Type*=PT2field[model,iope[[1]]]PT2field[model,iope[[-1]]]
+],{iope,opelist}];Type=CheckType[model,Type,Counting->False];transf=Rule[transform[#,ReplaceField->{model,Type,OptionValue[FerCom]},OpenFchain->False,ActivatePrintTensor->False,Working->False],#]&/@MapThread[Subscript[h2f[#1], #2]&,{model[#]["helicity"]&/@Type,Range[Length@Type]}];grouptensor["Lor"]=opemono/.transf//.{Inactive[PrintTensor][<|"tensor"->fi_,"upind"->ind_|>]:>Superscript[fi,ind],Inactive[PrintTensor][<|"tensor"->fi_,"downind"->ind_|>]:>Subscript[fi,ind],(head:Superscript|Subscript)[fi_,{aa_,bb_}]:>head[head[fi,aa],bb],(head:Superscript|Subscript)[fi_,{aa_,bb_,cc_}]:>head[head[head[fi,aa],bb],cc],(head:Superscript|Subscript)[fi_,{aa_,bb_,cc_,dd_}]:>head[head[head[head[fi,aa],bb],cc],dd]};
+grouptensor["Lor"]=grouptensor["Lor"]/(Times@@grouptensor["SU2"]*Times@@grouptensor["SU3"])//.(beforechange\[Union](beforechange/.{ch\[Psi]->ch}));
+k=Count[grouptensor["Lor"],Subscript[D, _][_]];(*Print[grouptensor];*)
+grouptensor["SU2"]=If[grouptensor["SU2"]==={},{1},FindGaugeCoord[SU2,Times@@grouptensor["SU2"]][[-1]]];
+grouptensor["SU3"]=If[grouptensor["SU3"]==={},{1},FindGaugeCoord[SU3,Times@@grouptensor["SU3"]][[-1]]];
+grouptensor["Lor"]=FindCor[reduce[Amp[grouptensor["Lor"]],Length[Type]],If[OptionValue[Ybasis]===False,SSYT[model[#]["helicity"]&/@Type,k],OptionValue[Ybasis]]];
+AppendTo[grouptensor,"TProduct"->(TensorProduct[grouptensor["SU3"],grouptensor["SU2"],grouptensor["Lor"]]//Flatten)];
+Append[grouptensor,"type"->Times@@Type ("D")^k]
+];
+FindYCoord[model_,ope_Plus,OptionsPattern[]]:=Module[{fyc},fyc=FindYCoord[model,#,FerCom->OptionValue[FerCom],Ybasis->OptionValue[Ybasis]]&/@Expand[ope];
+fyc["type"]/=Length@ope;fyc];
+Options[FindMCoord]={newmethod->False,FerCom->2,basistype->"Mbasis"};
+FindMCoord[model_,ope_,OptionsPattern[]]:=Module[{fyc,basis,mcoord},fyc=FindYCoord[model,ope,FerCom->OptionValue[FerCom]];
+Switch[OptionValue[basistype],"Ybasis",Return[{fyc["TProduct"]}],
+"Mbasis",basis=GetBasisForType[model,fyc["type"],newmethod->OptionValue[newmethod],FerCom->OptionValue[FerCom]];Return[<|"coeff"->LinearSolve[Transpose[basis["Kmy"]],fyc["TProduct"]],"basis"->basis["basis"]|>],
+"Pbasis",basis=GetBasisForType[model,fyc["type"],newmethod->OptionValue[newmethod],FerCom->OptionValue[FerCom],TakeFirstBasis->False,NfSelect->False];
+
+Return[Append[KeyDrop[basis,{"Kpy","Kmy"}],"coeff"->LinearSolve[Transpose[(basis["p-basis"].basis["Kmy"])],fyc["TProduct"]]]]]]

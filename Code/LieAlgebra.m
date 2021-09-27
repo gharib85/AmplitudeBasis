@@ -252,7 +252,11 @@ If[Head[gaugefactor]===Plus,
 sample=Times@@Cases[Prod2List[Sum2List[gaugefactor][[1]]],Except[_?(NumberQ)]];Print[sample],
 sample=gaugefactor];mb=GaugeMBasis[group,Values@IndexRep[SymbolicTC@sample]];
 {mb["basis"],FindTensorCor[SymbolicTC[gaugefactor,WithIndex->False],mb["co-basis_coord"],tVal[group]]}
-]
+];
+FindGCoord[gaugefactor_]:=Module[{},Switch[gaugefactor[[0]],
+\[Lambda]|del3|del3n|fabc|dabc|eps3f|eps3a,FindGaugeCoord[SU3,gaugefactor][[-1]],
+\[Tau]|del2|eps3n|eps2f|eps2a,FindGaugeCoord[SU2,gaugefactor][[-1]],
+Times|Plus,If[Cases[Flatten[gaugefactor//.{Plus->List,Times->List}],_ \[Lambda]|_del3n|_fabc|_dabc|_eps3f|_eps3a]==={},If[Cases[Flatten[gaugefactor//.{Plus->List,Times->List}],_ \[Tau]|_del2|_eps3n|_eps2f|_eps2a]==={},Print["gaugefactor= ",gaugefactor],FindGaugeCoord[SU2,gaugefactor][[-1]]],FindGaugeCoord[SU3,gaugefactor][[-1]]],_,{gaugefactor}]];
 
 
 (* ::Input::Initialization:: *)
@@ -790,6 +794,7 @@ If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[
 
 mbasis=GaugeMBasis[group,replist];
 gaugeGen=GaugePermGenerator1[mbasis["basis"],mbasis["co-basis_coord"],tVal[group]];
+gaugeGen[Singlet[group]]=ConstantArray[IdentityMatrix[Length[mbasis["basis"]]],2];
 mbasisInd=TensorAddIndex[#,indmap]&/@mbasis["basis"];
 (*{mbasis,gaugeGen}=Values@GaugePermGenerator[group,replist];*)
 If[gaugeGen==<||>,trivial=True];
