@@ -514,7 +514,7 @@ Total[MapThread[(#1+#2)^3-#1^3&,{\[Rho],m}]]/2
 C2V[rep_]:=C2V[rep]=S2[rep];
 C3V[rep_]:=C3V[rep]=S3[rep]-3S2[rep];
 
-GetCMatrix[group_,C_,mbasis_,cobasis_,part_]:=Merge[MapThread[Association[Rule[#1,#2]]&,Eigensystem[FindTensorCor[#,cobasis,tVal[group]]&/@(C[#,part]&/@mbasis)]],Identity]
+GetCMatrix[group_,C_,mbasis_,cobasis_,part_]:=Merge[MapThread[Association[Rule[#1,#2]]&,Eigensystem[Transpose[FindTensorCor[#,cobasis,tVal[group]]&/@(C[#,part]&/@mbasis)]]],Identity]
 GetCIntersection[part_,CV_,Cmatrices_]:=LinearIntersection@@MapThread[#1[part][#2]&,{Cmatrices,CV}]
 
 
