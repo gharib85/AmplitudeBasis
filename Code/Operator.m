@@ -533,7 +533,7 @@ Subscript[Subscript[\[Sigma]_, \[Mu]_], \[Nu]_]|Superscript[Subscript[\[Sigma]_,
 Superscript["\[Epsilon]",Times[a_,b_,c_,d_]]:>"\[Epsilon]"[a,b,c,d],(fi:Subscript[h2f[-1], n_]|Subscript[h2f[1], n_])[munu_,nu_]:>fi["up",munu,"up",nu]};
 
 SetAttributes[{antichange}, HoldAll];
-antichange[PartofAmp_,Greek_]:=Module[{spinor,particle},
+antichange[PartofAmp_,Greek_]:=Module[{spinor,particle,l\[Sigma]},
 Switch[PartofAmp,
 Subscript[D, _][_],particle=PartofAmp[[0,2]];
 spinor=-I/2*Subscript[h2f[-1/2], particle][1,su2l[[Greek]]]Subscript[h2f[1/2], particle][1,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[1]]][2,su2l[[Greek]],2,su2r[[Greek]]];Greek++,
@@ -562,6 +562,19 @@ ch\[Psi][Subscript[h2f[-1/2], _],"\[Sigma]"[__],Subscript[h2f[-1/2], _]],spinor=
 
 ch\[Psi][Subscript[h2f[1/2], _],"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[__],Subscript[h2f[1/2], _]],spinor=I/2*PartofAmp[[1]][1,su2r[[Greek]]]("\[Sigma]"[PartofAmp[[2,1]]][2,su2l[[Greek]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2,2]]][1,su2l[[Greek]],1,su2r[[Greek+1]]]-"\[Sigma]"[PartofAmp[[2,2]]][2,su2l[[Greek]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2,1]]][1,su2l[[Greek]],1,su2r[[Greek+1]]])PartofAmp[[3]][2,su2r[[Greek+1]]];Greek+=2,
 
+ch\[Psi][Subscript[h2f[-1/2],_],"\[Sigma]"[_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[_],"\[Sigma]"[_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[_],__],
+l\[Sigma]=Length@PartofAmp-2;
+spinor=PartofAmp[[1]][2,su2l[[Greek]]];Do[If[OddQ@li,spinor*="\[Sigma]"[PartofAmp[[li+1,1]]][1,su2l[[Greek+Floor[li/2]]],1,su2r[[Greek+Floor[li/2]]]],
+spinor*="\[Sigma]"[PartofAmp[[li+1,1]]][2,su2l[[Greek+Floor[li/2]]],2,su2r[[Greek-1+Floor[li/2]]]]],{li,l\[Sigma]}];If[OddQ@l\[Sigma],spinor*=PartofAmp[[-1]][2,su2r[[Greek+Floor[l\[Sigma]/2]]]],spinor*=PartofAmp[[-1]][1,su2l[[Greek+Floor[l\[Sigma]/2]]]]];
+Greek+=Floor[l\[Sigma]/2]+1,
+
+ch\[Psi][Subscript[h2f[1/2],_],"\[Sigma]"[_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[_],"\[Sigma]"[_]|"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"[_],__],
+l\[Sigma]=Length@PartofAmp-2;
+spinor=PartofAmp[[1]][1,su2r[[Greek]]];Do[If[OddQ@li,spinor*="\[Sigma]"[PartofAmp[[li+1,1]]][2,su2l[[Greek+Floor[li/2]]],2,su2r[[Greek+Floor[li/2]]]],
+spinor*="\[Sigma]"[PartofAmp[[li+1,1]]][1,su2l[[Greek-1+Floor[li/2]]],1,su2r[[Greek+Floor[li/2]]]]],{li,l\[Sigma]}];If[OddQ@l\[Sigma],spinor*=PartofAmp[[-1]][1,su2l[[Greek+Floor[l\[Sigma]/2]]]],spinor*=PartofAmp[[-1]][2,su2r[[Greek+Floor[l\[Sigma]/2]]]]];
+Greek+=Floor[l\[Sigma]/2]+1,
+
+
 "\[Epsilon]"[__],spinor=I/4("\[Sigma]"[PartofAmp[[1]]][2,su2l[[Greek]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2]]][1,su2l[[Greek]],1,su2r[[Greek+1]]]"\[Sigma]"[PartofAmp[[3]]][2,su2l[[Greek+1]],2,su2r[[Greek+1]]]"\[Sigma]"[PartofAmp[[4]]][1,su2l[[Greek+1]],1,su2r[[Greek]]]-"\[Sigma]"[PartofAmp[[1]]][1,su2l[[Greek]],1,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[2]]][2,su2l[[Greek+1]],2,su2r[[Greek]]]"\[Sigma]"[PartofAmp[[3]]][1,su2l[[Greek+1]],1,su2r[[Greek+1]]]"\[Sigma]"[PartofAmp[[4]]][2,su2l[[Greek]],2,su2r[[Greek+1]]]);Greek+=2,
 
 Subscript[h2f[0], _],spinor=1,
@@ -581,17 +594,19 @@ Return[spinor]
 \[Epsilon][n1_,a_,n2_,a_]:>2};
 asbracket={Subscript[h2f[-1/2], i_][2,a_]Subscript[h2f[-1/2], j_][1,a_]:>ab[i,j],
 Subscript[h2f[1/2], i_][1,a_]Subscript[h2f[1/2], j_][2,a_]:>sb[i,j]};
-AmpMono[opermono_]:=Module[{Greek=1,oper,amp,fermion,fermionsign={}},
+AmpMono[opermono_,operinput_]:=Module[{Greek=1,oper,amp,fermion,fermionsign={}},
 oper=opermono//.beforechange;
-If[oper[[0]]===ch\[Psi],fermion={oper},fermion=Cases[oper,_ch\[Psi]]];
+If[operinput,If[oper[[0]]===ch\[Psi],fermion={oper},fermion=Cases[oper,_ch\[Psi]]];
 Do[AppendTo[fermionsign,fermion[[ii,1]]];
 AppendTo[fermionsign,fermion[[ii,3]]],
 {ii,Length[fermion]}];
 fermionsign=Signature[fermionsign];
-amp=If[oper[[0]]===ch\[Psi],fermionsign*antichange[oper,Greek],fermionsign*antichange[#,Greek]&/@oper];
+amp=If[oper[[0]]===ch\[Psi],fermionsign*antichange[oper,Greek],fermionsign*antichange[#,Greek]&/@oper],
+amp=Times@@(antichange[#,Greek]&/@(Flatten[{oper}/.{Times->List,Power->ConstantArray}]))];
 amp=Expand[amp]//.\[Sigma]contract//.\[Epsilon]contract//.asbracket
 ]
-Amp[oper_]:=Thread[head[oper],Plus]/.{head->AmpMono};
+Amp[oper_,OptionsPattern[]]:=Thread[head[oper,OptionValue[OperInput]],Plus]/.{head->AmpMono};
+Options[Amp]={OperInput->True};
 
 
 (* ::Input::Initialization:: *)
