@@ -409,10 +409,14 @@ DeleteCases[Association@Map[Normal[#]->
 basisReduce[Dot@@KeyValueMap[PermRepFromGenerator[lorentzGen[[shift[#1][[1]]]],YO[#2,shift[#1][[2]]]]&,#]]["basis"]&,yngList],{}]],
 
 List,
-Append[result,"generators"->
+(*Append[result,"generators"->
 Association@MapThread[
 #2->#3 Function[gen,PermRepFromGenerator[lorentzGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,
-{shift,posRepeat,grassmann}]]
+{shift,posRepeat,grassmann}]]*)
+(*for amplitude output format*)
+Switch[OptionValue[OutputFormat],
+"operator",Append[result,"generators"->Association[MapThread[#2->#3 Function[gen,PermRepFromGenerator[lorentzGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,{shift,posRepeat,grassmann}]]],
+"amplitude",Append[result,"generators"->Association[MapThread[#2->Function[gen,PermRepFromGenerator[lorentzGen[[#1[[1]]]],gen]]/@{Cycles[{{#1[[2]],#1[[2]]+1}}],Cycles[{Range[#1[[2]],#1[[2]]+Length[#2]-1]}]}&,{shift,posRepeat}]]]]
 ]
 ]
 
@@ -433,7 +437,7 @@ KeyMap[Map[If[OddQ[nt],MapAt[TransposeYng,#,2],#]&],Association[Rule@@@Tally[Thr
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Gauge Group Factor*)
 
 
@@ -804,7 +808,34 @@ pos=basisReducePro[Extract[tensor,ConstantArray[1,len]](*,Identity*)]["pos"];
 TensorTranspose[Map[Part[#,pos]&,tensor,{len}],Append[Range[2,len+1],1]]
 ]
 
-GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,generators,pCoord,SoftPart\:ff0cKmy},
+GetWCs[posRepeat_,replist_]:=Module[{indices,tdims,super},
+indices=StringRiffle[\!\(\*
+TagBox[
+StyleBox[
+RowBox[{"\"\<\\!\\(\\*SubscriptBox[\\(p\\), \\(\>\"", "<>", 
+RowBox[{"ToString", "[", "#", "]"}], "<>", "\"\<\\)]\\)\>\""}],
+ShowSpecialCharacters->False,
+ShowStringCharacters->True,
+NumberMarks->True],
+FullForm]\)&/@Flatten[posRepeat],""];
+tdims=Range[SnIrrepDim[#]]&/@replist;
+super=MapThread[Function[{u},"(["<>StringRiffle[ToString/@#1,","]<>"],"<>ToString[u]<>")"]/@#2&,{replist,tdims}];
+super=StringRiffle[#,","]&/@Distribute[super,List];
+\!\(\*
+TagBox[
+StyleBox[
+RowBox[{"\"\<\\!\\(\\*SubscriptBox[\\((\\*SuperscriptBox[\\(C\\), \\(\>\"", "<>", "#", "<>", "\"\<\\)])\\), \\(\>\"", "<>", "indices", "<>", "\"\<\\)]\\)\>\""}],
+ShowSpecialCharacters->False,
+ShowStringCharacters->True,
+NumberMarks->True],
+FullForm]\)&/@super
+]
+GetSnGenerators[irrep_]:=Module[{matmaps,n=Total[irrep]},ReadMatrices[matmaps,n,NotebookDirectory[]<>"SnMat"];{matmaps[irrep][Cycles[{{1,2}}]],matmaps[irrep][Cycles[{Range[n]}]]}]
+GetWGenerator[ynglist_]:=Module[{len=Length[ynglist],tdims,gens,wgens},tdims=SnIrrepDim/@ynglist[[All,2]];gens=IdentityMatrix/@tdims;
+wgens=GetSnGenerators/@ynglist[[All,2]];
+Association@MapThread[Rule,{ynglist[[All,1]],If[len===1,wgens,Table[SparseArray[KroneckerProduct@@ReplacePart[gens,i->Transpose@#]]&/@wgens[[i]],{i,len}]]}]
+]
+GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],ampgaugeind,gaugeind,repindrule,posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,opBasisw,generators,generatorsw,pCoord,ampresult=<||>,yngListamp,SoftPart\:ff0cKmy},
 state=Delete[model[#]["helicity"]&/@particles,Position[model[#]["spurion"]&/@particles,True]];k=Exponent[type,"D"];
 SoftPart=Position[model[#]["soft"]&/@particles,True]//Flatten;If[SoftPart==={},SoftPart=False];
 
@@ -828,11 +859,16 @@ gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,Index->mode
 (*Print[gaugeBasis];*)
 gaugeBasis=Append[#,"Trans"->FindGCoord/@#["basis"]]&/@gaugeBasis;
 (*gaugeBasis=Append[#,"Trans"->IdentityMatrix[Length@#["basis"]]]&/@gaugeBasis;*)
+
+(*amplitude output with repeated fields*)
+If[OptionValue[OutputFormat]==="amplitude",ampgaugeind=Flatten[MapThread[Function[{u,v},("\!\(\*SubscriptBox[\("<>Take[model["rep2indOut"][u][#1[[1]]],1]<>"\), \("<>ToString[#1[[2]]]<>"\)]\)"&)/@v],{NAgroups,(DeleteCases[Thread[{#1,Range[Length[#1]]}],{{(0)..},_}]&)/@replist}]];gaugeind=Flatten[MapThread[Function[{u,v},(Take[model["rep2indOut"][u][#1[[1]]],#1[[2]]]&)/@v],{NAgroups,Tally/@(DeleteCases[#1,{(0)..}]&)/@replist}]];repindrule=MapThread[Rule,{gaugeind,ampgaugeind}];gaugeBasis=gaugeBasis/. repindrule;];
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 factors=MapAt[KeyMap[particles[[First[#]]]&],factors,{Key["generators"],All}];
 
 If[OptionValue[findcor],opBasis=TensorProduct@@factors["basis"],
-opBasis=ContractDelta[TensorProduct@@factors["basis"],Working->OptionValue[Working]];(*Print[TensorProduct@@factors["basis"]//Flatten];*)
+(*add amplitude outputformat*)
+opBasis=If[OptionValue[OutputFormat]==="amplitude",TensorProduct@@factors["basis"],ContractDelta[TensorProduct@@factors["basis"],Working->OptionValue[Working]]];
+(*opBasis=ContractDelta[TensorProduct@@factors["basis"],Working->OptionValue[Working]];*)(*Print[TensorProduct@@factors["basis"]//Flatten];*)
 (*If[OptionValue[OutputFormat]=="operator",*)
 If[!OptionValue[Working],opBasis=PrintOper[RefineReplace@opBasis]];
 opBasis=opBasis//.listtotime];
@@ -842,6 +878,22 @@ Kmy=TensorProduct@@factors["Trans"];Do[Kmy=ArrayFlatten[Kmy],{re,Length@factors[
 If[Length[posRepeat]==0,Return[<|"basis"->Flatten@opBasis,"Kmy"->Kmy|>]];
 generators=Merge[factors["generators"],SparseArray/@
 Flatten[MapThread[TensorProduct,#],{{1},2Range[Length[NAgroups]+1],2Range[Length[NAgroups]+1]+1}]&];
+
+(*add amplitude outputformat*)
+If[OptionValue[OutputFormat]=="amplitude",
+If[posRepeat=!={},
+yngListamp=If[OddQ[2 model[#1[[1]]]["helicity"]],#1[[1]]->ConstantArray[1,Total[#1[[2]]]],#1[[1]]->{Total[#1[[2]]]}]&/@yngList[[1]];
+Do[
+generatorsw=Merge[{GetWGenerator[yng],generators},MapThread[KroneckerProduct,#]&];
+opBasisw=Flatten@TensorProduct[GetWCs[posRepeat,yng[[All,2]]],opBasis];
+pCoord=basisReducePro[Dot@@Merge[{generatorsw,#1},PermRepFromGenerator[#1[[1]],YO[#1[[2]]]]&]]["pos"]&@yngListamp;
+If[pCoord!={},ampresult[yng]=opBasisw[[#]]&/@pCoord];
+,{yng,yngList}];
+Return[ampresult];
+]
+];
+
+
 If[OptionValue[DeSym],
 (* desym monomials *)
 pCoord=AssociationMap[basisReducePro[Dot@@Merge[{generators,#},PermRepFromGenerator[#[[1]],YO[#[[2]]]]&]]["pos"]&,yngList];

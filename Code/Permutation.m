@@ -117,8 +117,9 @@ ResetPermRep[]
 (* ::Input::Initialization:: *)
 (************* inner product (needs data folder SnMat) *******************)
 
-ReadMatrices[matmap_,n_,dir_]:=Module[{nintpart=Length[IntegerPartitions[n]],ge,mat},ge=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n],"List"];Do[mat=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n]<>"_"<>ToString[i]<>".dat","List"];MapThread[Set,{matmap[i][#]&/@ge,mat}],{i,1,nintpart}]
-]
+(*ReadMatrices[matmap_,n_,dir_]:=Module[{nintpart=Length[IntegerPartitions[n]],ge,mat},ge=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n],"List"];Do[mat=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n]<>"_"<>ToString[i]<>".dat","List"];MapThread[Set,{matmap[i][#]&/@ge,mat}],{i,1,nintpart}]
+]*)
+ReadMatrices[matmap_,n_,dir_]:=Module[{nintpart=IntegerPartitions[n],ge,mat},ge=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n],"List"];Do[mat=ToExpression/@Import[dir<>"/s"<>ToString[n]<>"/s"<>ToString[n]<>"_"<>ToString[i]<>".dat","List"];MapThread[Set,{(matmap[nintpart[[i]]][#1]&)/@ge,mat}],{i,1,Length@nintpart}]]
 
 PR[matmap_,ge_,\[Sigma]_,k_,l_,snreplist_,symbollist_,indiceslist_]:=Module[{nG=Length[ge],n\[Sigma],nlist},nlist=Length[(matmap[#][Cycles[{}]])[[1]]]&/@snreplist;
 n\[Sigma]=Length[(matmap[\[Sigma]][Cycles[{}]])[[1]]];
