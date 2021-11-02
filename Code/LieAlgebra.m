@@ -256,7 +256,7 @@ sample=gaugefactor];mb=GaugeMBasis[group,Values@IndexRep[SymbolicTC@sample]];
 FindGCoord[gaugefactor_]:=Module[{},Switch[gaugefactor[[0]],
 \[Lambda]|del3|fabc|dabc|eps3f|eps3a,FindGaugeCoord[SU3,gaugefactor][[-1]],
 \[Tau]|del2|eps3n|del3n|eps2f|eps2a,FindGaugeCoord[SU2,gaugefactor][[-1]],
-Times|Plus,If[Cases[Flatten[gaugefactor//.{Plus->List,Times->List}],_ \[Lambda]|_fabc|_dabc|_eps3f|_eps3a]==={},If[Cases[Flatten[gaugefactor//.{Plus->List,Times->List}],_ \[Tau]|_del2|_eps3n|_del3n|_eps2f|_eps2a]==={},Print["gaugefactor= ",gaugefactor],FindGaugeCoord[SU2,gaugefactor][[-1]]],FindGaugeCoord[SU3,gaugefactor][[-1]]],_,{gaugefactor}]];
+Times|Plus,If[Cases[Flatten[gaugefactor//.{Plus->List,Times->List}],_ \[Lambda]|_del3|_fabc|_dabc|_eps3f|_eps3a]==={},If[Cases[Flatten[gaugefactor//.{Plus->List,Times->List}],_ \[Tau]|_del2|_eps3n|_del3n|_eps2f|_eps2a]==={},Print["gaugefactor= ",gaugefactor],FindGaugeCoord[SU2,gaugefactor][[-1]]],FindGaugeCoord[SU3,gaugefactor][[-1]]],_,{gaugefactor}]];
 
 
 (* ::Input::Initialization:: *)

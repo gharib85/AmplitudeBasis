@@ -387,7 +387,7 @@ If[{Num-2,2}.yngShape[state,k]>{Num-2,2}.yngShape[-state,k],flip=True];
 If[flip,ybasis=ybasis/.{ab->sb,sb->ab};lorentzGen=KeyMap[-1#&,lorentzGen]];
 
 Switch[OptionValue[OutputFormat],
-"amplitude",mbasis=ybasis[[1,1]],
+"amplitude",mbasis=ybasis[[1,1]];amp2op["Trans"]=IdentityMatrix[Length@mbasis],
 
 "operator",If[OptionValue[newmethod],(*Print[state,k,OptionValue[AdlerZero]];*)amp2op=LorBasis[If[flip,-1,1]state,k,AdlerZero->OptionValue[AdlerZero]]/.If[flip,{h2f[-1/2]->h2f[1/2],h2f[1/2]->h2f[-1/2],h2f[-1]->h2f[1],h2f[1]->h2f[-1],"\[Sigma]"->"\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)","\!\(\*OverscriptBox[\(\[Sigma]\), \(_\)]\)"->"\[Sigma]"},{}],amp2op=MonoLorentzBasis[ybasis[[1,1]],Length[state],finalform->False]];
 mbasis=amp2op["LorBasis"];
@@ -856,8 +856,7 @@ Switch[OptionValue[OutputFormat],
 "amplitude",lorBasis=MapAt[Ampform,lorBasis,Key["basis"]]
 ];(*Print[lorBasis];*)
 gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,Index->model["rep2indOut"][#1]]&,{NAgroups,replist}];
-(*Print[gaugeBasis];*)
-gaugeBasis=Append[#,"Trans"->FindGCoord/@#["basis"]]&/@gaugeBasis;
+gaugeBasis=Append[#,"Trans"->FindGCoord/@#["basis"]]&/@gaugeBasis;Print[gaugeBasis];
 (*gaugeBasis=Append[#,"Trans"->IdentityMatrix[Length@#["basis"]]]&/@gaugeBasis;*)
 
 (*amplitude output with repeated fields*)
