@@ -835,7 +835,7 @@ GetWGenerator[ynglist_]:=Module[{len=Length[ynglist],tdims,gens,wgens},tdims=SnI
 wgens=GetSnGenerators/@ynglist[[All,2]];
 Association@MapThread[Rule,{ynglist[[All,1]],If[len===1,wgens,Table[SparseArray[KroneckerProduct@@ReplacePart[gens,i->Transpose@#]]&/@wgens[[i]],{i,len}]]}]
 ]
-GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],ampgaugeind,gaugeind,repindrule,posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,opBasisw,generators,generatorsw,pCoord,ampresult=<||>,yngListamp,SoftPart\:ff0cKmy},
+GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],ampgaugeind,gaugeind,repindrule,posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,opBasisw,generators,generatorsw,pCoord,ampresult=<||>,yngListamp,SoftPart,Kmy},
 state=Delete[model[#]["helicity"]&/@particles,Position[model[#]["spurion"]&/@particles,True]];k=Exponent[type,"D"];
 SoftPart=Position[model[#]["soft"]&/@particles,True]//Flatten;If[SoftPart==={},SoftPart=False];
 
@@ -856,11 +856,11 @@ Switch[OptionValue[OutputFormat],
 "amplitude",lorBasis=MapAt[Ampform,lorBasis,Key["basis"]]
 ];(*Print[lorBasis];*)
 gaugeBasis=MapThread[GaugeBasisAux[CheckGroup[model,#1],#2,posRepeat,Index->model["rep2indOut"][#1]]&,{NAgroups,replist}];
-gaugeBasis=Append[#,"Trans"->FindGCoord/@#["basis"]]&/@gaugeBasis;Print[gaugeBasis];
+gaugeBasis=Append[#,"Trans"->FindGCoord/@#["basis"]]&/@gaugeBasis;
 (*gaugeBasis=Append[#,"Trans"->IdentityMatrix[Length@#["basis"]]]&/@gaugeBasis;*)
 
 (*amplitude output with repeated fields*)
-If[OptionValue[OutputFormat]==="amplitude",ampgaugeind=Flatten[MapThread[Function[{u,v},("\!\(\*SubscriptBox[\("<>Take[model["rep2indOut"][u][#1[[1]]],1]<>"\), \("<>ToString[#1[[2]]]<>"\)]\)"&)/@v],{NAgroups,(DeleteCases[Thread[{#1,Range[Length[#1]]}],{{(0)..},_}]&)/@replist}]];gaugeind=Flatten[MapThread[Function[{u,v},(Take[model["rep2indOut"][u][#1[[1]]],#1[[2]]]&)/@v],{NAgroups,Tally/@(DeleteCases[#1,{(0)..}]&)/@replist}]];repindrule=MapThread[Rule,{gaugeind,ampgaugeind}];gaugeBasis=gaugeBasis/. repindrule;];
+If[OptionValue[OutputFormat]==="amplitude",ampgaugeind=Flatten[MapThread[Function[{u,v},("\!\(\*SubscriptBox[\("<>Take[model["rep2indOut"][u][#1[[1]]],1]<>"\), \("<>ToString[#1[[2]]]<>"\)]\)"&)/@v],{NAgroups,(DeleteCases[Thread[{#1,Range[Length[#1]]}],{{(0)..},_}]&)/@replist}]];gaugeind=Flatten[MapThread[Function[{u,v},(Take[model["rep2indOut"][u][#1[[1]]],#1[[2]]]&)/@v],{NAgroups,Tally/@(DeleteCases[#1,{(0)..}]&)/@Replace[replist,{x_/;OrderedQ[x]:>Reverse[x],x_:>Abs[x]},2]}]];repindrule=MapThread[Rule,{gaugeind,ampgaugeind}];gaugeBasis=gaugeBasis/. repindrule;];
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 factors=MapAt[KeyMap[particles[[First[#]]]&],factors,{Key["generators"],All}];
 
