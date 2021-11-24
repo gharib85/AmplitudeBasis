@@ -121,7 +121,7 @@ If[Equal@@First/@dpos,tlist= DeleteCases[MapAt[TensorContract[#,{Last/@dpos}]&,t
 {tr1,tr2}=tRank/@Head/@{tv1,tv2};
 tlist[[dpos[[1,1]]]]=DeleteCases[(TensorTranspose[Head[tv1],InversePermutation@Cycles[{Range[dpos[[1,2]],tr1]}]].TensorTranspose[Head[tv2],Cycles[{Range[dpos[[2,2]]]}]])@@Flatten[List@@@{tv1,tv2}],dum,2];
 tlist=Delete[tlist,dpos[[2,1]]];
-],{dum,dummy[[1]]}];
+],{dum,Union[Cases[Flatten[List@@@tlist],Except[_[_]]]]}];
 SymbolicTC[Times@@tlist,WithIndex->False]
 ]
 NumericContraction[tc_,tval_]:=tc/.tval

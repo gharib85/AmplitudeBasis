@@ -347,7 +347,7 @@ GaugeMBasis[group_,replist_,OptionsPattern[]]:=Module[{indlist,ind,indexRepeat,n
 Do[iter++;
 tensorlist=SimpGFV2[{tReduce[SymbolicTC[ExpandSimplify[b convert,tY2M],WithIndex->False]]}];
 tensorlist=Complement[tensorlist,tensorexamined];If[tensorlist=={},Continue];mbasis=basisReducePro[tensorlist,Initial->result,PreTreat->(SparseArray[Flatten[NumericContraction[#1,tVal[group]]]]&),TargetDim->dimB-Length[First[result]],ShowProgress->debug];result=mbasis/@{"mbasis","mvalues","metric"};If[Length[First[result]]==dimB,Break[]];tensorexamined=tensorexamined\[Union]tensorlist,{b,ybasis}];
-ginv=If[dimB<50,Inverse[result[[3]]],Inverse[N[result[[3]]]]];tvCo=ConjugateTranspose[result[[2]]].Conjugate[ginv];
+ginv=If[dimB<60,Inverse[result[[3]]],Inverse[N[result[[3]]]]];tvCo=ConjugateTranspose[result[[2]]].Conjugate[ginv];
 If[OptionValue[YBasis],tybasis=tReduce[SymbolicTC[ExpandSimplify[# convert,tY2M],WithIndex->False]]&/@ybasis;trans=FindTensorCor[#,tvCo,tVal[group]]&/@tybasis;Association["basis"->result[[1]],"co-basis_coord"->tvCo,"ybasis"->tybasis,"trans"->trans],Association["basis"->result[[1]],"co-basis_coord"->tvCo]
 ]
 ]
