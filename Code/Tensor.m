@@ -22,6 +22,8 @@ If[OptionValue[WithIndex],tensorfinal=tensorfinal@@Sort[freeind]];
 coeff tensorfinal
 ]
 
+UnContract[tc_Power]:=Times@@(UnContract/@ConstantArray@@tc)
+UnContract[tc_/;tc[[0,0]]==Power]:=Block[{},MapAt[UnContract[#[]]&,tc[[0]],1]]
 UnContract[tc:_Plus|_Times|_List]:=UnContract/@tc//Expand
 UnContract[tc_/;tc[[0,0]]==TensorContract]:=Module[{tensors=tc[[0,1]],pairContract=tc[[0,2]],indlist=List@@tc,indtemp={}},
 Do[indtemp=indtemp~Join~Thread[{Sow[Unique[],d],pair}],{pair,pairContract}];
@@ -47,6 +49,24 @@ TensorConj[tnum_?NumericQ]:=tnum
 
 SetAttributes[TensorInner,Listable];
 TensorInner[t1_,t2_](* t1*Overscript[t2, _] *):=ExpandSimplify[t1 TensorConj[t2],tM2Y]
+
+Clear[TensorInnerProduct];
+SetAttributes[TensorInnerProduct,Listable];
+TensorInnerProduct[t1_Plus,t2_,N_:Ng]:=TensorInnerProduct[#,t2,N]&/@t1
+TensorInnerProduct[t1_Times,t2_,N_:Ng]:=Module[{tsplit=FactorSplit[t1,TrueQ[tRank[#]\[Element]PositiveIntegers]&]},
+If[Head[tsplit[True]]===Times,Print["invalid tensor ",t1];Abort[]];
+tsplit[False]TensorInnerProduct[tsplit[True],t2,N]
+]
+TensorInnerProduct[t1_,t2_Plus,N_:Ng]:=TensorInnerProduct[t1,#,N]&/@t2
+TensorInnerProduct[t1_,t2_Times,N_:Ng]:=Module[{tsplit=FactorSplit[t2,TrueQ[tRank[#]\[Element]PositiveIntegers]&]},
+If[Head[tsplit[True]]===Times,Print["invalid tensor ",t2];Abort[]];
+tsplit[False]TensorInnerProduct[t1,tsplit[True],N]
+]
+TensorInnerProduct[t1_,t2_,N_:Ng]:=TensorInnerProduct[t1,t2,N]=Module[{dim=tDimensions[t1],rk,pairs,tc,index},
+rk=Length[dim];
+If[tDimensions[t2]!=dim,Print["tensor type not match for ",t1," and ",t2];Abort[]];
+TensorInner[UnContract[t1@@Array[index,rk]],UnContract[t2@@Array[index,rk]]]/.Ng->N
+]
 
 
 (* ::Input::Initialization:: *)
@@ -129,6 +149,7 @@ NumericContraction[tval_]:=NumericContraction[#,tval]&
 
 FindTensorCor[tensor_,cobasis_,tval_]:=If[tensor===0,ConstantArray[0,Length[First@cobasis]],(Flatten@NumericContraction[tensor,tval]).cobasis//Simplify]
 FindTensorCor[tensorlist_List,cobasis_,tval_]:=FindTensorCor[#,cobasis,tval]&/@tensorlist
+FindTensorCor[tensor_,fullBasis_Association,N_:Ng]:=If[tensor===0,ConstantArray[0,Length[fullBasis["pos"]]],TensorInnerProduct[CoBasis[fullBasis],tensor,N]]
 
 
 (* ::Input::Initialization:: *)

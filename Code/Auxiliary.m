@@ -39,7 +39,7 @@ If[termlist=={0},Return[cor]];
 termlist=FactorSplit[NumericQ]/@termlist;
 B=FactorSplit[NumericQ]/@stBasis;
 Do[pos=FirstPosition[Through[B[False]],term[False]];
-If[MissingQ[pos],Message[FindCor::basis,Amp,StBasis];Abort[],
+If[MissingQ[pos],Throw[Null];Message[FindCor::basis,Amp,StBasis];Abort[],
 pos=pos[[1]] (* first level index *)];
 If[KeyExistsQ[term,True],cor[[pos]]=term[True],cor[[pos]]=1];
 If[KeyExistsQ[B[[pos]],True],cor[[pos]]/=B[[pos]][True]],
@@ -67,8 +67,8 @@ pos++];
 ]
 basisReduce::input="wrong input matrix: `1`";
 
-Options[basisReducePro]={PreTreat->Identity,Initial->{{},{},{{}}},TargetDim->Null,fInner->Dot,ShowProgress->False,Tolerance->10^-10};
-basisReducePro[prebasis_,OptionsPattern[]]:=Module[{f=OptionValue[PreTreat],mtensor,tensorValue,metric,lenIni,poslist={},iter=0,tvtemp,metrictemp,vector,scalar,stage=""},
+Options[basisReducePro]={PreTreat->Identity,Initial->{{},{},{{}}},TargetDim->"?",fInner->(Dot[Conjugate[#1],#2]&),ShowProgress->False,Tolerance->10^-10};
+basisReducePro[prebasis_,OptionsPattern[]]:=Module[{f=OptionValue[PreTreat],inner=OptionValue[fInner],mtensor,tensorValue,metric,lenIni,poslist={},iter=0,tvtemp,metrictemp,vector,scalar,stage=""},
 {mtensor,tensorValue,metric}=OptionValue[Initial];
 lenIni=Length[mtensor];
 If[OptionValue[ShowProgress],
@@ -76,13 +76,16 @@ Print[Dynamic[iter],"/",Length[prebasis]];
 Print[Dynamic[Length[poslist]],"/",OptionValue[TargetDim]," found: ",Dynamic[stage]];
 Print[Dynamic[poslist]];
 ];
-Do[iter++;stage="-";
-tvtemp=f[t];stage="--";
-scalar=tvtemp\[Conjugate].tvtemp;
+Do[iter++;
+stage="-";(* convert *)
+tvtemp=f[t];
+stage="--";(* inner product *)
+scalar=inner[tvtemp,tvtemp];
 If[Length@tensorValue==0,metrictemp={{scalar}},
-vector=tensorValue.tvtemp\[Conjugate];
+vector=inner[tvtemp,#]&/@tensorValue;
 metrictemp=Append[Append[metric\[ConjugateTranspose],vector]\[ConjugateTranspose],Append[vector,scalar]]//Simplify
-];stage="---";
+];
+stage="---";(* judge independence *)
 If[Chop[Det[metrictemp],OptionValue[Tolerance]]==0,Continue[]];stage="----";
 metric=metrictemp;
 AppendTo[tensorValue,tvtemp];
@@ -92,6 +95,8 @@ If[Length[mtensor]-lenIni===OptionValue[TargetDim],Break[]];
 ,{t,prebasis}];
 <|"pos"->poslist,"mbasis"->mtensor,"mvalues"->Chop[tensorValue],"metric"->metric|>
 ]
+
+CoBasis[fullBasis_]:=CoBasis[fullBasis]=Inverse[fullBasis["metric"]].fullBasis["mvalues"]
 
 LinearIntersection[{},basisB_]:={}
 LinearIntersection[basisA_,basisB_]:=Module[{basisPlus=Join[basisA,basisB],lA=Length[basisA],sol},sol=NullSpace[Transpose[basisPlus]];

@@ -341,6 +341,24 @@ unflatten[result,tdim]
 
 
 (* ::Input::Initialization:: *)
+(* Trace Structures from Generators Tg *)
+SingleTrace[Tg_,n_]:=TensorContract[TensorProduct@@ConstantArray[Tg,n],Table[{3i,3Mod[i,n]+2},{i,1,n}]]
+CyclicSort[list_]:=Module[{len=Length[list],pos=Position[list,Min[list]]},
+Permute[list,FindPermutation[Range[pos[[1,1]],len]~Join~Range[pos[[1,1]]-1]]]
+]
+MultiTracePerms[parts_]:=Module[{n=Total[parts],pattlist},
+pattlist=FoldPairList[TakeDrop,#,parts]&/@Permutations[Range[n]];
+pattlist=Sort/@Map[CyclicSort,pattlist,{2}];
+DeleteDuplicates[pattlist]
+]
+MultiTrace[Tg_,parts_]:=Module[{len=Length[parts],tracelists,perms},
+perms=Flatten[#]&/@MultiTracePerms[parts];
+Flatten@TensorTranspose[TensorProduct@@(SingleTrace[Tg,#]&/@Sort[parts]),#1]&/@perms
+]
+AllTrace[Tg_,n_]:=MultiTrace[Tg,#]&/@DeleteCases[IntegerPartitions[n],{___,1,___}]
+
+
+(* ::Input::Initialization:: *)
 Clear[GaugeMBasis];
 Options[GaugeMBasis]={debug->False,YBasis->False};
 GaugeMBasis[group_,replist_,OptionsPattern[]]:=Module[{indlist,ind,indexRepeat,nonSingletIndex,nonSingletIndexRepeat,ybasis,tybasis,ytensor,dimB,coybasis,convert,result={{},{},{{}}},tensorlist,tensorexamined={},tensorValue={},mbasis,ginv,tvCo,iter=0,trans},indlist=Array[ind,Length[replist]];ybasis=GaugeYT[group,Abs[replist]];If[ybasis=={1},Return[Association["basis"->{1},"co-basis_coord"->{{1}},"trans"->{{1}}]]];dimB=Length[ybasis];If[OptionValue[debug],Print[Dynamic[iter],"/",dimB];Print[Dynamic[Length[First[result]]],"/",dimB]];convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,Transpose[{replist,indlist}]]];
@@ -478,27 +496,33 @@ AuxResolve2[result,linkedmap,{Range[n]->Singlet[group]},{},hierarchy];
 result=KeySelect[#,Function[x,Cases[partition,x]!={}]]&/@result;Do[chainmap=result[[i]];MapThread[(chainmap[{#1}]=#2)&,{Range[n],replist}];result[[i]]=result[[i]]->Times@@(AuxNum[group,#1,chainmap,hierarchy]&)/@temp1[[1;;All,1]];,{i,Length[result]}];result];
 
 
+(* ::Input::Initialization:: *)
 (*Casimir operators*)
-C2[tensor_,ch_]:=Module[{dummy,arglist=List@@tensor,channel=Part[IndexRep[tensor],ch],ttemp=UnContract[tensor],x},
-dummy=Unique[];
-(*Print[channel];*)
-ttemp=Plus@@KeyValueMap[TGen[#2][x,#1,dummy]*(ttemp/.#1->dummy)&,channel];
-(*Print[ttemp];*)
-dummy=Unique[];
-ttemp=Plus@@KeyValueMap[TGen[#2][x,#1,dummy]*(ttemp/.#1->dummy)&,channel];
-(*Print[ttemp];*)
-tReduce@SymbolicTC[ttemp//Expand,WithIndex->False]
-]
-C3[tensor_,ch_]:=Module[{dummy,arglist=List@@tensor,channel=Part[IndexRep[tensor],ch],ttemp=UnContract[tensor],x,y,z},
-dummy=Unique[];
-ttemp=Plus@@KeyValueMap[TGen[#2][x,#1,dummy]*(ttemp/.#1->dummy)&,channel];
-dummy=Unique[];
-ttemp=Plus@@KeyValueMap[TGen[#2][y,#1,dummy]*(ttemp/.#1->dummy)&,channel];
-dummy=Unique[];
-ttemp=Plus@@KeyValueMap[TGen[#2][z,#1,dummy]*(ttemp/.#1->dummy)&,channel];
-tReduce@SymbolicTC[(dabc[x,y,z])ttemp//Expand,WithIndex->False]
+Clear[C2];
+C2[tensor_Plus,ch_]:=C2[#,ch]&/@tensor
+C2[tensor_Times,ch_]:=C2[#,ch]&/@tensor
+C2[number_?NumericQ,ch_]:=number
+C2[tensor_,ch_]:=Module[{rk=tRank[tensor],arglist,arg,channel,ttemp,dummy,x},
+arglist=Array[arg,rk];
+channel=IndexRep[tensor@@arglist][[ch]];
+ttemp=UnContract[tensor@@arglist];
+dummy=Unique[];ttemp=Plus@@KeyValueMap[TGen[#2][x,#1,dummy] (ttemp/. #1->dummy)&,channel];dummy=Unique[];ttemp=Plus@@KeyValueMap[TGen[#2][x,#1,dummy] (ttemp/. #1->dummy)&,channel];tReduce[SymbolicTC[Expand[ttemp],WithIndex->False]]
 ]
 
+
+Clear[C3];
+C3[tensor_Plus,ch_]:=C3[#,ch]&/@tensor
+C3[tensor_Times,ch_]:=C3[#,ch]&/@tensor
+C3[number_?NumericQ,ch_]:=number
+C3[tensor_,ch_]:=Module[{rk=tRank[tensor],arglist,arg,channel,ttemp,dummy,x,y,z,result},arglist=Array[arg,rk];
+channel=IndexRep[tensor@@arglist][[ch]];
+ttemp=UnContract[tensor@@arglist];
+dummy=Unique[];ttemp=Plus@@KeyValueMap[TGen[#2][x,#1,dummy] (ttemp/. #1->dummy)&,channel];dummy=Unique[];ttemp=Plus@@KeyValueMap[TGen[#2][y,#1,dummy] (ttemp/. #1->dummy)&,channel];dummy=Unique[];ttemp=Plus@@KeyValueMap[TGen[#2][z,#1,dummy] (ttemp/. #1->dummy)&,channel];
+result=Expand[dabc[x,y,z]ttemp];
+tReduce[SymbolicTC[result,WithIndex->False]]
+]
+
+(*Casimir eigenvalues*)
 S2[rep_]:=Module[{\[Lambda]=PadRight[Dynk2Yng[rep],Length[rep]+1],n,m,\[Rho]},
 n=Length[\[Lambda]];
 m=\[Lambda]-Total[\[Lambda]]/n;
@@ -519,67 +543,77 @@ GetCIntersection[part_,CV_,Cmatrices_]:=LinearIntersection@@MapThread[#1[part][#
 
 
 (* ::Input::Initialization:: *)
-Options[GaugeJBasis]={Index->"default"};
-{
- {GaugeJBasis[group_,replist_,parts_,OptionsPattern[]]:=Module[{nrep=Length@replist,ind,indlistJ,indmap,singletpos,nonsingletpos,nonsingletn,replacerule,nonsingletparts,SUNrepPartlist,ntarget,indexct,indlist,mbasis,mbasisInd,mbasisInd2,CVParts,CMatrices={},C2Matrices,C3Matrices,finalresult},
-  If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[Index]];
-  singletpos=
-  Flatten@Position[replist,ConstantArray[0,Length[group]]];
-  nonsingletpos=Complement[Range[nrep],singletpos];
-  nonsingletn=Length[replist]-Length[singletpos];
-  replacerule=MapThread[Rule,{nonsingletpos,Range[nonsingletn]}];
-  nonsingletparts=
-  DeleteCases[parts,Alternatives@@singletpos,2]/.replacerule;indexct=AssociationThread[Union[Values[indmap]]->0];indlist=(IndexIterator[indmap[#1],indexct]&)/@replist;indlistJ=Sequence@@Array[ind,nonsingletn];mbasis=GaugeMBasis[group,replist];If[mbasis["basis"]=={1},Return[Association["basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}]]];mbasisInd=(TensorAddIndex[#1,indmap]&)/@mbasis["basis"];
-  mbasisInd2=Through[mbasis["basis"][indlistJ]];
-  finalresult=Association["basis"->mbasisInd];SUNrepPartlist=FindRepPathPartition[group,Abs[replist],parts];AppendTo[CMatrices,Association[Apply[Rule,MapThread[{#1,GetCMatrix[group,C2,mbasisInd2,mbasis["co-basis_coord"],#2]}&,{parts,nonsingletparts}],{1}]]];If[Length[group]>=2,AppendTo[CMatrices,Association[Apply[Rule,MapThread[{#1,GetCMatrix[group,C3,mbasisInd2,mbasis["co-basis_coord"],#2]}&,{parts,nonsingletparts}],{1}]]];CVParts=Function[u,({C2V[#1],C3V[Reverse[#1]]}&)/@u]/@SUNrepPartlist[[All,1]];,CVParts=Function[u,({C2V[#1]}&)/@u]/@SUNrepPartlist[[All,1]];];finalresult["jcoord"]=Thread[SUNrepPartlist[[All,1]]->Function[u,LinearIntersection@@KeyValueMap[GetCIntersection[#1,#2,CMatrices]&,u]]/@CVParts];finalresult]}
-}
-(*GaugeJBasis[group_,replist_,parts_,OptionsPattern[]]:=Module[{indmap,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},result,ntarget,
-indexct,indlist,ybasis,convert,tensorlist,tensorValue,mbasis,mbasisInd,finalresult,qr},
-If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[Index]];
-indexct=AssociationThread[Union@Values[indmap]->0];
-indlist=IndexIterator[indmap[#],indexct]&/@replist;
-ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}|>]];
-convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];
-tensorlist=SimpGFV2[tReduce@SymbolicTC[ExpandSimplify[# convert,tY2M],WithIndex->False]&/@ybasis];
+GaugeJBasis[group_,replist_,parts_]:=Module[{nrep=Length[replist],singletpos,nonsingletpos,nonsingletn,replacerule,nonsingletparts,SUNrepPartlist,ntarget,mbasis,CVParts,CMatrices={},C2Matrices,C3Matrices,finalresult},singletpos=Flatten[Position[replist,ConstantArray[0,Length[group]]]];nonsingletpos=Complement[Range[nrep],singletpos];nonsingletn=Length[replist]-Length[singletpos];replacerule=MapThread[Rule,{nonsingletpos,Range[nonsingletn]}];nonsingletparts=DeleteCases[parts,Alternatives@@singletpos,2]/. replacerule;
 
-tensorValue=NumericContraction[tVal[group]]/@tensorlist;
-mbasis=basisReduce[Flatten/@tensorValue];
-mbasisInd=TensorAddIndex[indmap,indexct,Through[tensorlist[[mbasis["pos"]]]@@DeleteCases[indlist,0]]];
-finalresult=<|"basis"->mbasisInd|>;
+mbasis=GaugeMBasis[group,replist];If[mbasis["basis"]=={1},Return[Association["basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}]]];
+finalresult=Association["basis"->mbasis["basis"],"co-basis_coord"->mbasis["co-basis_coord"]];
 
-(*Begin Processing J basis related*)
-qr=LinSolve[mbasis["basis"]];
-SUNrepPartlist=FindRepPathPartition[group,Abs@replist,parts];
-nonsingletparts=Select[Keys@SUNrepPartlist[[1,1]],(!MatchQ[replist[[#]]&/@#,{Singlet[group]..}])&];
-YTlist=MapIndexed[DeleteCases[{}]@FoldPairList[TakeDrop,Table[Subscript[#2[[1]], i],{i,Total@Dynk2Yng[#1]}],Dynk2Yng[#1]]&,replist]; (*Young tableaux for the representation*)
-RepParts=Map[replist[[#]]&,nonsingletparts,{2}];
-YTParts=Map[YTlist[[#]]&,nonsingletparts,{2}];
-SubYTs=Table[Distribute[GenerateLRTYTs@@@MapThread[{group,#1,#2}&,{SUNrepPartlist[[i,1]][#]&/@nonsingletparts,YTParts}],List],{i,Length[SUNrepPartlist]}];
-
-Do[tempresult={};ranktemp=0;
-ntarget=SUNrepPartlist[[i,2]];
-(* loops for particular channel *)
-Do[(* loop over ybasis *)
-Do[(* loop over young tab *)
-stemp=Expand@FixedPoint[Identityfunc,(PermuteYBasis[ybs,YTs]/. Sortarg[tasList[group]])convert];(*Map[2#&,Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]]//Expand;*)
-If[stemp==0,Continue[]];
-vtemp=SymbolicTC[stemp,WithIndex->False];
-vtemp=NumericContraction[vtemp,tVal[group]];
-coordtemp=Flatten[vtemp].qr;
-AppendTo[tempresult,coordtemp];
-If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[]],
-tempresult=Drop[tempresult,-1]]
-,{YTs,SubYTs[[i]]}]; 
-If[ranktemp==ntarget,Break[]]
-,{ybs,ybasis}];
-(* end loops for particular channel*)
-AppendTo[coordresult,SUNrepPartlist[[i,1]]->tempresult];
-,{i,Length[SUNrepPartlist]}
-];
-AssociateTo[finalresult,"jcoord"->coordresult]
-]*)
+SUNrepPartlist=FindRepPathPartition[group,Abs[replist],parts];
+AppendTo[CMatrices,Association[Apply[Rule,MapThread[{#1,GetCMatrix[group,C2,mbasis["basis"],mbasis["co-basis_coord"],#2]}&,{parts,nonsingletparts}],{1}]]];If[Length[group]>=2,AppendTo[CMatrices,Association[Apply[Rule,MapThread[{#1,GetCMatrix[group,C3,mbasis["basis"],mbasis["co-basis_coord"],#2]}&,{parts,nonsingletparts}],{1}]]];CVParts=Function[u,({C2V[#1],C3V[Reverse[#1]]}&)/@u]/@SUNrepPartlist[[All,1]];,CVParts=Function[u,({C2V[#1]}&)/@u]/@SUNrepPartlist[[All,1]];];finalresult["jcoord"]=Thread[SUNrepPartlist[[All,1]]->Function[u,LinearIntersection@@KeyValueMap[GetCIntersection[#1,#2,CMatrices]&,u]]/@CVParts];finalresult]
 
 
+(* ::Input:: *)
+(*Options[GaugeJBasis]={Index->"default"};*)
+(*{*)
+(* {GaugeJBasis[group_,replist_,parts_,OptionsPattern[]]:=Module[{nrep=Length@replist,ind,indlistJ,indmap,singletpos,nonsingletpos,nonsingletn,replacerule,nonsingletparts,SUNrepPartlist,ntarget,indexct,indlist,mbasis,mbasisInd,mbasisInd2,CVParts,CMatrices={},C2Matrices,C3Matrices,finalresult},*)
+(*  If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[Index]];*)
+(*  singletpos=*)
+(*  Flatten@Position[replist,ConstantArray[0,Length[group]]];*)
+(*  nonsingletpos=Complement[Range[nrep],singletpos];*)
+(*  nonsingletn=Length[replist]-Length[singletpos];*)
+(*  replacerule=MapThread[Rule,{nonsingletpos,Range[nonsingletn]}];*)
+(*  nonsingletparts=*)
+(*  DeleteCases[parts,Alternatives@@singletpos,2]/.replacerule;indexct=AssociationThread[Union[Values[indmap]]->0];indlist=(IndexIterator[indmap[#1],indexct]&)/@replist;indlistJ=Sequence@@Array[ind,nonsingletn];mbasis=GaugeMBasis[group,replist];If[mbasis["basis"]=={1},Return[Association["basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}]]];mbasisInd=(TensorAddIndex[#1,indmap]&)/@mbasis["basis"];*)
+(*  mbasisInd2=Through[mbasis["basis"][indlistJ]];*)
+(*  finalresult=Association["basis"->mbasisInd];SUNrepPartlist=FindRepPathPartition[group,Abs[replist],parts];AppendTo[CMatrices,Association[Apply[Rule,MapThread[{#1,GetCMatrix[group,C2,mbasisInd2,mbasis["co-basis_coord"],#2]}&,{parts,nonsingletparts}],{1}]]];If[Length[group]>=2,AppendTo[CMatrices,Association[Apply[Rule,MapThread[{#1,GetCMatrix[group,C3,mbasisInd2,mbasis["co-basis_coord"],#2]}&,{parts,nonsingletparts}],{1}]]];CVParts=Function[u,({C2V[#1],C3V[Reverse[#1]]}&)/@u]/@SUNrepPartlist[[All,1]];,CVParts=Function[u,({C2V[#1]}&)/@u]/@SUNrepPartlist[[All,1]];];finalresult["jcoord"]=Thread[SUNrepPartlist[[All,1]]->Function[u,LinearIntersection@@KeyValueMap[GetCIntersection[#1,#2,CMatrices]&,u]]/@CVParts];finalresult]}*)
+(*}*)
+(*(*GaugeJBasis[group_,replist_,parts_,OptionsPattern[]]:=Module[{indmap,nonsingletparts,YTlist,RepParts,YTParts,SUNrepPartlist,SubYTs,vtemp,stemp,coordtemp,tempresult,ranktemp,coordresult={},result,ntarget,*)
+(*indexct,indlist,ybasis,convert,tensorlist,tensorValue,mbasis,mbasisInd,finalresult,qr},*)
+(*If[OptionValue[Index]==="default",indmap=Global`INDEX[group],indmap=OptionValue[Index]];*)
+(*indexct=AssociationThread[Union@Values[indmap]->0];*)
+(*indlist=IndexIterator[indmap[#],indexct]&/@replist;*)
+(*ybasis=GaugeYT[group,Abs@replist];If[ybasis=={1},Return[<|"basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}|>]];*)
+(*convert=UnContract[Times@@MapIndexed[CF[#1[[1]],#2[[1]],#1[[2]]]&,{replist,indlist}\[Transpose]]];*)
+(*tensorlist=SimpGFV2[tReduce@SymbolicTC[ExpandSimplify[# convert,tY2M],WithIndex->False]&/@ybasis];*)
+(**)
+(*tensorValue=NumericContraction[tVal[group]]/@tensorlist;*)
+(*mbasis=basisReduce[Flatten/@tensorValue];*)
+(*mbasisInd=TensorAddIndex[indmap,indexct,Through[tensorlist[[mbasis["pos"]]]@@DeleteCases[indlist,0]]];*)
+(*finalresult=<|"basis"->mbasisInd|>;*)
+(**)
+(*(*Begin Processing J basis related*)*)
+(*qr=LinSolve[mbasis["basis"]];*)
+(*SUNrepPartlist=FindRepPathPartition[group,Abs@replist,parts];*)
+(*nonsingletparts=Select[Keys@SUNrepPartlist[[1,1]],(!MatchQ[replist[[#]]&/@#,{Singlet[group]..}])&];*)
+(*YTlist=MapIndexed[DeleteCases[{}]@FoldPairList[TakeDrop,Table[Subscript[#2[[1]], i],{i,Total@Dynk2Yng[#1]}],Dynk2Yng[#1]]&,replist]; (*Young tableaux for the representation*)*)
+(*RepParts=Map[replist[[#]]&,nonsingletparts,{2}];*)
+(*YTParts=Map[YTlist[[#]]&,nonsingletparts,{2}];*)
+(*SubYTs=Table[Distribute[GenerateLRTYTs@@@MapThread[{group,#1,#2}&,{SUNrepPartlist[[i,1]][#]&/@nonsingletparts,YTParts}],List],{i,Length[SUNrepPartlist]}];*)
+(**)
+(*Do[tempresult={};ranktemp=0;*)
+(*ntarget=SUNrepPartlist[[i,2]];*)
+(*(* loops for particular channel *)*)
+(*Do[(* loop over ybasis *)*)
+(*Do[(* loop over young tab *)*)
+(*stemp=Expand@FixedPoint[Identityfunc,(PermuteYBasis[ybs,YTs]/. Sortarg[tasList[group]])convert];(*Map[2#&,Expand[(PermuteYBasis[ybs,YTs]/.Sortarg[tasList[group]])*convert]]//Expand;*)*)
+(*If[stemp==0,Continue[]];*)
+(*vtemp=SymbolicTC[stemp,WithIndex->False];*)
+(*vtemp=NumericContraction[vtemp,tVal[group]];*)
+(*coordtemp=Flatten[vtemp].qr;*)
+(*AppendTo[tempresult,coordtemp];*)
+(*If[ranktemp+1==MatrixRank[tempresult],ranktemp+=1;If[ranktemp==ntarget,Break[]],*)
+(*tempresult=Drop[tempresult,-1]]*)
+(*,{YTs,SubYTs[[i]]}]; *)
+(*If[ranktemp==ntarget,Break[]]*)
+(*,{ybs,ybasis}];*)
+(*(* end loops for particular channel*)*)
+(*AppendTo[coordresult,SUNrepPartlist[[i,1]]->tempresult];*)
+(*,{i,Length[SUNrepPartlist]}*)
+(*];*)
+(*AssociateTo[finalresult,"jcoord"->coordresult]*)
+(*]*)*)
+(**)
+(**)
 
 
 (* ::Subsubsection:: *)

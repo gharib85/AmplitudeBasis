@@ -174,16 +174,20 @@ state2class=D^#2 Times@@Power@@@MapAt[h2f,Tally[#1],{All,1}]&;
 Fields[model_]:=DeleteCases[Keys@Select[model,MatchQ[#,_Association]&],"rep2ind"|"rep2indOut"]
 
 Clear[SetSimplificationRule];
-SetSimplificationRule[group_List]:=Module[{},
-Unprotect[Times,Power];
-Clear[Times,Power];
-Check[tSimp[group]//ReleaseHold,"simplification rule not found"];
+SetSimplificationRule[groups__]:=Module[{},
+Unprotect[Times,Power];Clear[Times,Power];
+Do[Check[ReleaseHold[tSimp[group]],"simplification rule for "<>group<>" not found"],{group,{groups}}];
 Protect[Times,Power]
 ]
 SetSimplificationRule[model_Association]:=Module[{group(*,indexset=Catenate@model["rep2indOut"]*)},
 Unprotect[Times,Power];
 Clear[Times,Power];
 Do[group=CheckGroup[groupname];Check[tSimp[group](*/.{INDEXSET->indexset}*)//ReleaseHold,"simplification rule for "<>groupname<>" not found"],{groupname,model["Groups"]}];
+Protect[Times,Power]
+]
+ReSetSimplificationRule[]:=Module[{},
+Unprotect[Times,Power];
+Clear[Times,Power];
 Protect[Times,Power]
 ]
 
@@ -195,7 +199,8 @@ ModelIni[model_]:=model=<|"Groups"->{},"Gauge"->{},"rep2indOut"-><||>|>
 LoadGroup[groupname_String]:=Module[{profile},
 If[!MemberQ[groupList,groupname],
 profile=FileNameJoin[{Global`$AmplitudeBasisDir,"GroupProfile", groupname<>"_profile.m"}];
-If[FileExistsQ[profile],Get[profile];SetSimplificationRule[ToExpression[groupname]],
+If[FileExistsQ[profile],
+Get[profile];SetSimplificationRule@@ToExpression/@groupList,
 Message[LoadGroup::profile,groupname];Abort[]]]]
 LoadGroup::profile="Profile for group `1` not found.";
 
