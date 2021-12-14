@@ -813,41 +813,39 @@ pos=basisReducePro[Extract[tensor,ConstantArray[1,len]](*,Identity*)]["pos"];
 TensorTranspose[Map[Part[#,pos]&,tensor,{len}],Append[Range[2,len+1],1]]
 ]
 
-GetWCs[posRepeat_,replist_]:=Module[{indices,tdims,super},
-indices=StringRiffle[\!\(\*
-TagBox[
-StyleBox[
-RowBox[{"\"\<\\!\\(\\*SubscriptBox[\\(p\\), \\(\>\"", "<>", 
-RowBox[{"ToString", "[", "#", "]"}], "<>", "\"\<\\)]\\)\>\""}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\)&/@Flatten[posRepeat],""];
+(*GetWCs[posRepeat_,replist_]:=Module[{indices,tdims,super},
+indices=StringRiffle["\!\(\*SubscriptBox[\(p\), \("<>ToString[#]<>"\)]\)"&/@Flatten[posRepeat],""];
 tdims=Range[SnIrrepDim[#]]&/@replist;
 super=MapThread[Function[{u},"(["<>StringRiffle[ToString/@#1,","]<>"],"<>ToString[u]<>")"]/@#2&,{replist,tdims}];
 super=StringRiffle[#,","]&/@Distribute[super,List];
-\!\(\*
+"\!\(\*SubscriptBox[\((\*SuperscriptBox[\(C\), \("<>#<>"\)])\), \("<>indices<>"\)]\)"&/@super
+]*)
+GetWCs[posRepeat_,posnfl_,replist_]:=Module[{tdims,super,sub},If[Length[posnfl]==0,Return[1]];
+(*indices=StringRiffle[StringRiffle["\!\(\*SubscriptBox[\(f\), \("<>ToString[#]<>"\)]\)"&/@#1,""]&/@posnfl,","];*)
+sub=StringRiffle[StringRiffle[\!\(\*
 TagBox[
 StyleBox[
-RowBox[{"\"\<\\!\\(\\*SubscriptBox[\\((\\*SuperscriptBox[\\(C\\), \\(\>\"", "<>", "#", "<>", "\"\<\\)])\\), \\(\>\"", "<>", "indices", "<>", "\"\<\\)]\\)\>\""}],
+RowBox[{
+RowBox[{"\"\<\\*SubscriptBox[\\(f\\), \\(\>\"", "<>", 
+RowBox[{"ToString", "[", "#", "]"}], "<>", "\"\<\\)]\>\""}], "&"}],
 ShowSpecialCharacters->False,
 ShowStringCharacters->True,
 NumberMarks->True],
-FullForm]\)&/@super
-]
+FullForm]\)/@#1,""]&/@posnfl,","];(*StringRiffle[("\!\(\*SubscriptBox[\(p\), \("<>ToString[#1]<>"\)]\)"&)/@Flatten[posRepeat],""];*)tdims=(Range[SnIrrepDim[#1]]&)/@replist;super=MapThread[Function[{u},"\((\(["<>StringRiffle[ToString/@#1,","]<>"]\),"<>ToString[u]<>")\)"]/@#2&,{replist,tdims}];super=(StringRiffle[#1,","]&)/@Distribute[super,List];("\!\(\*SubsuperscriptBox[\(C\), \("<>sub<>"\), \("<>#<>"\)]\)"&)/@super]
 GetSnGenerators[irrep_]:=Module[{matmaps,n=Total[irrep]},ReadMatrices[matmaps,n,NotebookDirectory[]<>"SnMat"];{matmaps[irrep][Cycles[{{1,2}}]],matmaps[irrep][Cycles[{Range[n]}]]}]
 GetWGenerator[ynglist_]:=Module[{len=Length[ynglist],tdims,gens,wgens},tdims=SnIrrepDim/@ynglist[[All,2]];gens=IdentityMatrix/@tdims;
 wgens=GetSnGenerators/@ynglist[[All,2]];
 Association@MapThread[Rule,{ynglist[[All,1]],If[len===1,wgens,Table[SparseArray[KroneckerProduct@@ReplacePart[gens,i->Transpose@#]]&/@wgens[[i]],{i,len}]]}]
 ]
 GetGaugeIndex[group_,replist_]:=Module[{indmap,indexct},indmap=Global`INDEX[CheckGroup[group]];indexct=AssociationThread[Union[Values[indmap]]->0];(IndexIterator[indmap[#1],indexct]&)/@replist]
-GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],ampgaugeind,gaugeind,repindrule,posRepeat,yngList,len,lorBasis,gaugeBasis,factors,opBasis,opBasisw,generators,generatorsw,pCoord,ampresult=<||>,yngListamp,SoftPart,Kmy},
+GetBasisForType[model_,type_,OptionsPattern[]]:=Module[{particles=CheckType[model,type,Counting->False],state,k,replist,NAgroups=Select[model["Groups"],nonAbelian],ampgaugeind,gaugeind,repindrule,posRepeat,posnfl,yngList,len,lorBasis,gaugeBasis,factors,opBasis,opBasisw,generators,generatorsw,pCoord,ampresult=<||>,yngListamp,SoftPart,Kmy},
 state=Delete[model[#]["helicity"]&/@particles,Position[model[#]["spurion"]&/@particles,True]];k=Exponent[type,"D"];
 SoftPart=Position[model[#]["soft"]&/@particles,True]//Flatten;If[SoftPart==={},SoftPart=False];
 
 replist=Outer[model[#2][#1]&,NAgroups,particles];
 
 posRepeat=Select[PositionIndex[particles],Length[#]>1&];
+posnfl=Values[KeySelect[PositionIndex[particles],model[#]["nfl"]>1&]];
 yngList=IntegerPartitions@Length[#]&/@posRepeat;
 yngList=Thread/@Distribute[{Keys[yngList]}->Distribute[Values[yngList],List],List];
 If[OptionValue[NfSelect],yngList=Select[yngList,And@@(SQ[model]@@@#)&]];
@@ -891,7 +889,7 @@ If[posRepeat=!={},
 yngListamp=If[OddQ[2 model[#1[[1]]]["helicity"]],#1[[1]]->ConstantArray[1,Total[#1[[2]]]],#1[[1]]->{Total[#1[[2]]]}]&/@yngList[[1]];
 Do[
 generatorsw=Merge[{GetWGenerator[yng],generators},MapThread[KroneckerProduct,#]&];
-opBasisw=Flatten@TensorProduct[GetWCs[posRepeat,yng[[All,2]]],opBasis];
+opBasisw=Flatten@TensorProduct[GetWCs[posRepeat,posnfl,yng[[All,2]]],opBasis];
 If[Length[opBasisw]==1,ampresult[yng]=opBasisw[[1]];Return[ampresult]];
 pCoord=basisReducePro[Dot@@Merge[{generatorsw,#1},PermRepFromGenerator[#1[[1]],YO[#1[[2]]]]&]]["pos"]&@yngListamp;
 If[pCoord!={},ampresult[yng]=opBasisw[[#]]&/@pCoord];

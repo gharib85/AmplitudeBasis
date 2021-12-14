@@ -73,6 +73,15 @@ Do[plist=(Position[t1,#]&/@t2[[i]])[[1;;-1,1,2]];If[(SortBy[Tally[plist],Last])[
 
 (* ::Input::Initialization:: *)
 (* basis Subscript[b, \[Mu]\[Nu]] for Sn irrep space *)
+Generatebmunu[part_,mu_,nu_]:=Module[{Pnumu,Qnumu,Rnumu,ymu,e,b,ndim=SnIrrepDim[part],n=Total[part],ng=Total[part]!,ST,YSlist,PQtemp,e1coeff,gP,gW},
+ST=GenerateStandardTableaux[part];
+YSlist=(GenerateYoungSymmetrizer/@ST);
+Do[Rnumu[i,j]=R[ST,i,j];If[NormalizeQ[ST[[i]],ST[[j]]],Pnumu[i,j]=0;Qnumu[i,j]=0,PQtemp=GetPQFromPerm[ST[[j]],R[ST,i,j]];Pnumu[i,j]=PQtemp[[1]];Qnumu[i,j]=PQtemp[[2]];],{i,1,ndim},{j,1,ndim}];
+ymu[ndim]=Cycles[{}];
+Do[ymu[ndim-k]=(Cycles[{}]-Sum[pp[{Pnumu[ndim-k,l],ymu[l]}],{l,ndim-k+1,ndim}]),{k,1,ndim-1}];
+Do[e[mu]=ndim/ng (pp[{(GenerateYoungSymmetrizer[ST[[mu]]]),ymu[mu]}]),{mu,1,ndim}];
+Return[pp[R[ST,mu,nu],e[nu]]]
+]
 Generateb[part_]:=Module[{Pnumu,Qnumu,Rnumu,ymu,e,b,ndim=SnIrrepDim[part],n=Total[part],ng=Total[part]!,ST,YSlist,PQtemp,e1coeff,gP,gW},
 ST=GenerateStandardTableaux[part];
 YSlist=(GenerateYoungSymmetrizer/@ST);

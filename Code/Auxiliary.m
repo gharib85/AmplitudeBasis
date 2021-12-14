@@ -119,11 +119,13 @@ MapIntersection[R.A,R.B]
 
 
 (* ::Input::Initialization:: *)
-PermuteBasis[y_,YT_]:=Module[{symmetrizer,replacerule,yt=Flatten[YT]},
+Options[PermuteBasis]={Inver->True,nb->1};
+PermuteBasis[y_,YT_,OptionsPattern[]]:=Module[{symmetrizer,replacerule,yt=Flatten[YT]},
 (*permute the given basis symbolically given the Young tableaux YT*)
-If[MatchQ[YT,{{_}}]||MatchQ[YT,{{}..}],Return[y]];
-symmetrizer=Prod2List/@Sum2List[Expand[Generateb[Length/@YT][[1]]]];
-replacerule={#[[1]],MapThread[Rule,{yt,Permute[yt,InversePermutation@#[[2]]]}]}&/@symmetrizer;
+If[MatchQ[YT,{{_}}]||MatchQ[YT,{{}..}],Return[y]];Print[OptionValue[nb]==1];
+symmetrizer=Prod2List/@Sum2List[Expand[Generateb[Length/@YT][[OptionValue[nb]]]]];
+(*replacerule={#[[1]],MapThread[Rule,{yt,Permute[yt,InversePermutation@#[[2]]]}]}&/@symmetrizer;*)
+If[OptionValue[Inver],replacerule=({#1[[1]],MapThread[Rule,{yt,Permute[yt,InversePermutation[#1[[2]]]]}]}&)/@symmetrizer,replacerule=({#1[[1]],MapThread[Rule,{yt,Permute[yt,#1[[2]]]}]}&)/@symmetrizer];
 Plus@@(Times@@@({#[[1]],y/.#[[2]]}&/@replacerule))
 ]
 PermuteYBasis[y_,YTs_]:=Fold[PermuteBasis,y,YTs]
