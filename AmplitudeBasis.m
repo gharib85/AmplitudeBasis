@@ -820,18 +820,15 @@ super=MapThread[Function[{u},"(["<>StringRiffle[ToString/@#1,","]<>"],"<>ToStrin
 super=StringRiffle[#,","]&/@Distribute[super,List];
 "\!\(\*SubscriptBox[\((\*SuperscriptBox[\(C\), \("<>#<>"\)])\), \("<>indices<>"\)]\)"&/@super
 ]*)
-GetWCs[posRepeat_,posnfl_,replist_]:=Module[{tdims,super,sub},If[Length[posnfl]==0,Return[1]];
+(*GetWCs[posRepeat_,posnfl_,replist_]:=Module[{tdims,super,sub},If[Length[posnfl]==0,Return[1]];
 (*indices=StringRiffle[StringRiffle["\!\(\*SubscriptBox[\(f\), \("<>ToString[#]<>"\)]\)"&/@#1,""]&/@posnfl,","];*)
-sub=StringRiffle[StringRiffle[\!\(\*
-TagBox[
-StyleBox[
-RowBox[{
-RowBox[{"\"\<\\*SubscriptBox[\\(f\\), \\(\>\"", "<>", 
-RowBox[{"ToString", "[", "#", "]"}], "<>", "\"\<\\)]\>\""}], "&"}],
-ShowSpecialCharacters->False,
-ShowStringCharacters->True,
-NumberMarks->True],
-FullForm]\)/@#1,""]&/@posnfl,","];(*StringRiffle[("\!\(\*SubscriptBox[\(p\), \("<>ToString[#1]<>"\)]\)"&)/@Flatten[posRepeat],""];*)tdims=(Range[SnIrrepDim[#1]]&)/@replist;super=MapThread[Function[{u},"\((\(["<>StringRiffle[ToString/@#1,","]<>"]\),"<>ToString[u]<>")\)"]/@#2&,{replist,tdims}];super=(StringRiffle[#1,","]&)/@Distribute[super,List];("\!\(\*SubsuperscriptBox[\(C\), \("<>sub<>"\), \("<>#<>"\)]\)"&)/@super]
+sub=StringRiffle[StringRiffle["\*SubscriptBox[\(f\), \("<>ToString[#]<>"\)]"&/@#1,""]&/@posnfl,","];(*StringRiffle[("\!\(\*SubscriptBox[\(p\), \("<>ToString[#1]<>"\)]\)"&)/@Flatten[posRepeat],""];*)tdims=(Range[SnIrrepDim[#1]]&)/@replist;super=MapThread[Function[{u},"\((\(["<>StringRiffle[ToString/@#1,","]<>"]\),"<>ToString[u]<>")\)"]/@#2&,{replist,tdims}];super=(StringRiffle[#1,","]&)/@Distribute[super,List];("\!\(\*SubsuperscriptBox[\(C\), \("<>sub<>"\), \("<>#<>"\)]\)"&)/@super]*)
+
+GetWCs[posRepeat_,posnfl_,replist_]:=Module[{tdims,super,sub,posf1repeat,replistnof1},If[Length[posnfl]==0,Return[1]];
+sub=StringRiffle[(StringRiffle[("\*SubscriptBox[\(f\), \("<>ToString[#1]<>"\)]"&)/@#1,""]&)/@posnfl,","];If[posRepeat=={},Return["\!\(\*SubsuperscriptBox[\(C\), \("<>sub<>"\), \( \)]\)"]];
+posf1repeat=Flatten[Position[posRepeat,#]&/@Complement[posRepeat,Intersection[posRepeat,posnfl]]];
+replistnof1=Drop[replist,posf1repeat];tdims=(Range[SnIrrepDim[#1]]&)/@replistnof1;super=MapThread[Function[{u},"\((\(["<>StringRiffle[ToString/@#1,","]<>"]\),"<>ToString[u]<>")\)"]/@#2&,{replistnof1,tdims}];super=(StringRiffle[#1,","]&)/@Distribute[super,List];("\!\(\*SubsuperscriptBox[\(C\), \("<>sub<>"\), \("<>#1<>"\)]\)"&)/@super]
+
 GetSnGenerators[irrep_]:=Module[{matmaps,n=Total[irrep]},ReadMatrices[matmaps,n,NotebookDirectory[]<>"SnMat"];{matmaps[irrep][Cycles[{{1,2}}]],matmaps[irrep][Cycles[{Range[n]}]]}]
 GetWGenerator[ynglist_]:=Module[{len=Length[ynglist],tdims,gens,wgens},tdims=SnIrrepDim/@ynglist[[All,2]];gens=IdentityMatrix/@tdims;
 wgens=GetSnGenerators/@ynglist[[All,2]];
@@ -879,7 +876,7 @@ opBasis=opBasis//.listtotime];
 (*,If[!OptionValue[Working],opBasis=RefineReplace@opBasis]];*)
 Kmy=TensorProduct@@factors["Trans"];Do[Kmy=ArrayFlatten[Kmy],{re,Length@factors["Trans"]-1}];
 
-If[Length[posRepeat]==0,Return[<|"basis"->Flatten@opBasis,"Kmy"->Kmy|>]];
+If[Length[posRepeat]==0,Return[<|"basis"->GetWCs[posRepeat,posnfl,{}]Flatten@opBasis,"Kmy"->Kmy|>]];
 generators=Merge[factors["generators"],SparseArray/@
 Flatten[MapThread[TensorProduct,#],{{1},2Range[Length[NAgroups]+1],2Range[Length[NAgroups]+1]+1}]&];
 
