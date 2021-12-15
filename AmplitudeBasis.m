@@ -862,7 +862,8 @@ gaugeBasis=Append[#,"Trans"->FindGCoord/@#["basis"]]&/@gaugeBasis;
 
 (*amplitude output with repeated fields*)
 If[OptionValue[OutputFormat]==="amplitude",ampgaugeind=Flatten[MapThread[Function[{u,v},("\!\(\*SubscriptBox[\("<>Take[model["rep2indOut"][u][#1[[1]]],1]<>"\), \("<>ToString[#1[[2]]]<>"\)]\)"&)/@v],{NAgroups,(DeleteCases[Thread[{#1,Range[Length[#1]]}],{{(0)..},_}]&)/@replist}]];(*gaugeind=Flatten[MapThread[Function[{u,v},(Take[model["rep2indOut"][u][#1[[1]]],#1[[2]]]&)/@v],{NAgroups,Tally/@(DeleteCases[#1,{(0)..}]&)/@Replace[replist,{x_/;OrderedQ[x]:>Reverse[x],x_:>Abs[x]},2]}]];*)
-gaugeind=Flatten[MapThread[GetGaugeIndex[#1,#2]&,{NAgroups,(DeleteCases[#1,{(0)..}]&)/@Replace[replist,{x_/;OrderedQ[x]:>Reverse[x],x_:>Abs[x]},2]}]];repindrule=MapThread[Rule,{gaugeind,ampgaugeind}];gaugeBasis=gaugeBasis/. repindrule;];
+gaugeind=(*Flatten[MapThread[GetGaugeIndex[#1,#2]&,{NAgroups,(DeleteCases[#1,{(0)..}]&)/@Replace[replist,{x_/;OrderedQ[x]:>Reverse[x],x_:>Abs[x]},2]}]];*)
+Flatten[MapThread[GetGaugeIndex[#1,#2]&,{NAgroups,(DeleteCases[#1,{(0)..}]&)/@(Abs[Replace[#,{x_/;OrderedQ[x]:>Reverse[x]},1]]&/@replist)}]];repindrule=MapThread[Rule,{gaugeind,ampgaugeind}];gaugeBasis=gaugeBasis/. repindrule;];
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 factors=MapAt[KeyMap[particles[[First[#]]]&],factors,{Key["generators"],All}];
 
