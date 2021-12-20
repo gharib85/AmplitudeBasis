@@ -256,7 +256,7 @@ sample=gaugefactor];mb=GaugeMBasis[group,ConjugateRep/@(Values@IndexRep[Symbolic
 FindGCoord[gaugefactor_]:=Module[{},Switch[gaugefactor[[0]],
 \[Lambda]|del3|fabc|dabc|eps3f|eps3a,FindGaugeCoord[SU3,gaugefactor][[-1]],
 \[Tau]|del2|eps3n|del3n|eps2f|eps2a,FindGaugeCoord[SU2,gaugefactor][[-1]],
-Times|Plus,If[Cases[Flatten[gaugefactor//.{Plus->List,Times->List}],_\[Lambda]|_del3|_del8n|_fabc|_dabc|_eps3f|_eps3a]==={},If[Cases[Flatten[gaugefactor//.{Plus->List,Times->List}],_\[Tau]|_del2|_eps3n|_del3n|_eps2f|_eps2a]==={},Print["gaugefactor= ",gaugefactor],FindGaugeCoord[SU2,gaugefactor][[-1]]],FindGaugeCoord[SU3,gaugefactor][[-1]]],_,{gaugefactor}]];
+Times|Plus,If[Cases[Flatten[gaugefactor//.{Plus->List,Times->List}],_ \[Lambda]|_del3|_del8n|_fabc|_dabc|_eps3f|_eps3a]==={},If[Cases[Flatten[gaugefactor//.{Plus->List,Times->List}],_ \[Tau]|_del2|_eps3n|_del3n|_eps2f|_eps2a]==={},Print["gaugefactor= ",gaugefactor],FindGaugeCoord[SU2,gaugefactor][[-1]]],FindGaugeCoord[SU3,gaugefactor][[-1]]],_,{gaugefactor}]];
 
 
 (* ::Input::Initialization:: *)
@@ -543,10 +543,11 @@ GetCIntersection[part_,CV_,Cmatrices_]:=LinearIntersection@@MapThread[#1[part][#
 
 
 (* ::Input::Initialization:: *)
-GaugeJBasis[group_,replist_,parts_]:=Module[{nrep=Length[replist],singletpos,nonsingletpos,nonsingletn,replacerule,nonsingletparts,SUNrepPartlist,ntarget,mbasis,CVParts,CMatrices={},C2Matrices,C3Matrices,finalresult},singletpos=Flatten[Position[replist,ConstantArray[0,Length[group]]]];nonsingletpos=Complement[Range[nrep],singletpos];nonsingletn=Length[replist]-Length[singletpos];replacerule=MapThread[Rule,{nonsingletpos,Range[nonsingletn]}];nonsingletparts=DeleteCases[parts,Alternatives@@singletpos,2]/. replacerule;
+GaugeJBasis[group_,replist_,parts_]:=Module[{nrep=Length[replist],singletpos,nonsingletpos,nonsingletn,replacerule,nonsingletparts,SUNrepPartlist,ntarget,mbasis,indmap=Global`INDEX[group],mbasisInd,CVParts,CMatrices={},C2Matrices,C3Matrices,finalresult},singletpos=Flatten[Position[replist,ConstantArray[0,Length[group]]]];nonsingletpos=Complement[Range[nrep],singletpos];nonsingletn=Length[replist]-Length[singletpos];replacerule=MapThread[Rule,{nonsingletpos,Range[nonsingletn]}];nonsingletparts=DeleteCases[parts,Alternatives@@singletpos,2]/. replacerule;
 
 mbasis=GaugeMBasis[group,replist];If[mbasis["basis"]=={1},Return[Association["basis"->{1},"jcoord"->{AssociationThread[parts->ConstantArray[Singlet[group],Length[parts]]]->{{1}}}]]];
-finalresult=Association["basis"->mbasis["basis"],"co-basis_coord"->mbasis["co-basis_coord"]];
+mbasisInd=(TensorAddIndex[#1,indmap]&)/@mbasis["basis"];
+finalresult=Association["basis"->mbasisInd,"co-basis_coord"->mbasis["co-basis_coord"]];
 
 SUNrepPartlist=FindRepPathPartition[group,Abs[replist],parts];
 AppendTo[CMatrices,Association[Apply[Rule,MapThread[{#1,GetCMatrix[group,C2,mbasis["basis"],mbasis["co-basis_coord"],#2]}&,{parts,nonsingletparts}],{1}]]];If[Length[group]>=2,AppendTo[CMatrices,Association[Apply[Rule,MapThread[{#1,GetCMatrix[group,C3,mbasis["basis"],mbasis["co-basis_coord"],#2]}&,{parts,nonsingletparts}],{1}]]];CVParts=Function[u,({C2V[#1],C3V[Reverse[#1]]}&)/@u]/@SUNrepPartlist[[All,1]];,CVParts=Function[u,({C2V[#1]}&)/@u]/@SUNrepPartlist[[All,1]];];finalresult["jcoord"]=Thread[SUNrepPartlist[[All,1]]->Function[u,LinearIntersection@@KeyValueMap[GetCIntersection[#1,#2,CMatrices]&,u]]/@CVParts];finalresult]

@@ -936,7 +936,7 @@ LorentzJBasis[state,k,partition],Key["basis"]];
 lorBasis["basis"]=transform[lorBasis["basis"],ReplaceField->{model,type,OptionValue[FerCom]},
 OpenFchain->False,ActivatePrintTensor->False,Working->OptionValue[Working]];
 ];
-gaugeBasis=MapThread[GaugeJBasis[CheckGroup[#1],#2,parsePart[partition,numpar],Index->model["rep2indOut"][#1]]&,{NAgroups,replist}];
+gaugeBasis=MapThread[GaugeJBasis[CheckGroup[#1],#2,parsePart[partition,numpar]]&,{NAgroups,replist}];
 factors=Merge[Append[gaugeBasis,lorBasis],Identity];
 
 If[OptionValue[OutputFormat]=="operator",
