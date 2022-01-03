@@ -617,31 +617,40 @@ Return[types[[All,2]]];
 GetTypes[model_,dim_,file_]:=GetTypes[model,dim,dim,file]
 
 (*Get Types with EOM relaiton*)
-GetRelevantDAux[model_,dimlim_,fields_,nDs_]:=Module[{state,dim,NAgroups=Select[model["Gauge"],nonAbelian],Agroups=Select[model["Gauge"],!nonAbelian[#1]&],dimnow=Total[Abs[model[#]["helicity"]]+1&/@fields]+nDs,funique=DeleteDuplicates[fields],eomlist,result={}},
+ClassDim[class_]:=Module[{k=Exponent[class,D]},Total[Abs[f2h/@(Prod2List[class]/.D->Nothing)]+1]+k]
+
+\[Omega]Type[model_,type_]:=Module[{flist=CheckType[model,type,Counting->False]},Length[flist]-Total[(model[#]["helicity"]&/@flist)]]
+\[Omega]barType[model_,type_]:=Module[{flist=CheckType[model,type,Counting->False]},Length[flist]+Total[(model[#]["helicity"]&/@flist)]]
+\[Omega]Class[class_]:=Module[{flist=Prod2List[class]/.D->Nothing},Length[flist]-Total[f2h/@flist]]
+\[Omega]barClass[class_]:=Module[{flist=Prod2List[class]/.D->Nothing},Length[flist]+Total[f2h/@flist]]
+
+Type2Class[model_,type_]/;MatchQ[Head[type],Power|Times|String]:=Module[{k=Exponent[type,"D"],flist},If[type=="DD",Return["DD"]];flist=CheckType[model,type,Counting->False];Times@@(h2f/@(model[#]["helicity"]&/@flist))*D^k]
+
+GetRelevantDAux[model_,dimlim_,fields_,nDs_,usetype_:{}]:=Module[{state,dim,NAgroups=Select[model["Gauge"],nonAbelian],Agroups=Select[model["Gauge"],!nonAbelian[#1]&],(*dimnow=Total[Abs[model[#]["helicity"]]+1&/@fields]+nDs,*)funique=DeleteDuplicates[fields],eomlist,result={}},
 state=Sort[(model[#1]["helicity"]&)/@fields];
 dim=Total[Abs[state]+1]+nDs;
-If[Position[LorentzList[dim],{state,nDs}]!={},Sow[Join[fields,ConstantArray["D",nDs]]]];
-If[dimnow>dimlim,Return[]];
+If[dim>dimlim,Return[]];
+If[Cases[LorentzList[dim],{state,nDs}|{Sort[-state],nDs}]!={}&&usetype=!={},Sow[{Join[fields,ConstantArray["D",nDs]],usetype}]];
 If[nDs==0,Return[]];
 If[nDs==1,
 Do[eomlist=EOM[item];
-GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-1+#[[2]]}&/@eomlist);
+GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-1+#[[2]],Append[usetype,item]}&/@eomlist);
 ,{item,Select[funique,(Abs[model[#]["helicity"]]==1/2||Abs[model[#]["helicity"]]==1)&]}];
 Return[result];
 ];
 If[nDs>=2,
 Do[If[Length@Select[model[#][gg]&/@fields,Not[#==Singlet[CheckGroup[gg]]]&]>=1,
-GetRelevantDAux[model,dimlim,Join[fields,{model[gg]<>"L"}],nDs-2];GetRelevantDAux[model,dimlim,Join[fields,{model[gg]<>"R"}],nDs-2]],{gg,model["Gauge"]}];
+GetRelevantDAux[model,dimlim,Join[fields,{model[gg]<>"L"}],nDs-2,Append[usetype,"DD"]];GetRelevantDAux[model,dimlim,Join[fields,{model[gg]<>"R"}],nDs-2,Append[usetype,"DD"]]],{gg,model["Gauge"]}];
 Do[eomlist=EOM[item];
-GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-2+#[[2]]}&/@eomlist);
+GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-2+#[[2]],Append[usetype,item]}&/@eomlist);
 ,{item,Select[funique,(Abs[model[#]["helicity"]]==0)&]}];
 Do[eomlist=EOM[item];
-GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-1+#[[2]]}&/@eomlist);
+GetRelevantDAux@@@({model,dimlim,Join[DeleteCases[fields,item,1,1],#[[1]]],nDs-1+#[[2]],Append[usetype,item]}&/@eomlist);
 ,{item,Select[funique,(Abs[model[#]["helicity"]]==1/2||Abs[model[#]["helicity"]]==1)&]}];
 Return[result]
 ]
 ]
-GetRelevantD[model_,dimlim_,type_]:=Module[{k=Exponent[type,"D"]},Times@@@Reap[GetRelevantDAux[model,dimlim,CheckType[model,type,Counting->False],k]][[2,1]]]
+GetRelevantD[model_,dimlim_,type_]:=Module[{k=Exponent[type,"D"]},If[k==0,Return[]];MapAt[Times@@#&,Reap[GetRelevantDAux[model,dimlim,CheckType[model,type,Counting->False],k]][[2,1]],{All,1}]]
 
 
 (* ::Input::Initialization:: *)
@@ -877,7 +886,7 @@ opBasis=opBasis//.listtotime];
 (*,If[!OptionValue[Working],opBasis=RefineReplace@opBasis]];*)
 Kmy=TensorProduct@@factors["Trans"];Do[Kmy=ArrayFlatten[Kmy],{re,Length@factors["Trans"]-1}];
 
-If[Length[posRepeat]==0,Return[<|"basis"->GetWCs[posRepeat,posnfl,{}]Flatten@opBasis,"Kmy"->Kmy|>]];
+If[Length[posRepeat]==0,Return[<|"basis"->If[OptionValue[OutputFormat]==="amplitude",GetWCs[posRepeat,posnfl,{}],1]Flatten@opBasis,"Kmy"->Kmy|>]];
 generators=Merge[factors["generators"],SparseArray/@
 Flatten[MapThread[TensorProduct,#],{{1},2Range[Length[NAgroups]+1],2Range[Length[NAgroups]+1]+1}]&];
 
